@@ -98,25 +98,44 @@ function maskAccount(acc) {
 
 function isNotSlipError(result) {
   // Thunder API returns VALIDATION_ERROR when the image is not a slip at all
-  // (e.g. screenshot of text, random photo, meme, etc.)
+  // Catch it from every possible field in the response
   if (!result || result.success) return false;
-  var code = result.error && result.error.code ? result.error.code : '';
+  
+  // Check error.code
+  var code = (result.error && result.error.code) ? result.error.code : '';
   if (code === 'VALIDATION_ERROR') return true;
+  
+  // Check error.message (might contain VALIDATION_ERROR as text)
+  var errMsg = (result.error && result.error.message) ? result.error.message : '';
+  if (errMsg.indexOf('VALIDATION_ERROR') !== -1) return true;
+  
+  // Check top-level code/message (some API versions put it at root)
+  if (result.code === 'VALIDATION_ERROR') return true;
+  if (result.message && result.message.indexOf('VALIDATION_ERROR') !== -1) return true;
+  
+  // Check HTTP-style error format
+  if (result.status === 400 && !result.success) {
+    // 400 Bad Request with no success = likely validation error for non-slip image
+    if (errMsg.toLowerCase().indexOf('valid') !== -1) return true;
+  }
+  
   return false;
 }
 
 function isSlipPending(result) {
   // Bangkok Bank slips transferred within last 5 minutes may not be verifiable yet
   if (!result || result.success) return false;
-  var code = result.error && result.error.code ? result.error.code : '';
-  return code === 'SLIP_PENDING';
+  var code = (result.error && result.error.code) || result.code || '';
+  var msg = ((result.error && result.error.message) || result.message || '').toLowerCase();
+  return code === 'SLIP_PENDING' || msg.indexOf('slip_pending') !== -1 || msg.indexOf('pending') !== -1;
 }
 
 function isSlipNotFound(result) {
   // QR code not found in image — could be a real slip without QR (e.g. Bangkok Bank)
   if (!result || result.success) return false;
-  var code = result.error && result.error.code ? result.error.code : '';
-  return code === 'SLIP_NOT_FOUND';
+  var code = (result.error && result.error.code) || result.code || '';
+  var msg = ((result.error && result.error.message) || result.message || '').toLowerCase();
+  return code === 'SLIP_NOT_FOUND' || msg.indexOf('slip_not_found') !== -1 || msg.indexOf('no qr') !== -1 || msg.indexOf('ไม่พบ') !== -1;
 }
 
 function buildPendingFlex(slipConfig) {
@@ -696,59 +715,39 @@ module.exports = async (req, res) => {
 
         result = await verifySlip(imgBuf);
         slipRecord.raw = result;
-
-        // ── ถ้ารูปไม่ใช่สลิป (VALIDATION_ERROR) → ไม่ตอบอะไร, ข้ามไปเลย ──
-        if (isNotSlipError(result)) {
-          // Log as regular image message, not a slip attempt
-          await store.addEvent({
-            id: slipRecord.id, timestamp: Date.now(), source: 'line',
-            userId: uid, name: displayName, text: 'image (ไม่ใช่สลิป)', type: 'message',
-          });
-          continue;
-        }
-
-        // ── สลิปกรุงเทพ: ยังไม่พร้อมตรวจ (SLIP_PENDING) → แจ้งลูกค้าให้รอ ──
-        if (isSlipPending(result)) {
-          await replyMessage(replyToken, [buildPendingFlex(slipConfig)]);
-          await store.addEvent({
-            id: slipRecord.id, timestamp: Date.now(), source: 'line',
-            userId: uid, name: displayName, text: 'slip-pending', type: 'message',
-          });
-          continue;
-        }
-
-        // ── ไม่พบ QR Code บนสลิป (SLIP_NOT_FOUND) → แจ้งลูกค้า ──
-        if (isSlipNotFound(result)) {
-          await replyMessage(replyToken, [buildNoQrFlex(slipConfig)]);
-          await store.addEvent({
-            id: slipRecord.id, timestamp: Date.now(), source: 'line',
-            userId: uid, name: displayName, text: 'slip-no-qr', type: 'message',
-          });
-          continue;
-        }
+        
+        // ── Debug: Log Thunder API response for troubleshooting ──
+        console.log('Thunder API response:', JSON.stringify({
+          success: result.success,
+          errorCode: result.error && result.error.code,
+          errorMsg: result.error && result.error.message,
+          keys: Object.keys(result),
+        }));
 
         if (result.success) {
+          // ── สลิปตรวจสำเร็จ → ตอบ Flex ──
           var errReason = classifyError(result);
           slipRecord.status = errReason ? 'fail' : 'pass';
           slipRecord.errorReason = errReason;
           slipRecord.amount = extractAmount(result);
           slipRecord.slipInfo = extractSlipInfo(result);
           await replyMessage(replyToken, [buildFlex(result.data, slipConfig)]);
+          await store.addSlip(slipRecord);
+          await store.addEvent({
+            id: slipRecord.id, timestamp: Date.now(), source: 'line',
+            userId: uid, name: displayName, text: 'slip', type: 'slip',
+            slipStatus: slipRecord.status, slipAmount: slipRecord.amount,
+            slipError: slipRecord.errorReason,
+          });
         } else {
-          slipRecord.status = 'fail';
-          slipRecord.errorReason = classifyError(result);
-          await replyMessage(replyToken, [
-            buildErrorFlex(result.error ? result.error.message : 'ไม่สามารถตรวจสลิปได้', slipConfig),
-          ]);
+          // ── ตรวจไม่สำเร็จ (ไม่ใช่สลิป, ไม่มี QR, pending, etc.) → เงียบ ไม่ตอบ ──
+          await store.addEvent({
+            id: slipRecord.id, timestamp: Date.now(), source: 'line',
+            userId: uid, name: displayName,
+            text: 'image-skip (' + ((result.error && result.error.code) || (result.error && result.error.message) || 'unknown') + ')',
+            type: 'message',
+          });
         }
-
-        await store.addSlip(slipRecord);
-        await store.addEvent({
-          id: slipRecord.id, timestamp: Date.now(), source: 'line',
-          userId: uid, name: displayName, text: 'slip', type: 'slip',
-          slipStatus: slipRecord.status, slipAmount: slipRecord.amount,
-          slipError: slipRecord.errorReason,
-        });
       } catch (e) {
         slipRecord.status = 'fail';
         slipRecord.errorReason = 'อ่านไม่ได้';

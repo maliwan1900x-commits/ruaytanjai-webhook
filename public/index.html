@@ -511,10 +511,36 @@ function fmtDateTime(ts) { return fmtDate(ts) + ' ' + fmtTime(ts); }
 function dateKey(ts) { var d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function isToday(ts) { return dateKey(ts) === dateKey(Date.now()); }
 function stripPrefix(name) { return name.replace(/^(YT|FB|TT|IG|TW|LN)\s*/i, '').trim(); }
+function cleanName(name) {
+  // ลบ emoji, prefix, ช่องว่างพิเศษ, เครื่องหมาย แล้ว lowercase
+  return stripPrefix(name).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}❤️💛💚💙💜🖤💗💖✨🎀👑]/gu, '').replace(/["""''`*_~#@!]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
 function findUid(name) {
-  var clean = stripPrefix(name).toLowerCase();
-  var c = contacts.find(function(c) { return c.name.trim().toLowerCase() === clean || stripPrefix(c.name).toLowerCase() === clean; });
-  return c ? c.uid : null;
+  var clean = cleanName(name);
+  if (!clean) return null;
+  // 1) exact match on name or aliases
+  for (var i = 0; i < contacts.length; i++) {
+    var c = contacts[i];
+    if (cleanName(c.name) === clean) return c.uid;
+    if (c.aliases && Array.isArray(c.aliases)) {
+      for (var j = 0; j < c.aliases.length; j++) {
+        if (cleanName(c.aliases[j]) === clean) return c.uid;
+      }
+    }
+  }
+  // 2) partial match — ชื่อ HUAY อยู่ในชื่อ LINE หรือกลับกัน
+  for (var i = 0; i < contacts.length; i++) {
+    var c = contacts[i];
+    var cClean = cleanName(c.name);
+    if (cClean && (cClean.indexOf(clean) !== -1 || clean.indexOf(cClean) !== -1)) return c.uid;
+    if (c.aliases && Array.isArray(c.aliases)) {
+      for (var j = 0; j < c.aliases.length; j++) {
+        var aClean = cleanName(c.aliases[j]);
+        if (aClean && (aClean.indexOf(clean) !== -1 || clean.indexOf(aClean) !== -1)) return c.uid;
+      }
+    }
+  }
+  return null;
 }
 function toggleVis(id) { var el = document.getElementById(id); el.type = el.type === 'password' ? 'text' : 'password'; }
 
@@ -677,10 +703,34 @@ function renderDailySummary() {
 // ═══ CONTACTS (Redis only — no localStorage) ═══
 function renderContacts() {
   var el = document.getElementById('contactsList');
+  var search = (document.getElementById('contactSearch').value || '').toLowerCase();
   if (!contacts.length) { el.innerHTML = '<div style="padding:16px;text-align:center;color:var(--t4);font-size:12px">ยังไม่มีรายชื่อ — ลูกค้าทักมาจะเพิ่มอัตโนมัติ</div>'; return; }
-  el.innerHTML = contacts.map(function(c, i) {
-    return '<div class="contact-row"><div class="contact-av">' + esc(c.name.substring(0, 2)) + '</div><div style="flex:1"><div style="font-size:12px;font-weight:600">' + esc(c.name) + '</div><div style="font-size:10px;color:var(--t4);font-family:var(--mono)">' + esc(c.uid) + '</div></div><button class="btn btn-ghost btn-sm" onclick="promptSendMsg(\'' + esc(c.uid) + '\',\'' + esc(c.name) + '\')">💬</button><button style="font-size:10px;padding:3px 8px;border-radius:100px;background:none;border:1px solid rgba(251,113,133,.2);color:var(--red);cursor:pointer" onclick="deleteContact(' + i + ')">ลบ</button></div>';
+  var filtered = contacts.filter(function(c, i) {
+    if (!search) return true;
+    var txt = (c.name + ' ' + c.uid + ' ' + (c.aliases || []).join(' ')).toLowerCase();
+    return txt.indexOf(search) !== -1;
+  });
+  document.getElementById('contactsFiltered').textContent = search ? filtered.length + '/' + contacts.length : '';
+  document.getElementById('contactsCount').textContent = contacts.length;
+  el.innerHTML = filtered.map(function(c) {
+    var idx = contacts.indexOf(c);
+    var aliasHtml = '';
+    if (c.aliases && c.aliases.length) {
+      aliasHtml = '<div style="font-size:10px;color:var(--amber);margin-top:2px">🏷️ ' + c.aliases.map(esc).join(', ') + '</div>';
+    }
+    return '<div class="contact-row"><div class="contact-av">' + esc(c.name.substring(0, 2)) + '</div><div style="flex:1"><div style="font-size:12px;font-weight:600">' + esc(c.name) + '</div>' + aliasHtml + '<div style="font-size:10px;color:var(--t4);font-family:var(--mono)">' + esc(c.uid) + '</div></div><button class="btn btn-ghost btn-sm" onclick="promptAddAlias(' + idx + ')" title="เพิ่มชื่อเรียก">🏷️</button><button class="btn btn-ghost btn-sm" onclick="promptSendMsg(\'' + esc(c.uid) + '\',\'' + esc(c.name) + '\')">💬</button><button style="font-size:10px;padding:3px 8px;border-radius:100px;background:none;border:1px solid rgba(251,113,133,.2);color:var(--red);cursor:pointer" onclick="deleteContact(' + idx + ')">ลบ</button></div>';
   }).join('');
+}
+
+function promptAddAlias(idx) {
+  var c = contacts[idx];
+  var alias = prompt('เพิ่มชื่อเรียกสำหรับ ' + c.name + '\n(ชื่อที่ใช้ในระบบ HUAY เช่น สมชาย, somchai)');
+  if (!alias || !alias.trim()) return;
+  if (!c.aliases) c.aliases = [];
+  var a = alias.trim();
+  if (c.aliases.indexOf(a) === -1) c.aliases.push(a);
+  kvSaveContacts();
+  renderContacts();
 }
 
 function addContact() {
@@ -1041,8 +1091,86 @@ function prizeRenderCards() {
     var s = winSent[i], uid = findUid(w.name), hasUid = !!uid;
     var msg = buildTextMsg(w);
     if (s.done) return '<div class="win-card sent"><div class="win-card-head"><span class="win-name">' + esc(w.name) + '</span><span class="win-prize">฿' + fmtMoney(w.prize) + '</span></div><div style="display:flex;align-items:center;gap:8px"><span class="bdg bdg-ok">✅ แจ้งแล้ว' + (s.mode ? ' (' + s.mode + ')' : '') + '</span><button class="btn btn-ghost btn-sm" onclick="prizeUndo(' + i + ')">↩</button></div></div>';
-    return '<div class="win-card"><div class="win-card-head"><div style="display:flex;align-items:center;gap:6px"><span class="win-name">' + esc(w.name) + '</span>' + (hasUid ? '<span class="bdg bdg-ok" style="font-size:10px">🟢 userId✓</span>' : '<span class="bdg bdg-warn" style="font-size:10px">⚠️ ไม่มี userId</span>') + '</div><span class="win-prize">฿' + fmtMoney(w.prize) + '</span></div><div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;font-size:11px;color:var(--t3);white-space:pre-wrap;line-height:1.7;margin:8px 0">' + esc(msg) + '</div><div class="win-actions">' + (hasUid ? '<button class="btn btn-gold btn-sm" onclick="prizeSendOne(' + i + ',\'flex\')">📲 Flex</button><button class="btn btn-blue btn-sm" onclick="prizeSendOne(' + i + ',\'text\')">📝 Text</button>' : '<button class="btn btn-ghost btn-sm" disabled style="opacity:.4;cursor:not-allowed">📲 ไม่มี userId</button>') + '<button class="btn btn-ghost btn-sm" onclick="prizeCopyMsg(' + i + ')">📋 ก๊อบ</button><button class="btn btn-green btn-sm" onclick="prizeMark(' + i + ')">✅ ส่งแล้ว</button></div></div>';
+    var linkBtn = hasUid ? '' : '<button class="btn btn-ghost btn-sm" style="color:var(--amber);border:1px solid var(--amber)" onclick="prizeLinkUid(' + i + ')">🔗 ผูก userId</button>';
+    return '<div class="win-card"><div class="win-card-head"><div style="display:flex;align-items:center;gap:6px"><span class="win-name">' + esc(w.name) + '</span>' + (hasUid ? '<span class="bdg bdg-ok" style="font-size:10px">🟢 userId✓</span>' : '<span class="bdg bdg-warn" style="font-size:10px">⚠️ ไม่มี userId</span>') + '</div><span class="win-prize">฿' + fmtMoney(w.prize) + '</span></div><div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;font-size:11px;color:var(--t3);white-space:pre-wrap;line-height:1.7;margin:8px 0">' + esc(msg) + '</div><div class="win-actions">' + (hasUid ? '<button class="btn btn-gold btn-sm" onclick="prizeSendOne(' + i + ',\'flex\')">📲 Flex</button><button class="btn btn-blue btn-sm" onclick="prizeSendOne(' + i + ',\'text\')">📝 Text</button>' : linkBtn + '<button class="btn btn-ghost btn-sm" disabled style="opacity:.4;cursor:not-allowed">📲 ไม่มี userId</button>') + '<button class="btn btn-ghost btn-sm" onclick="prizeCopyMsg(' + i + ')">📋 ก๊อบ</button><button class="btn btn-green btn-sm" onclick="prizeMark(' + i + ')">✅ ส่งแล้ว</button></div></div>';
   }).join('');
+}
+
+function prizeLinkUid(winIdx) {
+  var w = winW[winIdx];
+  // สร้าง popup overlay ให้เลือก contact
+  var overlay = document.createElement('div');
+  overlay.id = 'linkOverlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+  
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:20px;width:90%;max-width:420px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)';
+  
+  var title = '<div style="font-size:15px;font-weight:700;color:var(--gold);margin-bottom:4px">🔗 ผูก userId สำหรับ</div>';
+  title += '<div style="font-size:18px;font-weight:800;margin-bottom:12px">' + esc(w.name) + ' <span style="color:var(--green);font-size:13px">฿' + fmtMoney(w.prize) + '</span></div>';
+  title += '<input id="linkSearch" class="inp" placeholder="🔍 ค้นหาชื่อลูกค้า..." oninput="linkFilterList()" style="margin-bottom:10px;font-size:13px">';
+  
+  var listHtml = '<div id="linkList" style="overflow-y:auto;max-height:50vh;margin-bottom:12px">';
+  listHtml += buildLinkList('');
+  listHtml += '</div>';
+  
+  var footer = '<div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="closeLinkOverlay()" style="flex:1">ยกเลิก</button></div>';
+  
+  box.innerHTML = title + listHtml + footer;
+  overlay.appendChild(box);
+  overlay.onclick = function(e) { if (e.target === overlay) closeLinkOverlay(); };
+  document.body.appendChild(overlay);
+  
+  // เก็บ index ไว้
+  window._linkWinIdx = winIdx;
+  setTimeout(function() { document.getElementById('linkSearch').focus(); }, 100);
+}
+
+function buildLinkList(search) {
+  search = (search || '').toLowerCase();
+  var html = '';
+  var filtered = contacts.filter(function(c) {
+    if (!search) return true;
+    return (c.name + ' ' + (c.aliases || []).join(' ')).toLowerCase().indexOf(search) !== -1;
+  });
+  if (!filtered.length) {
+    return '<div style="padding:20px;text-align:center;color:var(--t4);font-size:12px">ไม่พบรายชื่อ</div>';
+  }
+  filtered.forEach(function(c) {
+    var idx = contacts.indexOf(c);
+    var aliases = c.aliases && c.aliases.length ? '<div style="font-size:10px;color:var(--amber)">🏷️ ' + c.aliases.map(esc).join(', ') + '</div>' : '';
+    html += '<div onclick="linkSelect(' + idx + ')" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s" onmouseover="this.style.background=\'rgba(232,185,49,.08)\';this.style.borderColor=\'var(--border2)\'" onmouseout="this.style.background=\'none\';this.style.borderColor=\'transparent\'">';
+    html += '<div style="width:36px;height:36px;border-radius:10px;background:var(--gold-glow);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">' + esc(c.name.substring(0, 2)) + '</div>';
+    html += '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(c.name) + '</div>' + aliases + '<div style="font-size:10px;color:var(--t4);font-family:var(--mono)">' + esc(c.uid) + '</div></div>';
+    html += '<div style="font-size:18px">→</div></div>';
+  });
+  return html;
+}
+
+function linkFilterList() {
+  var search = document.getElementById('linkSearch').value;
+  document.getElementById('linkList').innerHTML = buildLinkList(search);
+}
+
+function linkSelect(contactIdx) {
+  var winIdx = window._linkWinIdx;
+  var w = winW[winIdx];
+  var c = contacts[contactIdx];
+  
+  // เพิ่ม alias อัตโนมัติ
+  if (!c.aliases) c.aliases = [];
+  if (cleanName(c.name) !== cleanName(w.name) && c.aliases.indexOf(w.name) === -1) {
+    c.aliases.push(w.name);
+  }
+  kvSaveContacts();
+  closeLinkOverlay();
+  renderContacts();
+  prizeRenderAll();
+}
+
+function closeLinkOverlay() {
+  var el = document.getElementById('linkOverlay');
+  if (el) el.remove();
 }
 
 function prizeUpdateProg() {
