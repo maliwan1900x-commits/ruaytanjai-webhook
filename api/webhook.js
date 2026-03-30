@@ -199,39 +199,28 @@ function buildCustomFooter(cfg) {
 }
 
 // ── Bank logo URLs (Thai banks) ──
+// Bank logo mapping - uses self-hosted icons on Vercel
+// Bank icon base URL - will be set dynamically from request
+var BANK_ICON_BASE = '';
 var BANK_LOGOS = {
-  'กสิกรไทย': 'https://www.thunder.in.th/assets/images/banks/KBANK.png',
-  'KBANK': 'https://www.thunder.in.th/assets/images/banks/KBANK.png',
-  'ไทยพาณิชย์': 'https://www.thunder.in.th/assets/images/banks/SCB.png',
-  'SCB': 'https://www.thunder.in.th/assets/images/banks/SCB.png',
-  'กรุงเทพ': 'https://www.thunder.in.th/assets/images/banks/BBL.png',
-  'BBL': 'https://www.thunder.in.th/assets/images/banks/BBL.png',
-  'กรุงไทย': 'https://www.thunder.in.th/assets/images/banks/KTB.png',
-  'KTB': 'https://www.thunder.in.th/assets/images/banks/KTB.png',
-  'กรุงศรี': 'https://www.thunder.in.th/assets/images/banks/BAY.png',
-  'BAY': 'https://www.thunder.in.th/assets/images/banks/BAY.png',
-  'ทหารไทยธนชาต': 'https://www.thunder.in.th/assets/images/banks/TTB.png',
-  'TTB': 'https://www.thunder.in.th/assets/images/banks/TTB.png',
-  'ออมสิน': 'https://www.thunder.in.th/assets/images/banks/GSB.png',
-  'GSB': 'https://www.thunder.in.th/assets/images/banks/GSB.png',
-  'ธ.ก.ส.': 'https://www.thunder.in.th/assets/images/banks/BAAC.png',
-  'BAAC': 'https://www.thunder.in.th/assets/images/banks/BAAC.png',
-  'ซีไอเอ็มบี': 'https://www.thunder.in.th/assets/images/banks/CIMB.png',
-  'CIMB': 'https://www.thunder.in.th/assets/images/banks/CIMB.png',
-  'ยูโอบี': 'https://www.thunder.in.th/assets/images/banks/UOB.png',
-  'UOB': 'https://www.thunder.in.th/assets/images/banks/UOB.png',
-  'แลนด์ แอนด์ เฮ้าส์': 'https://www.thunder.in.th/assets/images/banks/LHBANK.png',
-  'LHBANK': 'https://www.thunder.in.th/assets/images/banks/LHBANK.png',
-  'ทิสโก้': 'https://www.thunder.in.th/assets/images/banks/TISCO.png',
-  'TISCO': 'https://www.thunder.in.th/assets/images/banks/TISCO.png',
-  'เกียรตินาคินภัทร': 'https://www.thunder.in.th/assets/images/banks/KKP.png',
-  'KKP': 'https://www.thunder.in.th/assets/images/banks/KKP.png',
-  'อิสลาม': 'https://www.thunder.in.th/assets/images/banks/IBANK.png',
-  'IBANK': 'https://www.thunder.in.th/assets/images/banks/IBANK.png',
-  'พร้อมเพย์': 'https://www.thunder.in.th/assets/images/banks/PPAY.png',
-  'PromptPay': 'https://www.thunder.in.th/assets/images/banks/PPAY.png',
-  'ทรูมันนี่': 'https://www.thunder.in.th/assets/images/banks/TRUEMONEY.png',
-  'TrueMoney': 'https://www.thunder.in.th/assets/images/banks/TRUEMONEY.png',
+  'กสิกรไทย': BANK_ICON_BASE + 'KBANK.svg',
+  'KBANK': BANK_ICON_BASE + 'KBANK.svg',
+  'ไทยพาณิชย์': BANK_ICON_BASE + 'SCB.svg',
+  'SCB': BANK_ICON_BASE + 'SCB.svg',
+  'กรุงเทพ': BANK_ICON_BASE + 'BBL.svg',
+  'BBL': BANK_ICON_BASE + 'BBL.svg',
+  'กรุงไทย': BANK_ICON_BASE + 'KTB.svg',
+  'KTB': BANK_ICON_BASE + 'KTB.svg',
+  'กรุงศรี': BANK_ICON_BASE + 'BAY.svg',
+  'BAY': BANK_ICON_BASE + 'BAY.svg',
+  'ทหารไทยธนชาต': BANK_ICON_BASE + 'TTB.svg',
+  'TTB': BANK_ICON_BASE + 'TTB.svg',
+  'ออมสิน': BANK_ICON_BASE + 'GSB.svg',
+  'GSB': BANK_ICON_BASE + 'GSB.svg',
+  'ธ.ก.ส.': BANK_ICON_BASE + 'BAAC.svg',
+  'BAAC': BANK_ICON_BASE + 'BAAC.svg',
+  'พร้อมเพย์': BANK_ICON_BASE + 'PPAY.svg',
+  'PromptPay': BANK_ICON_BASE + 'PPAY.svg',
 };
 
 var THUNDER_QR_LOGO = 'https://www.thunder.in.th/assets/images/thunder-qr-logo.png';
@@ -257,25 +246,57 @@ function getBankLogo(bankName) {
   return null;
 }
 
+// Bank logos - self-hosted PNG on Vercel
+// Bank icon base URL - will be set dynamically from request
+var BANK_ICON_BASE = '';
+var BANK_LOGOS = {
+  'กสิกรไทย': 'KBANK', 'Kasikorn': 'KBANK', 'KBANK': 'KBANK',
+  'ไทยพาณิชย์': 'SCB', 'Siam Commercial': 'SCB', 'SCB': 'SCB',
+  'กรุงเทพ': 'BBL', 'Bangkok Bank': 'BBL', 'BBL': 'BBL',
+  'กรุงไทย': 'KTB', 'Krungthai': 'KTB', 'KTB': 'KTB',
+  'กรุงศรี': 'BAY', 'Krungsri': 'BAY', 'BAY': 'BAY',
+  'ทหารไทยธนชาต': 'TTB', 'TMBThanachart': 'TTB', 'TTB': 'TTB',
+  'ออมสิน': 'GSB', 'GSB': 'GSB',
+  'ธ.ก.ส.': 'BAAC', 'BAAC': 'BAAC',
+  'ซีไอเอ็มบี': 'CIMB', 'CIMB': 'CIMB',
+  'ยูโอบี': 'UOB', 'UOB': 'UOB',
+  'แลนด์ แอนด์ เฮ้าส์': 'LHB', 'LHBANK': 'LHB', 'LHB': 'LHB',
+  'ทิสโก้': 'TISCO', 'TISCO': 'TISCO',
+  'เกียรตินาคินภัทร': 'KKP', 'KKP': 'KKP',
+  'อิสลาม': 'IBANK', 'IBANK': 'IBANK',
+  'ธอส': 'GHB', 'GHB': 'GHB',
+  'ซิตี้แบงก์': 'CITI', 'CITI': 'CITI',
+  'HSBC': 'HSBC',
+  'ICBC': 'ICBC',
+};
+
+function getBankLogoUrl(bankName) {
+  if (!bankName) return null;
+  for (var key in BANK_LOGOS) {
+    if (bankName.includes(key)) return BANK_ICON_BASE + BANK_LOGOS[key] + '.png';
+  }
+  return null;
+}
+
 function buildBankSection(label, name, bankName, acctLine, iconEmoji) {
-  var bankLogo = getBankLogo(bankName);
+  var logoUrl = getBankLogoUrl(bankName);
   var iconContent;
-  if (bankLogo) {
+
+  if (logoUrl) {
     iconContent = {
       type: 'box', layout: 'vertical', width: '28px', height: '28px', cornerRadius: '14px',
       backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', flex: 0,
-      borderWidth: '1px', borderColor: '#E8E8E8',
-      contents: [{
-        type: 'image', url: bankLogo, size: '20px', aspectMode: 'fit', aspectRatio: '1:1',
-      }],
+      borderWidth: '1px', borderColor: '#E0E0E0',
+      contents: [{ type: 'image', url: logoUrl, size: '22px', aspectMode: 'fit', aspectRatio: '1:1' }],
     };
   } else {
     iconContent = {
       type: 'box', layout: 'vertical', width: '28px', height: '28px', cornerRadius: '14px',
-      backgroundColor: '#F0F4F0', justifyContent: 'center', alignItems: 'center', flex: 0,
-      contents: [{ type: 'text', text: iconEmoji, size: 'sm', align: 'center', gravity: 'center' }],
+      backgroundColor: '#E8E8E8', justifyContent: 'center', alignItems: 'center', flex: 0,
+      contents: [{ type: 'text', text: iconEmoji, size: 'xxs', align: 'center', gravity: 'center' }],
     };
   }
+
   return {
     type: 'box', layout: 'horizontal', margin: 'md', spacing: 'sm',
     contents: [
@@ -506,6 +527,10 @@ module.exports = async (req, res) => {
   config.setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  // Set bank icon base URL
+  var reqHost = req.headers.host || 'ruaytanjaiwebhook.vercel.app';
+  BANK_ICON_BASE = 'https://' + reqHost + '/banks/';
+
   // ── GET: Dashboard reads data ──
   if (req.method === 'GET') {
     if (!config.checkAuth(req)) return res.status(401).json({ ok: false, error: 'unauthorized' });
@@ -523,6 +548,10 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST, GET, or DELETE only' });
 
   // ── POST: LINE webhook events ──
+  // Set bank icon base URL from request host
+  var reqHost = req.headers.host || 'ruaytanjaiwebhook.vercel.app';
+  BANK_ICON_BASE = 'https://' + reqHost + '/banks/';
+
   // Verify LINE signature
   var signature = req.headers['x-line-signature'] || '';
   if (!config.verifySignature(req.body, signature)) {
