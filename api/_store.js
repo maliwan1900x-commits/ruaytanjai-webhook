@@ -136,12 +136,58 @@ async function resetAll() {
   return true;
 }
 
+// ── Rebuild contacts from profiles AND events (if contacts is missing entries) ──
+async function rebuildContactsFromProfiles() {
+  try {
+    var contacts = await getContacts();
+    var profiles = await getAllProfiles();
+    var events = await getEvents();
+    
+    // Build a set of existing contact uids for fast lookup
+    var existingUids = {};
+    contacts.forEach(function (c) { existingUids[c.uid] = true; });
+    
+    var added = 0;
+    
+    // 1) Add from profiles
+    var profileKeys = Object.keys(profiles);
+    for (var j = 0; j < profileKeys.length; j++) {
+      var uid = profileKeys[j];
+      if (!existingUids[uid] && profiles[uid].displayName) {
+        contacts.push({ name: profiles[uid].displayName, uid: uid });
+        existingUids[uid] = true;
+        added++;
+      }
+    }
+    
+    // 2) Add from events (for users who have events but no profile cached)
+    for (var k = 0; k < events.length; k++) {
+      var ev = events[k];
+      if (ev.userId && ev.userId.startsWith('U') && ev.name && !existingUids[ev.userId]) {
+        contacts.push({ name: ev.name, uid: ev.userId });
+        existingUids[ev.userId] = true;
+        added++;
+      }
+    }
+    
+    if (added > 0) {
+      await saveContacts(contacts);
+      console.log('Rebuilt contacts: added ' + added + ' entries');
+    }
+    return contacts;
+  } catch (e) {
+    console.error('rebuildContacts error:', e.message);
+    return await getContacts();
+  }
+}
+
 // ── Summary ──
 async function getSummary() {
   var slips = await getSlips();
   var events = await getEvents();
   var profiles = await getAllProfiles();
-  var contacts = await getContacts();
+  // Auto-rebuild contacts from profiles if needed
+  var contacts = await rebuildContactsFromProfiles();
   return {
     totalSlips: slips.length,
     totalEvents: events.length,
@@ -165,6 +211,7 @@ module.exports = {
   getContacts,
   saveContacts,
   addContact,
+  rebuildContactsFromProfiles,
   resetAll,
   getSummary,
 };

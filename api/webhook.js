@@ -13,7 +13,13 @@ var LINE_DATA_API = 'https://api-data.line.me';
 // ── LINE Profile ──
 async function fetchProfile(userId) {
   var cached = await store.getProfile(userId);
-  if (cached) return cached;
+  if (cached) {
+    // Always ensure contact exists even if profile is cached
+    if (cached.displayName) {
+      await store.addContact(cached.displayName, userId);
+    }
+    return cached;
+  }
   try {
     var token = await config.getLineToken();
     var r = await fetch(LINE_API + '/v2/bot/profile/' + userId, {
@@ -88,6 +94,89 @@ function maskAccount(acc) {
   if (!acc) return '—';
   if (acc.length <= 4) return acc;
   return 'xxx-x-x' + acc.slice(-4) + '-x';
+}
+
+function isNotSlipError(result) {
+  // Thunder API returns VALIDATION_ERROR when the image is not a slip at all
+  // (e.g. screenshot of text, random photo, meme, etc.)
+  if (!result || result.success) return false;
+  var code = result.error && result.error.code ? result.error.code : '';
+  if (code === 'VALIDATION_ERROR') return true;
+  return false;
+}
+
+function isSlipPending(result) {
+  // Bangkok Bank slips transferred within last 5 minutes may not be verifiable yet
+  if (!result || result.success) return false;
+  var code = result.error && result.error.code ? result.error.code : '';
+  return code === 'SLIP_PENDING';
+}
+
+function isSlipNotFound(result) {
+  // QR code not found in image — could be a real slip without QR (e.g. Bangkok Bank)
+  if (!result || result.success) return false;
+  var code = result.error && result.error.code ? result.error.code : '';
+  return code === 'SLIP_NOT_FOUND';
+}
+
+function buildPendingFlex(slipConfig) {
+  var cfg = slipConfig || {};
+  return {
+    type: 'flex', altText: '⏳ กรุณารอสักครู่แล้วส่งสลิปอีกครั้ง',
+    contents: {
+      type: 'bubble', size: 'kilo',
+      header: {
+        type: 'box', layout: 'horizontal', paddingAll: '14px', backgroundColor: '#F59E0B',
+        contents: [
+          {
+            type: 'box', layout: 'vertical', width: '38px', height: '38px', cornerRadius: '19px',
+            backgroundColor: '#FFFFFF33', justifyContent: 'center', alignItems: 'center', flex: 0,
+            contents: [{ type: 'text', text: '⏳', align: 'center', gravity: 'center', size: 'lg' }],
+          },
+          { type: 'text', text: 'กรุณารอสักครู่', weight: 'bold', size: 'lg', color: '#FFFFFF', gravity: 'center', margin: 'lg', flex: 1 },
+        ],
+      },
+      body: {
+        type: 'box', layout: 'vertical', paddingAll: '16px', backgroundColor: '#FFFFFF',
+        contents: [
+          { type: 'text', text: 'สลิปธนาคารกรุงเทพอาจใช้เวลา 5-10 นาทีในการประมวลผล', size: 'sm', color: '#485C6D', wrap: true },
+          { type: 'text', text: 'กรุณารอสักครู่แล้วส่งสลิปเข้ามาอีกครั้ง 🙏', size: 'sm', color: '#485C6D', wrap: true, margin: 'md' },
+        ],
+      },
+      footer: buildCustomFooter(cfg),
+      styles: { footer: { separator: false } },
+    },
+  };
+}
+
+function buildNoQrFlex(slipConfig) {
+  var cfg = slipConfig || {};
+  return {
+    type: 'flex', altText: '⚠️ ไม่พบ QR Code บนสลิป',
+    contents: {
+      type: 'bubble', size: 'kilo',
+      header: {
+        type: 'box', layout: 'horizontal', paddingAll: '14px', backgroundColor: '#F59E0B',
+        contents: [
+          {
+            type: 'box', layout: 'vertical', width: '38px', height: '38px', cornerRadius: '19px',
+            backgroundColor: '#FFFFFF33', justifyContent: 'center', alignItems: 'center', flex: 0,
+            contents: [{ type: 'text', text: '⚠️', align: 'center', gravity: 'center', size: 'lg' }],
+          },
+          { type: 'text', text: 'ไม่พบ QR Code', weight: 'bold', size: 'lg', color: '#FFFFFF', gravity: 'center', margin: 'lg', flex: 1 },
+        ],
+      },
+      body: {
+        type: 'box', layout: 'vertical', paddingAll: '16px', backgroundColor: '#FFFFFF',
+        contents: [
+          { type: 'text', text: 'ไม่พบ QR Code บนสลิป ไม่สามารถตรวจสอบได้', size: 'sm', color: '#485C6D', wrap: true },
+          { type: 'text', text: 'กรุณาส่งสลิปที่มี QR Code ชัดเจน หรือหากเป็นสลิปกรุงเทพ กรุณารอ 5-10 นาทีแล้วส่งอีกครั้ง', size: 'sm', color: '#485C6D', wrap: true, margin: 'md' },
+        ],
+      },
+      footer: buildCustomFooter(cfg),
+      styles: { footer: { separator: false } },
+    },
+  };
 }
 
 function classifyError(result) {
@@ -607,6 +696,36 @@ module.exports = async (req, res) => {
 
         result = await verifySlip(imgBuf);
         slipRecord.raw = result;
+
+        // ── ถ้ารูปไม่ใช่สลิป (VALIDATION_ERROR) → ไม่ตอบอะไร, ข้ามไปเลย ──
+        if (isNotSlipError(result)) {
+          // Log as regular image message, not a slip attempt
+          await store.addEvent({
+            id: slipRecord.id, timestamp: Date.now(), source: 'line',
+            userId: uid, name: displayName, text: 'image (ไม่ใช่สลิป)', type: 'message',
+          });
+          continue;
+        }
+
+        // ── สลิปกรุงเทพ: ยังไม่พร้อมตรวจ (SLIP_PENDING) → แจ้งลูกค้าให้รอ ──
+        if (isSlipPending(result)) {
+          await replyMessage(replyToken, [buildPendingFlex(slipConfig)]);
+          await store.addEvent({
+            id: slipRecord.id, timestamp: Date.now(), source: 'line',
+            userId: uid, name: displayName, text: 'slip-pending', type: 'message',
+          });
+          continue;
+        }
+
+        // ── ไม่พบ QR Code บนสลิป (SLIP_NOT_FOUND) → แจ้งลูกค้า ──
+        if (isSlipNotFound(result)) {
+          await replyMessage(replyToken, [buildNoQrFlex(slipConfig)]);
+          await store.addEvent({
+            id: slipRecord.id, timestamp: Date.now(), source: 'line',
+            userId: uid, name: displayName, text: 'slip-no-qr', type: 'message',
+          });
+          continue;
+        }
 
         if (result.success) {
           var errReason = classifyError(result);
