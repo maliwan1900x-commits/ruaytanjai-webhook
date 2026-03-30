@@ -355,7 +355,7 @@ function buildFlex(data, slipConfig) {
   if (useHero) {
     // Hero image banner (like Thunder official)
     heroSection = {
-      type: 'image', url: heroUrl, size: 'full', aspectMode: 'cover', aspectRatio: '20:7',
+      type: 'image', url: heroUrl, size: 'full', aspectMode: 'cover', aspectRatio: '54:10',
     };
     headerSection = null;
   } else {
