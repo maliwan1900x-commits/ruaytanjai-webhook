@@ -1,0 +1,9 @@
+{
+  "name": "ruaytanjai-webhook",
+  "version": "2.0.0",
+  "private": true,
+  "description": "รวยทันใจ — Webhook Proxy + Admin Dashboard (v2 Redis-backed)",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}

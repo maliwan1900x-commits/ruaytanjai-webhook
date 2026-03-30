@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>รวยทันใจ — เช็คสลิป & แจ้งรางวัล</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08090D;--surface:#12141C;--surface2:#181B26;--surface3:#1E2130;--gold:#E8B931;--gold-dim:#9A7B1F;--gold-glow:rgba(232,185,49,.08);--green:#2DD4A0;--green-bg:rgba(45,212,160,.06);--red:#F06B7E;--red-bg:rgba(240,107,126,.06);--amber:#F5B731;--amber-bg:rgba(245,183,49,.06);--blue:#5B9CF5;--blue-bg:rgba(91,156,245,.06);--purple:#A78BFA;--t1:#EEEEF2;--t2:#9498A8;--t3:#6B6F80;--t4:#484C5B;--border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.1);--r:14px;--rs:10px;--font:'Noto Sans Thai','DM Sans',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--t4);border-radius:4px}
+.shell{max-width:1200px;margin:0 auto;padding:0 16px}
+.header{position:sticky;top:0;z-index:100;background:rgba(8,9,13,.85);backdrop-filter:blur(24px) saturate(1.2);border-bottom:1px solid var(--border);padding:14px 0}
+.header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;padding:0 16px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#C49A18);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 20px rgba(232,185,49,.3),inset 0 1px 0 rgba(255,255,255,.2)}
+.brand-name{font-weight:800;font-size:18px;letter-spacing:-.02em;background:linear-gradient(135deg,#F5D76E,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.brand-sub{font-size:10px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;font-weight:500}
+.header-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t3);padding:6px 12px;border-radius:100px;background:var(--surface);border:1px solid var(--border)}
+.status-dot{width:8px;height:8px;border-radius:50%}
+.status-dot.on{background:var(--green);box-shadow:0 0 8px rgba(45,212,160,.5);animation:pulse 3s ease-in-out infinite}
+.status-dot.off{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px rgba(45,212,160,.5)}50%{opacity:.5;box-shadow:0 0 4px rgba(45,212,160,.2)}}
+
+.tabs{display:flex;gap:4px;padding:16px 0 0}
+.tab{padding:11px 24px;border-radius:12px 12px 0 0;font-size:15px;font-weight:600;cursor:pointer;border:1px solid transparent;border-bottom:none;color:var(--t3);background:transparent;transition:all .2s;position:relative;display:flex;align-items:center;gap:8px}
+.tab:hover{color:var(--t2);background:rgba(255,255,255,.02)}
+.tab.active{color:var(--gold);background:var(--surface);border-color:var(--border)}
+.tab.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.tab .count{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:rgba(255,255,255,.06);color:var(--t3)}
+.tab.active .count{background:var(--gold-glow);color:var(--gold)}
+
+.tab-body{background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 var(--r) var(--r) var(--r);padding:28px;min-height:65vh;box-shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.25)}
+.tab-page{display:none;animation:fadeUp .25s ease}.tab-page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.sec-head{display:flex;align-items:center;gap:8px;margin:0 0 16px;font-size:14px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.04em}
+.sec-head::before{content:'';width:3px;height:15px;border-radius:2px;background:linear-gradient(180deg,var(--gold),var(--gold-dim))}
+.sec-head.mt{margin-top:28px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.kpi:hover{border-color:var(--border2);transform:translateY(-2px)}
+.kpi-glow{display:none}
+.kpi-icon{font-size:24px;margin-bottom:10px}
+.kpi-val{font-family:var(--mono);font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.kpi{animation:fadeUp .4s ease backwards}
+.kpi:nth-child(1){animation-delay:.05s}.kpi:nth-child(2){animation-delay:.1s}.kpi:nth-child(3){animation-delay:.15s}.kpi:nth-child(4){animation-delay:.2s}.kpi:nth-child(5){animation-delay:.25s}
+.kpi-label{font-size:12px;color:var(--t3);margin-top:4px}
+
+.bdg{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap;letter-spacing:.01em}
+.bdg-ok{background:var(--green-bg);color:var(--green)}
+.bdg-fail{background:var(--red-bg);color:var(--red)}
+.bdg-warn{background:var(--amber-bg);color:var(--amber)}
+.bdg-info{background:var(--blue-bg);color:var(--blue)}
+
+.dtable-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.dtable-toolbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
+.dtable-title{font-size:14px;font-weight:600}
+.sel{background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:6px 30px 6px 12px;font-size:12px;color:var(--t1);font-family:var(--font);outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2394A3B8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;padding:10px 12px;text-align:left;background:rgba(255,255,255,.02);white-space:nowrap}
+td{font-size:13px;padding:12px 14px;border-bottom:1px solid rgba(30,41,59,.6);vertical-align:middle}
+tr{transition:background .15s}
+tr:hover td{background:rgba(255,255,255,.015)}
+.mono{font-family:var(--mono);font-size:12px}
+.td-name{display:flex;align-items:center;gap:8px}
+.td-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;background:var(--surface3)}
+
+.err-chart{display:flex;gap:12px;flex-wrap:wrap}
+.err-bar{flex:1;min-width:140px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;align-items:center}
+.err-icon{font-size:28px;margin-bottom:6px}
+.err-val{font-family:var(--mono);font-size:24px;font-weight:700}
+.err-label{font-size:11px;color:var(--t3);margin-top:2px}
+.err-pct{font-size:11px;font-weight:600;margin-top:4px}
+
+.live-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.live-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.live-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.live-list{display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto}
+.live-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.015);animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.live-item .time{font-family:var(--mono);font-size:11px;color:var(--t4);flex-shrink:0;width:56px}
+.live-item .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.live-item .name{font-size:13px;font-weight:600;min-width:80px}
+.live-item .detail{font-size:12px;color:var(--t3);flex:1}
+.live-item .tag{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600}
+
+.win-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.win-box-title{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.inp{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--t1);font-size:13px;padding:10px 14px;font-family:var(--font);outline:none}
+.inp:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px rgba(232,185,49,.08)}
+.inp-mono{font-family:var(--mono);font-size:12px;line-height:1.8}
+textarea.inp{resize:vertical;min-height:130px}
+.hint{font-size:11px;color:var(--t4);margin-top:6px;line-height:1.6}
+.hint b{color:var(--blue)}
+
+.btn{padding:10px 20px;border-radius:10px;border:none;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#C49A18);color:#000;box-shadow:0 2px 12px rgba(232,185,49,.25)}
+.btn-gold:hover{box-shadow:0 4px 20px rgba(232,185,49,.35)}
+.btn-ghost{background:rgba(255,255,255,.04);color:var(--t2);border:1px solid var(--border)}
+.btn-green{background:var(--green);color:#000;box-shadow:0 2px 12px rgba(45,212,160,.2)}
+.btn-red{background:rgba(251,113,133,.12);color:var(--red);border:1px solid rgba(251,113,133,.15)}
+.btn-blue{background:var(--blue);color:#000}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px}
+
+.win-card{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;transition:all .2s}
+.win-card.sent{opacity:.5;border-color:rgba(52,211,153,.2)}
+.win-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.win-name{font-weight:700;font-size:15px}
+.win-prize{font-family:var(--mono);font-weight:700;color:var(--gold)}
+.win-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+.prog-wrap{height:5px;background:rgba(255,255,255,.03);border-radius:100px;overflow:hidden;margin:10px 0}
+.prog-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--gold),var(--green));transition:width .5s ease}
+
+.contact-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.contact-av{width:34px;height:34px;border-radius:10px;background:var(--gold-glow);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
+
+.flex-preview{background:#fff;border-radius:18px;max-width:300px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.3);font-family:'Kanit',sans-serif;margin:12px auto}
+.flex-preview *{color:#333}
+.fp-header{padding:14px 16px;display:flex;align-items:center;gap:10px}
+.fp-body{padding:16px;background:#fff}
+.fp-divider{height:1px;background:#f0f0f0;margin:12px 0}
+.fp-row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px}
+.fp-row-label{color:#999}
+.fp-row-val{font-weight:600;color:#333}
+
+.setting-group{margin-bottom:14px}
+.setting-label{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.setting-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.color-dot{width:24px;height:24px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all .15s}
+.color-dot.active{border-color:var(--gold);transform:scale(1.12);box-shadow:0 0 12px rgba(232,185,49,.3)}
+
+.toggle-row{display:flex;align-items:center;gap:10px;padding:6px 0}
+.toggle{width:40px;height:22px;border-radius:11px;background:var(--border2);position:relative;cursor:pointer;transition:background .2s}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+.toggle.on::after{left:21px}
+
+.btn-row-item{display:flex;gap:6px;align-items:center;padding:8px;background:rgba(0,0,0,.15);border-radius:8px;margin-bottom:6px;flex-wrap:wrap}
+.btn-row-item .inp{flex:1;min-width:100px}
+.color-sel{width:36px;height:32px;border:1px solid var(--border);border-radius:6px;background:none;cursor:pointer;padding:0}
+
+/* Auth overlay */
+.auth-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(11,15,25,.95);z-index:9999;display:flex;align-items:center;justify-content:center}
+.auth-box{background:var(--surface);border:1px solid rgba(232,185,49,.15);border-radius:20px;padding:40px;max-width:380px;width:90%;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.5),0 16px 48px rgba(0,0,0,.35),0 0 80px rgba(232,185,49,.05)}
+.auth-box h2{font-size:20px;font-weight:700;margin-bottom:8px;color:var(--gold)}
+.auth-box p{font-size:13px;color:var(--t3);margin-bottom:16px}
+
+@media(max-width:640px){
+  .tabs{overflow-x:auto}
+  .tab{font-size:12px;padding:8px 14px;white-space:nowrap}
+  .tab-body{padding:16px}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .err-chart{flex-direction:column}
+  .flex-preview{max-width:100%}
+}
+
+/* ── Premium Prize Section ── */
+.prize-hero{background:linear-gradient(135deg,rgba(232,185,49,.06),rgba(232,185,49,.02));border:1px solid var(--border-gold);border-radius:var(--r);padding:24px;margin-bottom:18px;position:relative;overflow:hidden}
+.prize-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(232,185,49,.08),transparent 70%);pointer-events:none}
+.prize-hero-title{font-size:18px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.prize-hero-sub{font-size:13px;color:var(--t3);line-height:1.7}
+.prize-hero-sub b{color:var(--gold)}
+.prize-steps{display:flex;gap:12px;margin:16px 0 0;flex-wrap:wrap}
+.prize-step{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2);font-weight:500}
+.prize-step-num{width:24px;height:24px;border-radius:50%;background:var(--gold-glow2);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.prize-step-arrow{color:var(--t4);font-size:14px}
+.prize-input-area{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:18px;transition:border-color .3s}
+.prize-input-area:focus-within{border-color:var(--gold-dim)}
+.prize-input-label{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.prize-textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);color:var(--t1);font-size:13px;padding:14px 16px;font-family:var(--mono);outline:none;resize:vertical;min-height:150px;line-height:1.8;transition:border-color .2s}
+.prize-textarea:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px rgba(232,185,49,.08)}
+.prize-textarea::placeholder{color:var(--t4)}
+.prize-actions{display:flex;gap:10px;margin-top:14px;align-items:center}
+.prize-results-header{display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px;flex-wrap:wrap;gap:10px}
+.prize-results-left{display:flex;align-items:center;gap:12px}
+.prize-results-left .stat{font-size:13px;font-weight:600}
+.prize-results-right{display:flex;gap:8px;flex-wrap:wrap}
+.prize-prog{height:6px;background:rgba(255,255,255,.03);border-radius:100px;overflow:hidden;margin:0 0 18px}
+.prize-prog-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--gold),var(--green));transition:width .5s ease;position:relative}
+.prize-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:0;margin-bottom:10px;overflow:hidden;transition:all .25s}
+.prize-card:hover{border-color:var(--border2)}
+.prize-card.sent{opacity:.4;border-color:rgba(45,212,160,.12)}
+.prize-card-top{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;gap:12px}
+.prize-card-info{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.prize-card-avatar{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.prize-card-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prize-card-lty{font-size:11px;color:var(--t3);margin-top:2px}
+.prize-card-amount{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--gold);white-space:nowrap;flex-shrink:0}
+.prize-card-msg{background:rgba(0,0,0,.2);padding:12px 18px;font-size:12px;color:var(--t3);white-space:pre-wrap;line-height:1.8;border-top:1px solid var(--border);display:none}
+.prize-card.expanded .prize-card-msg{display:block}
+.prize-card-bottom{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--border);gap:8px;flex-wrap:wrap}
+.prize-card-actions{display:flex;gap:6px;flex-wrap:wrap}
+.prize-card-toggle{font-size:11px;color:var(--t4);cursor:pointer;padding:4px 8px;border-radius:6px;transition:color .15s}
+.prize-card-toggle:hover{color:var(--t2)}
+
+</style>
+</head>
+<body>
+
+<!-- Auth overlay -->
+<div class="auth-overlay" id="authOverlay" style="display:none">
+  <div class="auth-box">
+    <div style="font-size:32px;margin-bottom:12px">👑</div>
+    <h2>รวยทันใจ Dashboard</h2>
+    <p>ใส่ API Key เพื่อเข้าใช้งาน</p>
+    <input class="inp inp-mono" id="authKeyInput" type="password" placeholder="API Key..." style="margin-bottom:12px" onkeydown="if(event.key==='Enter')authLogin()">
+    <div><button class="btn btn-gold" onclick="authLogin()" style="width:100%">🔓 เข้าสู่ระบบ</button></div>
+    <div id="authError" style="color:var(--red);font-size:11px;margin-top:8px;display:none">❌ API Key ไม่ถูกต้อง</div>
+  </div>
+</div>
+
+<div class="header"><div class="header-inner">
+  <div class="brand"><div class="brand-icon">👑</div><div><div class="brand-name">รวยทันใจ</div><div class="brand-sub">Admin Dashboard</div></div></div>
+  <div class="header-status"><div class="status-dot" id="connDot"></div><span id="connLabel">กำลังเชื่อมต่อ...</span></div>
+</div></div>
+
+<div class="shell">
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('slip',this)">🧾 สลิป <span class="count" id="tabSlipCount">0</span></div>
+  <div class="tab" onclick="switchTab('prize',this)">🏆 แจ้งรางวัล</div>
+  <div class="tab" onclick="switchTab('summary',this)">📊 สรุปยอด</div>
+  <div class="tab" onclick="switchTab('settings',this)">⚙️ ตั้งค่า</div>
+</div>
+<div class="tab-body">
+
+<!-- ═══ TAB: สลิป ═══ -->
+<div class="tab-page active" id="page-slip">
+  <div class="win-box">
+    <div class="win-box-title" style="cursor:pointer" onclick="document.getElementById('slipCfgContent').style.display=document.getElementById('slipCfgContent').style.display==='none'?'block':'none'">
+      ⚙️ ตั้งค่า Flex Message สลิป <span style="font-size:10px;color:var(--t4);margin-left:auto">คลิกเพื่อเปิด/ปิด ▼</span>
+    </div>
+    <div id="slipCfgContent" style="display:none">
+      <div style="background:var(--blue-bg);border:1px solid rgba(96,165,250,.15);border-radius:8px;padding:10px;margin-bottom:14px;font-size:11px;color:var(--t3);line-height:1.7">
+        <b style="color:var(--blue)">💡</b> ตั้งค่าข้อความ + ปุ่มที่จะแสดงท้ายทุกการตรวจสลิป
+      </div>
+      <div class="setting-group"><div class="setting-label">📝 ข้อความ Footer หลัก</div><input class="inp" id="scFooterText" value="🔒 สลิปจริงตรวจสอบโดย ธันเดอร์ โซลูชั่น" oninput="slipCfgPreview()"></div>
+      <div class="setting-group"><div class="setting-label">📝 ข้อความ Footer รอง</div><input class="inp" id="scFooterSub" value="ผู้ให้บริการเช็กสลิปอันดับ 1" oninput="slipCfgPreview()"></div>
+      <div class="setting-group"><div class="setting-label">📢 ข้อความโปรโมท (เว้นว่างถ้าไม่ต้องการ)</div><input class="inp" id="scPromoText" value="" placeholder="เช่น: ⚠️ แอดไลน์สำรอง @ruaytanjai2" oninput="slipCfgPreview()"></div>
+      <div class="setting-group"><div class="setting-label">🖼️ รูป Header สลิปถูกต้อง (URL รูปภาพ HTTPS)</div><input class="inp inp-mono" id="scHeroPass" value="" placeholder="https://i.imgur.com/xxxxx.png (เว้นว่าง = ใช้ header แบบข้อความ)" oninput="slipCfgPreview()"><div class="hint">อัพรูปขึ้น <b>imgur.com</b> แล้ววาง URL ตรงนี้ · ขนาดแนะนำ 1040x350px · เว้นว่าง = ใช้แบบเดิม</div></div>
+      <div class="setting-group"><div class="setting-label">🖼️ รูป Header สลิปซ้ำ (เว้นว่างได้)</div><input class="inp inp-mono" id="scHeroDup" value="" placeholder="https://i.imgur.com/xxxxx.png" oninput="slipCfgPreview()"></div>
+      <div class="setting-group"><div class="setting-label">🖼️ รูป Header บัญชีไม่ตรง (เว้นว่างได้)</div><input class="inp inp-mono" id="scHeroFail" value="" placeholder="https://i.imgur.com/xxxxx.png" oninput="slipCfgPreview()"></div>
+      <div class="setting-group"><div class="setting-label">🔘 ปุ่มกดท้ายสลิป (สูงสุด 4 ปุ่ม)</div><div id="scButtonsList"></div><button class="btn btn-ghost btn-sm" onclick="scAddBtn()" style="margin-top:6px">+ เพิ่มปุ่ม</button></div>
+      <div style="display:flex;gap:8px;margin:16px 0 10px"><button class="btn btn-gold" onclick="scSave()">💾 บันทึกค่า</button><span id="scSaveStatus" style="font-size:11px;color:var(--green);display:none">✅ บันทึกแล้ว!</span></div>
+      <div class="sec-head mt">👁️ ตัวอย่าง Flex สลิป</div>
+      <div id="slipPreviewArea"></div>
+    </div>
+  </div>
+
+  <div class="sec-head">ภาพรวมสลิปวันนี้</div>
+  <div class="kpi-grid" id="slipKpi"></div>
+
+  <div class="sec-head mt">⚡ Realtime Feed</div>
+  <div class="live-wrap">
+    <div class="live-header"><div class="live-title"><div class="status-dot on"></div> Webhook Live</div><span style="font-size:10px;color:var(--t4)">LINE OA</span></div>
+    <div class="live-list" id="liveFeed"><div style="text-align:center;color:var(--t4);font-size:12px;padding:24px">รอรับ event จาก LINE...</div></div>
+  </div>
+
+  <div class="sec-head mt">ประวัติสลิปล่าสุด</div>
+  <div class="dtable-wrap">
+    <div class="dtable-toolbar"><div class="dtable-title">📋 ประวัติตรวจสลิป</div><select class="sel" id="slipFilterStatus" onchange="renderSlipTable()"><option value="all">ทุกสถานะ</option><option value="pass">✅ ผ่าน</option><option value="fail">❌ ไม่ผ่าน</option></select></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>เวลา</th><th>ลูกค้า</th><th>จำนวนเงิน</th><th>ผู้โอน</th><th>สถานะ</th><th>สาเหตุ</th><th>ส่ง</th></tr></thead><tbody id="slipTableBody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ═══ TAB: แจ้งรางวัล ═══ -->
+<div class="tab-page" id="page-prize">
+
+  <!-- Hero Section -->
+  <div class="prize-hero">
+    <div class="prize-hero-title">🏆 แจ้งรางวัลลูกค้า</div>
+    <div class="prize-hero-sub">ก๊อบข้อมูลจาก <b>HUAY</b> วางตรงนี้ ระบบจะจับชื่อ + ยอดให้อัตโนมัติ แล้วส่ง Flex หาลูกค้าทาง LINE ได้ทันที</div>
+    <div class="prize-steps">
+      <div class="prize-step"><div class="prize-step-num">1</div> เข้า HUAY → บิลได้</div>
+      <div class="prize-step-arrow">→</div>
+      <div class="prize-step"><div class="prize-step-num">2</div> ก๊อบตาราง</div>
+      <div class="prize-step-arrow">→</div>
+      <div class="prize-step"><div class="prize-step-num">3</div> วางด้านล่าง</div>
+      <div class="prize-step-arrow">→</div>
+      <div class="prize-step"><div class="prize-step-num">4</div> กดส่ง LINE</div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="prize-input-area">
+    <div class="prize-input-label">📋 วางข้อมูลจาก HUAY</div>
+    <textarea class="prize-textarea" id="prizeDataInput" placeholder="ก๊อบข้อมูลจากหน้า บิลได้ แล้ววางตรงนี้..."></textarea>
+    <div class="prize-actions">
+      <button class="btn btn-gold" onclick="prizeProcess()" style="padding:12px 28px;font-size:14px">🔍 ค้นหาผู้โชคดี</button>
+      <button class="btn btn-ghost" onclick="prizeClear()">ล้างข้อมูล</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="prizeResults" style="display:none">
+    <div class="kpi-grid" id="prizeKpi" style="margin-bottom:16px"></div>
+    <div class="prize-results-header">
+      <div class="prize-results-left">
+        <span class="stat" style="color:var(--green)" id="prizeDone">แจ้งแล้ว 0</span>
+        <span class="stat" style="color:var(--t3)" id="prizeLeft">เหลือ 0</span>
+      </div>
+      <div class="prize-results-right">
+        <button class="btn btn-green btn-sm" onclick="prizeSendAll('flex')">📲 ส่ง Flex ทั้งหมด</button>
+        <button class="btn btn-ghost btn-sm" onclick="prizeSendAll('text')">📝 Text ทั้งหมด</button>
+        <button class="btn btn-ghost btn-sm" onclick="prizeCopyAll()">📋 ก๊อบทั้งหมด</button>
+      </div>
+    </div>
+    <div class="prize-prog"><div class="prize-prog-fill" id="prizeProg"></div></div>
+    <div id="prizeCards"></div>
+  </div>
+
+  <!-- Config (collapsed) -->
+  <div class="sec-head mt" style="cursor:pointer" onclick="document.getElementById('prizeCfgContent').style.display=document.getElementById('prizeCfgContent').style.display==='none'?'block':'none'">
+    ⚙️ ตั้งค่า Flex Message
+    <span style="margin-left:auto;font-size:12px;color:var(--t4);font-weight:400">แตะเพื่อเปิด/ปิด</span>
+  </div>
+  <div id="prizeCfgContent" style="display:none">
+    <div class="win-box" style="border-color:var(--border-gold)">
+      <div class="setting-group"><div class="setting-label">🎨 สีธีม</div><div class="setting-row" id="colorPicker"></div></div>
+      <div class="setting-group"><div class="setting-label">📝 ข้อความหัว</div><input class="inp" id="cfgTitle" value="🎉 แจ้งถูกรางวัล" oninput="prizePreview()"></div>
+      <div class="setting-group"><div class="setting-label">📝 ข้อความท้าย</div><input class="inp" id="cfgFooter" value="ยินดีด้วยนะคะ 🎊" oninput="prizePreview()"></div>
+      <div class="setting-group"><div class="setting-label">💬 ปุ่มฝากยอด</div><input class="inp inp-mono" id="cfgDepositUrl" placeholder="เว้นว่าง = ส่งข้อความอัตโนมัติ / ใส่ URL = เปิดลิงก์" oninput="prizePreview()"><div class="hint">เว้นว่าง → ลูกค้ากดแล้วส่ง <b>+++ฝากยอด 5,225.00</b></div></div>
+      <div class="setting-group"><div class="setting-label">💬 ปุ่มถอนเลย</div><input class="inp inp-mono" id="cfgWithdrawUrl" placeholder="เว้นว่าง = ส่งข้อความอัตโนมัติ / ใส่ URL = เปิดลิงก์" oninput="prizePreview()"><div class="hint">เว้นว่าง → ลูกค้ากดแล้วส่ง <b>🏧 ขอถอน 5,225.00 บาท</b></div></div>
+      <div class="setting-group"><div class="setting-label">🔘 แสดงปุ่ม</div>
+        <div class="toggle-row"><div class="toggle on" id="togDeposit" onclick="this.classList.toggle('on');prizePreview()"></div><span style="font-size:13px">💰 ฝากยอด</span></div>
+        <div class="toggle-row"><div class="toggle on" id="togWithdraw" onclick="this.classList.toggle('on');prizePreview()"></div><span style="font-size:13px">🏧 ถอนเลย</span></div>
+      </div>
+      <div style="display:flex;gap:8px;margin:18px 0 12px">
+        <button class="btn btn-gold" onclick="savePrizeConfig()">💾 บันทึกค่ารางวัล</button>
+        <span id="prizeCfgSaveStatus" style="font-size:12px;color:var(--green);display:none;align-self:center">บันทึกแล้ว ✓</span>
+      </div>
+      <div class="sec-head mt">👁️ ตัวอย่าง</div>
+      <div id="prizePreviewArea"></div>
+    </div>
+  </div>
+  <div class="sec-head mt" style="cursor:pointer" onclick="toggleContacts()">
+    📒 สมุดรายชื่อ <span id="contactsCount" style="font-family:var(--mono);color:var(--gold);margin-left:4px">0</span>
+    <span id="contactsToggle" style="margin-left:auto;font-size:11px;color:var(--t4);font-weight:400;cursor:pointer">แตะเพื่อเปิด ▼</span>
+  </div>
+  <div id="contactsWrapper" style="display:none">
+  <div class="win-box">
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+      <div style="position:relative;flex:1;min-width:200px">
+        <input class="inp" id="contactSearch" placeholder="🔍 ค้นหาชื่อหรือ userId..." oninput="renderContacts()" style="padding-left:14px">
+      </div>
+      <span id="contactsFiltered" style="font-size:12px;color:var(--t4)"></span>
+    </div>
+    <div id="contactsList" style="max-height:360px;overflow-y:auto"></div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px">
+      <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:8px">เพิ่มรายชื่อใหม่</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input class="inp" id="addContactName" placeholder="ชื่อลูกค้า" style="flex:1;min-width:120px">
+        <input class="inp inp-mono" id="addContactUid" placeholder="userId (U1234...)" style="flex:1;min-width:120px">
+        <button class="btn btn-green btn-sm" onclick="addContact()">+ เพิ่ม</button>
+      </div>
+      <div class="hint" style="margin-top:6px">💡 userId เพิ่มอัตโนมัติเมื่อลูกค้าทักมาทาง LINE OA · ข้อมูลเก็บถาวรใน Redis</div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- ═══ TAB: สรุปยอด ═══ -->
+<div class="tab-page" id="page-summary">
+  <div class="sec-head">สรุปยอดทั้งหมด</div><div class="kpi-grid" id="summaryKpi"></div>
+  <div class="sec-head mt">สาเหตุผิดพลาด</div><div class="err-chart" id="errChart"></div>
+  <div class="sec-head mt">ยอดรวมตามวัน</div>
+  <div class="dtable-wrap"><div class="dtable-toolbar"><div class="dtable-title">📅 รายงานรายวัน</div><select class="sel" id="summaryDayFilter" onchange="renderDailySummary()"><option value="7">7 วันล่าสุด</option><option value="30">30 วัน</option><option value="all">ทั้งหมด</option></select></div><div style="overflow-x:auto"><table><thead><tr><th>วันที่</th><th>สลิปทั้งหมด</th><th>ผ่าน</th><th>ไม่ผ่าน</th><th>ยอดเงินรวม</th><th>อัตราผ่าน</th></tr></thead><tbody id="dailyTableBody"></tbody></table></div></div>
+</div>
+
+<!-- ═══ TAB: ตั้งค่า ═══ -->
+<div class="tab-page" id="page-settings">
+
+  <!-- Password Gate -->
+  <div id="settingsLocked" style="text-align:center;padding:60px 20px">
+    <div style="font-size:48px;margin-bottom:16px">🔐</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px">เฉพาะเจ้าของเท่านั้น</div>
+    <div style="font-size:13px;color:var(--t3);margin-bottom:20px">กรอกรหัสผ่านเพื่อเข้าหน้าตั้งค่า</div>
+    <div style="max-width:320px;margin:0 auto">
+      <input class="inp" id="settingsPassInput" type="password" placeholder="รหัสผ่าน..." style="text-align:center;font-size:15px;padding:12px 16px;margin-bottom:12px" onkeydown="if(event.key==='Enter')unlockSettings()">
+      <button class="btn btn-gold" onclick="unlockSettings()" style="width:100%;justify-content:center;padding:12px;font-size:14px">ปลดล็อค</button>
+      <div id="settingsPassError" style="color:var(--red);font-size:12px;margin-top:10px;display:none">รหัสผ่านไม่ถูกต้อง</div>
+    </div>
+  </div>
+
+  <!-- Settings Content (hidden until unlocked) -->
+  <div id="settingsContent" style="display:none">
+    <div class="sec-head">🔑 LINE Channel Access Token</div>
+    <div class="win-box">
+      <div class="hint" style="margin-bottom:10px">ใส่ Token จาก LINE Developers Console → Messaging API</div>
+      <input class="inp inp-mono" id="setLineToken" type="password" placeholder="วาง Channel Access Token ที่นี่...">
+      <div style="margin-top:6px"><button class="btn btn-ghost btn-sm" onclick="toggleVis('setLineToken')">👁️ แสดง/ซ่อน</button></div>
+    </div>
+    <div class="sec-head mt">🔑 Thunder API Key (เช็คสลิป)</div>
+    <div class="win-box">
+      <input class="inp inp-mono" id="setThunderKey" type="password" placeholder="วาง Thunder API Key ที่นี่...">
+      <div style="margin-top:6px"><button class="btn btn-ghost btn-sm" onclick="toggleVis('setThunderKey')">👁️ แสดง/ซ่อน</button></div>
+    </div>
+    <div style="display:flex;gap:8px;margin:20px 0">
+      <button class="btn btn-gold" onclick="saveAppSettings()">💾 บันทึกการตั้งค่า</button>
+      <span id="settingsSaveStatus" style="font-size:11px;color:var(--green);display:none;align-self:center">✅ บันทึกแล้ว!</span>
+    </div>
+    <div class="sec-head mt">📊 สถานะระบบ</div>
+    <div class="win-box"><div id="systemStatus" style="font-size:12px;color:var(--t3)">กำลังโหลด...</div></div>
+    <div class="sec-head mt">⚠️ คำเตือน</div>
+    <div class="win-box" style="border-color:rgba(251,113,133,.2)">
+      <div style="font-size:12px;color:var(--t3);line-height:1.8">
+        • Token และ Key เก็บใน <b style="color:var(--green)">Upstash Redis</b> อย่างปลอดภัย<br>
+        • ข้อมูลสลิป, contacts, events ทั้งหมดอยู่ใน Redis — ไม่หายเมื่อ Vercel รีสตาร์ท<br>
+        • Dashboard ป้องกันด้วย API Key (ตั้งใน env var: ADMIN_API_KEY)<br>
+        • หน้าตั้งค่าป้องกันด้วยรหัสผ่านเพิ่มอีกชั้น
+      </div>
+    </div>
+  </div>
+</div>
+
+</div></div>
+
+<script>
+// ═══ CONFIG ═══
+var BASE = location.origin;
+var API_KEY = '';
+var allSlips = [], allEvents = [], allProfiles = {}, contacts = [];
+var winW = [], winSent = [];
+
+// ═══ AUTH ═══
+function getHeaders() {
+  var h = { 'Content-Type': 'application/json' };
+  if (API_KEY) h['x-api-key'] = API_KEY;
+  return h;
+}
+
+async function authLogin() {
+  API_KEY = document.getElementById('authKeyInput').value.trim();
+  try {
+    var res = await fetch(BASE + '/api/kv?action=status', { headers: getHeaders() });
+    if (res.status === 401) {
+      document.getElementById('authError').style.display = 'block';
+      API_KEY = '';
+      return;
+    }
+    document.getElementById('authOverlay').style.display = 'none';
+    sessionStorage.setItem('rtj_key', API_KEY);
+    startApp();
+  } catch (e) {
+    document.getElementById('authError').style.display = 'block';
+  }
+}
+
+async function checkAuth() {
+  var saved = sessionStorage.getItem('rtj_key') || '';
+  if (saved) API_KEY = saved;
+  try {
+    var res = await fetch(BASE + '/api/kv?action=status', { headers: getHeaders() });
+    if (res.status === 401) {
+      document.getElementById('authOverlay').style.display = 'flex';
+      return;
+    }
+    document.getElementById('authOverlay').style.display = 'none';
+    startApp();
+  } catch (e) {
+    // No auth required or server down — start anyway
+    startApp();
+  }
+}
+
+// ═══ UTILS ═══
+function switchTab(t, el) {
+  document.querySelectorAll('.tab').forEach(function(x) { x.classList.remove('active'); });
+  el.classList.add('active');
+  document.querySelectorAll('.tab-page').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('page-' + t).classList.add('active');
+}
+function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function fmtMoney(n) { return n ? n.toLocaleString('th-TH', { minimumFractionDigits: 2 }) : '0.00'; }
+function fmtTime(ts) { var d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0'); }
+function fmtDate(ts) { return new Date(ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }); }
+function fmtDateTime(ts) { return fmtDate(ts) + ' ' + fmtTime(ts); }
+function dateKey(ts) { var d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function isToday(ts) { return dateKey(ts) === dateKey(Date.now()); }
+function stripPrefix(name) { return name.replace(/^(YT|FB|TT|IG|TW|LN)\s*/i, '').trim(); }
+function findUid(name) {
+  var clean = stripPrefix(name).toLowerCase();
+  var c = contacts.find(function(c) { return c.name.trim().toLowerCase() === clean || stripPrefix(c.name).toLowerCase() === clean; });
+  return c ? c.uid : null;
+}
+function toggleVis(id) { var el = document.getElementById(id); el.type = el.type === 'password' ? 'text' : 'password'; }
+
+// ═══ SETTINGS PASSWORD PROTECTION ═══
+var SETTINGS_PASS_HASH = '5688be630bcc39d09868fe27ddfe0afaf91a283ccbb1b496f8678a568c433594';
+var settingsUnlocked = false;
+
+async function hashPassword(pass) {
+  var encoder = new TextEncoder();
+  var data = encoder.encode(pass);
+  var hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  var hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+}
+
+async function unlockSettings() {
+  var input = document.getElementById('settingsPassInput').value;
+  var hash = await hashPassword(input);
+  if (hash === SETTINGS_PASS_HASH) {
+    settingsUnlocked = true;
+    document.getElementById('settingsLocked').style.display = 'none';
+    document.getElementById('settingsContent').style.display = 'block';
+    document.getElementById('settingsPassError').style.display = 'none';
+    loadKvSettings();
+  } else {
+    document.getElementById('settingsPassError').style.display = 'block';
+    document.getElementById('settingsPassInput').value = '';
+    document.getElementById('settingsPassInput').focus();
+  }
+}
+
+// ═══ POLLING — single source from Redis ═══
+async function poll() {
+  try {
+    var res = await fetch(BASE + '/api/webhook', { headers: getHeaders() });
+    if (res.status === 401) { document.getElementById('authOverlay').style.display = 'flex'; return; }
+    var data = await res.json();
+    if (!data.ok) return;
+
+    allEvents = data.events || [];
+    allSlips = data.slips || [];
+    allProfiles = data.profiles || {};
+    contacts = data.contacts || [];
+
+    document.getElementById('connDot').className = 'status-dot on';
+    document.getElementById('connLabel').textContent = 'เชื่อมต่อแล้ว · ' + allSlips.length + ' สลิป';
+    document.getElementById('tabSlipCount').textContent = allSlips.filter(function(s) { return isToday(s.timestamp); }).length;
+    renderAll();
+  } catch (e) {
+    document.getElementById('connDot').className = 'status-dot off';
+    document.getElementById('connLabel').textContent = 'ขาดการเชื่อมต่อ';
+  }
+}
+
+// ═══ RENDER ═══
+function renderAll() { renderSlipKpi(); renderLiveFeed(); renderSlipTable(); renderSummaryKpi(); renderErrChart(); renderDailySummary(); renderContacts(); }
+
+function kpiCard(icon, v, l, c, g) {
+  return '<div class="kpi"><div class="kpi-glow" style="background:' + g + '"></div><div class="kpi-icon">' + icon + '</div><div class="kpi-val" style="color:' + c + '">' + v + '</div><div class="kpi-label">' + l + '</div></div>';
+}
+
+function renderSlipKpi() {
+  var today = allSlips.filter(function(s) { return isToday(s.timestamp); });
+  var pass = today.filter(function(s) { return s.status === 'pass'; });
+  var fail = today.filter(function(s) { return s.status === 'fail'; });
+  var amt = pass.reduce(function(s, x) { return s + (x.amount || 0); }, 0);
+  document.getElementById('slipKpi').innerHTML =
+    kpiCard('🧾', today.length, 'สลิปวันนี้', 'var(--gold)', 'var(--gold)') +
+    kpiCard('✅', pass.length, 'ผ่าน', 'var(--green)', 'var(--green)') +
+    kpiCard('❌', fail.length, 'ไม่ผ่าน', 'var(--red)', 'var(--red)') +
+    kpiCard('💰', '฿' + fmtMoney(amt), 'ยอดเงินรวม', 'var(--gold)', 'var(--gold)');
+}
+
+function renderLiveFeed() {
+  var el = document.getElementById('liveFeed');
+  var items = allEvents.slice(0, 20);
+  if (!items.length) { el.innerHTML = '<div style="text-align:center;color:var(--t4);font-size:12px;padding:24px">รอรับ event จาก LINE...</div>'; return; }
+  el.innerHTML = items.map(function(ev, i) {
+    var dc = ev.slipStatus === 'pass' ? 'var(--green)' : ev.slipStatus === 'fail' ? 'var(--red)' : 'var(--blue)';
+    var tag = ev.type === 'slip'
+      ? (ev.slipStatus === 'pass' ? '<span class="tag" style="background:var(--green-bg);color:var(--green)">สลิปผ่าน</span>' : '<span class="tag" style="background:var(--red-bg);color:var(--red)">' + esc(ev.slipError || 'ผิดพลาด') + '</span>')
+      : '<span class="tag" style="background:rgba(255,255,255,.04);color:var(--t3)">ข้อความ</span>';
+    var det = ev.slipAmount ? '฿' + fmtMoney(ev.slipAmount) : (ev.text || '').substring(0, 40);
+    return '<div class="live-item" style="opacity:' + Math.max(.4, 1 - i * .04) + '"><span class="time">' + fmtTime(ev.timestamp) + '</span><div class="dot" style="background:' + dc + '"></div><span class="name">' + esc(ev.name || '?') + '</span><span class="detail">' + esc(det) + '</span>' + tag + '</div>';
+  }).join('');
+}
+
+function renderSlipTable() {
+  var f = document.getElementById('slipFilterStatus').value;
+  var items = f === 'all' ? allSlips : allSlips.filter(function(s) { return s.status === f; });
+  items = items.slice(0, 100);
+  document.getElementById('slipTableBody').innerHTML = items.map(function(s) {
+    var sb = s.status === 'pass' ? '<span class="bdg bdg-ok">✅ ผ่าน</span>' : '<span class="bdg bdg-fail">❌ ไม่ผ่าน</span>';
+    var reason = s.errorReason ? '<span class="bdg ' + (s.errorReason === 'สลิปซ้ำ' ? 'bdg-warn' : 'bdg-fail') + '">' + esc(s.errorReason) + '</span>' : '—';
+    var sender = s.slipInfo && s.slipInfo.senderName ? esc(s.slipInfo.senderName) : '—';
+    var uid = s.userId && s.userId.startsWith('U') ? s.userId : null;
+    var btn = uid ? '<button class="btn btn-ghost btn-sm" onclick="promptSendMsg(\'' + esc(uid) + '\',\'' + esc(s.customerName || '') + '\')">💬</button>' : '—';
+    return '<tr><td class="mono">' + fmtDateTime(s.timestamp) + '</td><td><div class="td-name"><div class="td-av" style="background:var(--gold-glow);color:var(--gold)">' + esc((s.customerName || '?').substring(0, 2)) + '</div>' + esc(s.customerName || '?') + '</div></td><td class="mono" style="color:var(--gold)">' + (s.amount ? '฿' + fmtMoney(s.amount) : '—') + '</td><td>' + sender + '</td><td>' + sb + '</td><td>' + reason + '</td><td>' + btn + '</td></tr>';
+  }).join('');
+}
+
+function promptSendMsg(uid, name) {
+  var msg = prompt('ส่งข้อความหา ' + name + ':', '');
+  if (!msg) return;
+  fetch(BASE + '/api/send', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ userId: uid, message: msg }) })
+    .then(function(r) { return r.json(); })
+    .then(function(d) { alert(d.ok ? '✅ ส่งสำเร็จ' : '❌ ' + (d.error || '')); })
+    .catch(function(e) { alert('❌ ' + e.message); });
+}
+
+function renderSummaryKpi() {
+  var total = allSlips.length;
+  var pass = allSlips.filter(function(s) { return s.status === 'pass'; });
+  var fail = allSlips.filter(function(s) { return s.status === 'fail'; });
+  var amt = pass.reduce(function(s, x) { return s + (x.amount || 0); }, 0);
+  var rate = total ? ((pass.length / total) * 100).toFixed(1) : '0';
+  document.getElementById('summaryKpi').innerHTML =
+    kpiCard('🧾', total, 'สลิปทั้งหมด', 'var(--gold)', 'var(--gold)') +
+    kpiCard('✅', pass.length, 'ผ่าน', 'var(--green)', 'var(--green)') +
+    kpiCard('❌', fail.length, 'ไม่ผ่าน', 'var(--red)', 'var(--red)') +
+    kpiCard('💰', '฿' + fmtMoney(amt), 'ยอดเงินรวม', 'var(--gold)', 'var(--gold)') +
+    kpiCard('📈', rate + '%', 'อัตราผ่าน', parseFloat(rate) >= 80 ? 'var(--green)' : parseFloat(rate) >= 50 ? 'var(--amber)' : 'var(--red)', 'var(--blue)');
+}
+
+function renderErrChart() {
+  var fail = allSlips.filter(function(s) { return s.status === 'fail'; });
+  var total = fail.length || 1;
+  var reasons = {};
+  fail.forEach(function(s) { var r = s.errorReason || 'อื่นๆ'; reasons[r] = (reasons[r] || 0) + 1; });
+  document.getElementById('errChart').innerHTML = [
+    { key: 'สลิปซ้ำ', icon: '🔄', color: 'var(--amber)' },
+    { key: 'บัญชีไม่ตรง', icon: '🏦', color: 'var(--red)' },
+    { key: 'อ่านไม่ได้', icon: '📷', color: 'var(--purple)' }
+  ].map(function(et) {
+    var c = reasons[et.key] || 0;
+    var pct = ((c / total) * 100).toFixed(1);
+    return '<div class="err-bar"><div class="err-icon">' + et.icon + '</div><div class="err-val" style="color:' + et.color + '">' + c + '</div><div class="err-label">' + et.key + '</div><div class="err-pct" style="color:' + et.color + '">' + (fail.length ? pct + '%' : '—') + '</div></div>';
+  }).join('');
+}
+
+function renderDailySummary() {
+  var fd = document.getElementById('summaryDayFilter').value;
+  var grouped = {};
+  allSlips.forEach(function(s) {
+    var dk = dateKey(s.timestamp);
+    if (!grouped[dk]) grouped[dk] = { ts: s.timestamp, total: 0, pass: 0, fail: 0, amount: 0 };
+    grouped[dk].total++;
+    if (s.status === 'pass') { grouped[dk].pass++; grouped[dk].amount += (s.amount || 0); }
+    else grouped[dk].fail++;
+  });
+  var days = Object.values(grouped).sort(function(a, b) { return b.ts - a.ts; });
+  if (fd !== 'all') days = days.slice(0, parseInt(fd));
+  document.getElementById('dailyTableBody').innerHTML = days.length ? days.map(function(d) {
+    var r = d.total ? ((d.pass / d.total) * 100).toFixed(1) : '0';
+    var rc = parseFloat(r) >= 80 ? 'var(--green)' : parseFloat(r) >= 50 ? 'var(--amber)' : 'var(--red)';
+    return '<tr><td class="mono">' + fmtDate(d.ts) + '</td><td class="mono">' + d.total + '</td><td class="mono" style="color:var(--green)">' + d.pass + '</td><td class="mono" style="color:var(--red)">' + d.fail + '</td><td class="mono" style="color:var(--gold)">฿' + fmtMoney(d.amount) + '</td><td><span class="bdg" style="background:' + (parseFloat(r) >= 80 ? 'var(--green-bg)' : parseFloat(r) >= 50 ? 'var(--amber-bg)' : 'var(--red-bg)') + ';color:' + rc + '">' + r + '%</span></td></tr>';
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--t4);padding:24px">ยังไม่มีข้อมูล</td></tr>';
+}
+
+// ═══ CONTACTS (Redis only — no localStorage) ═══
+function renderContacts() {
+  var el = document.getElementById('contactsList');
+  if (!contacts.length) { el.innerHTML = '<div style="padding:16px;text-align:center;color:var(--t4);font-size:12px">ยังไม่มีรายชื่อ — ลูกค้าทักมาจะเพิ่มอัตโนมัติ</div>'; return; }
+  el.innerHTML = contacts.map(function(c, i) {
+    return '<div class="contact-row"><div class="contact-av">' + esc(c.name.substring(0, 2)) + '</div><div style="flex:1"><div style="font-size:12px;font-weight:600">' + esc(c.name) + '</div><div style="font-size:10px;color:var(--t4);font-family:var(--mono)">' + esc(c.uid) + '</div></div><button class="btn btn-ghost btn-sm" onclick="promptSendMsg(\'' + esc(c.uid) + '\',\'' + esc(c.name) + '\')">💬</button><button style="font-size:10px;padding:3px 8px;border-radius:100px;background:none;border:1px solid rgba(251,113,133,.2);color:var(--red);cursor:pointer" onclick="deleteContact(' + i + ')">ลบ</button></div>';
+  }).join('');
+}
+
+function addContact() {
+  var n = document.getElementById('addContactName').value.trim();
+  var u = document.getElementById('addContactUid').value.trim();
+  if (!n || !u) return;
+  contacts.push({ name: n, uid: u });
+  kvSaveContacts();
+  document.getElementById('addContactName').value = '';
+  document.getElementById('addContactUid').value = '';
+  renderContacts();
+}
+
+function deleteContact(i) {
+  contacts.splice(i, 1);
+  kvSaveContacts();
+  renderContacts();
+}
+
+function kvSaveContacts() {
+  fetch(BASE + '/api/kv?action=contacts', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ contacts: contacts }) })
+    .catch(function(e) { console.log('Save contacts error:', e); });
+}
+
+// ═══ SLIP CONFIG ═══
+var scButtons = [];
+
+function scRenderButtons() {
+  var el = document.getElementById('scButtonsList');
+  el.innerHTML = scButtons.map(function(b, i) {
+    return '<div class="btn-row-item">' +
+      '<input class="inp" style="min-width:80px" value="' + esc(b.label) + '" placeholder="ชื่อปุ่ม" oninput="scButtons[' + i + '].label=this.value;slipCfgPreview()">' +
+      '<input class="inp inp-mono" style="min-width:140px" value="' + esc(b.url) + '" placeholder="URL หรือ line://" oninput="scButtons[' + i + '].url=this.value;slipCfgPreview()">' +
+      '<input type="color" class="color-sel" value="' + esc(b.color || '#555555') + '" oninput="scButtons[' + i + '].color=this.value;slipCfgPreview()">' +
+      '<div class="toggle ' + (b.enabled !== false ? 'on' : '') + '" onclick="this.classList.toggle(\'on\');scButtons[' + i + '].enabled=this.classList.contains(\'on\');slipCfgPreview()" style="flex-shrink:0"></div>' +
+      '<button style="background:none;border:1px solid rgba(251,113,133,.2);color:var(--red);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:10px" onclick="scButtons.splice(' + i + ',1);scRenderButtons();slipCfgPreview()">✕</button>' +
+    '</div>';
+  }).join('');
+  if (!scButtons.length) el.innerHTML = '<div style="color:var(--t4);font-size:11px;padding:8px">ยังไม่มีปุ่ม — กด "+ เพิ่มปุ่ม"</div>';
+}
+
+function scAddBtn() {
+  var templates = [
+    { label: '👫 เชิญเพื่อน', url: '', color: '#059669', enabled: true },
+    { label: '📲 แอดไลน์สำรอง', url: '', color: '#2563EB', enabled: true },
+    { label: '🎁 โปรโมชั่น', url: '', color: '#7C3AED', enabled: true },
+  ];
+  scButtons.push({ ...templates[scButtons.length % templates.length] });
+  scRenderButtons();
+  slipCfgPreview();
+}
+
+async function scSave() {
+  var cfg = {
+    footerText: document.getElementById('scFooterText').value,
+    footerSubText: document.getElementById('scFooterSub').value,
+    promoText: document.getElementById('scPromoText').value,
+    heroPass: document.getElementById('scHeroPass').value.trim(),
+    heroDup: document.getElementById('scHeroDup').value.trim(),
+    heroFail: document.getElementById('scHeroFail').value.trim(),
+    buttons: scButtons,
+  };
+  try {
+    await fetch(BASE + '/api/kv?action=slipConfig', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ config: cfg }) });
+    var s = document.getElementById('scSaveStatus');
+    s.style.display = 'inline';
+    setTimeout(function() { s.style.display = 'none'; }, 2000);
+  } catch (e) { alert('❌ บันทึกไม่สำเร็จ: ' + e.message); }
+}
+
+function slipCfgPreview() {
+  var area = document.getElementById('slipPreviewArea');
+  var ft = document.getElementById('scFooterText').value || 'สลิปจริงตรวจสอบโดย ธันเดอร์ โซลูชั่น';
+  var fs = document.getElementById('scFooterSub').value || '';
+  var promo = document.getElementById('scPromoText').value || '';
+  var btns = scButtons.filter(function(b) { return b.enabled !== false; });
+
+  // Footer HTML with Thunder QR logo
+  var footerHtml = '<div style="padding:12px;background:#F6FAF6;border-radius:0 0 18px 18px">';
+  footerHtml += '<div style="display:flex;align-items:center;gap:10px">';
+  footerHtml += '<img src="https://www.thunder.in.th/assets/images/thunder-qr-logo.png" style="width:36px;height:36px;object-fit:contain" onerror="this.style.display=\'none\'">';
+  footerHtml += '<div><div style="font-size:12px;font-weight:700;color:#1E2D5C">' + esc(ft) + '</div>';
+  if (fs) footerHtml += '<div style="font-size:10px;color:#8891A0">' + esc(fs) + '</div>';
+  footerHtml += '</div></div>';
+  if (promo) footerHtml += '<div style="margin-top:8px;background:#FFF8E1;border-radius:8px;padding:8px;text-align:center;font-size:10px;color:#B45309">' + esc(promo) + '</div>';
+  btns.forEach(function(b) { footerHtml += '<div style="margin-top:6px;background:' + esc(b.color || '#555') + ';border-radius:10px;padding:9px;text-align:center;font-size:12px;font-weight:700;color:#fff">' + esc(b.label) + '</div>'; });
+  footerHtml += '</div>';
+
+  // Bank icon helper
+  var kbankLogo = 'https://www.thunder.in.th/assets/images/banks/KBANK.png';
+  var scbLogo = 'https://www.thunder.in.th/assets/images/banks/SCB.png';
+
+  // Thunder-style body with bank icons
+  var bodyHtml = '<div class="fp-body" style="padding:18px">';
+  bodyHtml += '<div style="text-align:center;font-family:var(--mono);font-size:30px;font-weight:800;color:#1a1a2e">฿1,000</div>';
+  bodyHtml += '<div style="text-align:center;font-size:11px;color:#888;margin-top:4px">28 มี.ค. 69, 14:30 น.</div>';
+  bodyHtml += '<div class="fp-divider"></div>';
+
+  // Sender with bank icon
+  bodyHtml += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0">';
+  bodyHtml += '<div style="width:36px;height:36px;border-radius:50%;border:1px solid #E8E8E8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><img src="' + kbankLogo + '" style="width:24px;height:24px;object-fit:contain" onerror="this.parentElement.innerHTML=\'💳\'"></div>';
+  bodyHtml += '<div><div style="font-size:10px;color:#8891A0;font-weight:600">ผู้โอน</div><div style="font-size:13px;font-weight:700;color:#1E2D5C">MS. TREETIP L</div><div style="font-size:10px;color:#8891A0">กสิกรไทย • xxx-x-x2587-x</div></div>';
+  bodyHtml += '</div>';
+
+  bodyHtml += '<div class="fp-divider"></div>';
+
+  // Receiver with bank icon
+  bodyHtml += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0">';
+  bodyHtml += '<div style="width:36px;height:36px;border-radius:50%;border:1px solid #E8E8E8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><img src="' + scbLogo + '" style="width:24px;height:24px;object-fit:contain" onerror="this.parentElement.innerHTML=\'🏦\'"></div>';
+  bodyHtml += '<div><div style="font-size:10px;color:#8891A0;font-weight:600">ผู้รับ</div><div style="font-size:13px;font-weight:700;color:#1E2D5C">นาย กวี สี่สมบัติ</div><div style="font-size:10px;color:#8891A0">ไทยพาณิชย์ • xxx-x-x8376-x</div></div>';
+  bodyHtml += '</div>';
+
+  bodyHtml += '</div>';
+
+  // Header with hero image or text fallback
+  var heroUrl = document.getElementById('scHeroPass').value.trim();
+  var headerHtml;
+  if (heroUrl && heroUrl.startsWith('https://')) {
+    headerHtml = '<div style="border-radius:18px 18px 0 0;overflow:hidden"><img src="' + esc(heroUrl) + '" style="width:100%;display:block" onerror="this.parentElement.innerHTML=\'<div style=padding:14px;background:#22C55E;display:flex;align-items:center;gap:10px><div style=width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:20px>✅</div><div style=font-size:18px;font-weight:800;color:#fff>สลิปถูกต้อง</div></div>\'"></div>';
+  } else {
+    headerHtml = '<div class="fp-header" style="background:#22C55E;padding:14px 16px">';
+    headerHtml += '<div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:20px">✅</div>';
+    headerHtml += '<div style="font-size:18px;font-weight:800;color:#fff!important;margin-left:10px;flex:1">สลิปถูกต้อง</div>';
+    headerHtml += '<div style="width:32px;height:32px;border-radius:50%;background:#16A34A;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff">✓</div>';
+    headerHtml += '</div>';
+  }
+
+  area.innerHTML = '<div class="flex-preview">' + headerHtml + bodyHtml + footerHtml + '</div>';
+}
+
+// ═══ PRIZE CONFIG ═══
+var THEME_COLORS = [
+  { name: 'ทอง', header: '#D4A00A', headerText: '#FFF', btn1: '#D4A00A', btn2: '#22C55E', btn3: '#3B82F6' },
+  { name: 'เขียว', header: '#059669', headerText: '#FFF', btn1: '#059669', btn2: '#F59E0B', btn3: '#6366F1' },
+  { name: 'น้ำเงิน', header: '#2563EB', headerText: '#FFF', btn1: '#2563EB', btn2: '#22C55E', btn3: '#F59E0B' },
+  { name: 'แดง', header: '#DC2626', headerText: '#FFF', btn1: '#DC2626', btn2: '#22C55E', btn3: '#3B82F6' },
+  { name: 'ม่วง', header: '#7C3AED', headerText: '#FFF', btn1: '#7C3AED', btn2: '#22C55E', btn3: '#F59E0B' },
+  { name: 'ชมพู', header: '#EC4899', headerText: '#FFF', btn1: '#EC4899', btn2: '#22C55E', btn3: '#6366F1' },
+  { name: 'ดำ', header: '#1E293B', headerText: '#F5C542', btn1: '#1E293B', btn2: '#22C55E', btn3: '#F59E0B' },
+];
+var selectedTheme = 0;
+
+function getTheme() { return THEME_COLORS[selectedTheme] || THEME_COLORS[0]; }
+function renderColorPicker() {
+  document.getElementById('colorPicker').innerHTML = THEME_COLORS.map(function(c, i) {
+    return '<div class="color-dot ' + (i === selectedTheme ? 'active' : '') + '" style="background:' + c.header + '" onclick="selectedTheme=' + i + ';renderColorPicker();prizePreview()" title="' + c.name + '"></div>';
+  }).join('');
+}
+
+function prizePreview() {
+  var area = document.getElementById('prizePreviewArea');
+  var theme = getTheme();
+  var title = document.getElementById('cfgTitle').value || '🎉 แจ้งถูกรางวัล';
+  var footer = document.getElementById('cfgFooter').value || 'ยินดีด้วยนะคะ 🎊';
+  var showDep = document.getElementById('togDeposit').classList.contains('on');
+  var showWith = document.getElementById('togWithdraw').classList.contains('on');
+  var btns = '<div style="padding:8px 12px;background:#FAFAFA;display:flex;flex-direction:column;gap:6px;border-radius:0 0 16px 16px">';
+  btns += '<div style="background:' + theme.btn1 + '15;border-radius:10px;padding:8px;text-align:center;font-size:11px;font-weight:700;color:' + theme.header + '">🎉 แจ้งถูกรางวัลแล้ว</div>';
+  if (showDep) btns += '<div style="background:' + theme.btn2 + ';border-radius:10px;padding:9px;text-align:center;font-size:12px;font-weight:700;color:#fff">💰 ฝากยอด</div>';
+  if (showWith) btns += '<div style="background:' + theme.btn3 + ';border-radius:10px;padding:9px;text-align:center;font-size:12px;font-weight:700;color:#fff">🏧 ถอนเลย</div>';
+  btns += '</div>';
+  area.innerHTML = '<div class="flex-preview"><div class="fp-header" style="background:' + theme.header + '"><div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:16px">🏆</div><div style="font-size:16px;font-weight:700;color:' + theme.headerText + '!important;margin-left:8px">' + esc(title) + '</div></div><div class="fp-body"><div style="text-align:center;font-family:var(--mono);font-size:28px;font-weight:800;color:#1a1a2e">฿5,225.00</div><div style="text-align:center;font-size:11px;color:#888;margin-top:2px">ยอดเงินรางวัล</div><div class="fp-divider"></div><div class="fp-row"><span class="fp-row-label">ชื่อ</span><span class="fp-row-val">ลูกค้าตัวอย่าง</span></div><div class="fp-row"><span class="fp-row-label">ประเภท</span><span class="fp-row-val" style="font-size:11px">[หวยรายวัน] - ลาว VIP</span></div><div class="fp-divider"></div><div style="text-align:center;font-size:12px;color:#666;padding:4px 0">' + esc(footer) + '</div></div>' + btns + '</div>';
+}
+
+// ═══ PRIZE FLEX BUILDER ═══
+async function savePrizeConfig() {
+  var cfg = {
+    theme: selectedTheme,
+    title: document.getElementById('cfgTitle').value,
+    footer: document.getElementById('cfgFooter').value,
+    depositUrl: document.getElementById('cfgDepositUrl').value,
+    withdrawUrl: document.getElementById('cfgWithdrawUrl').value,
+    showDeposit: document.getElementById('togDeposit').classList.contains('on'),
+    showWithdraw: document.getElementById('togWithdraw').classList.contains('on'),
+  };
+  try {
+    await fetch(BASE + '/api/kv?action=prizeConfig', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ config: cfg }) });
+    var s = document.getElementById('prizeCfgSaveStatus');
+    if (s) { s.style.display = 'inline'; setTimeout(function() { s.style.display = 'none'; }, 2000); }
+  } catch (e) { console.log('Save prize config error:', e); }
+}
+
+function buildFlexJSON(w) {
+  var theme = getTheme();
+  var title = document.getElementById('cfgTitle').value || 'แจ้งถูกรางวัล';
+  var footer = document.getElementById('cfgFooter').value || 'ยินดีด้วยนะคะ';
+  var showDep = document.getElementById('togDeposit').classList.contains('on');
+  var showWith = document.getElementById('togWithdraw').classList.contains('on');
+  var depUrl = document.getElementById('cfgDepositUrl').value.trim();
+  var withUrl = document.getElementById('cfgWithdrawUrl').value.trim();
+  var amt = '฿' + fmtMoney(w.prize);
+  var bodyC = [
+    { type: 'text', text: amt, weight: 'bold', size: 'xxl', color: '#1E2D5C', align: 'center' },
+    { type: 'text', text: 'ยอดเงินรางวัล', size: 'xs', color: '#888888', align: 'center', margin: 'sm' },
+    { type: 'separator', margin: 'lg' },
+    { type: 'box', layout: 'baseline', margin: 'lg', contents: [{ type: 'text', text: 'ชื่อ', size: 'sm', color: '#888888', flex: 2 }, { type: 'text', text: w.name, size: 'sm', weight: 'bold', color: '#333333', flex: 5, align: 'end', wrap: true }] },
+    { type: 'box', layout: 'baseline', margin: 'sm', contents: [{ type: 'text', text: 'ประเภท', size: 'sm', color: '#888888', flex: 2 }, { type: 'text', text: w.lty || 'หวย', size: 'xs', color: '#555555', flex: 5, align: 'end', wrap: true }] },
+    { type: 'separator', margin: 'lg' },
+    { type: 'text', text: footer, size: 'sm', color: '#555555', align: 'center', margin: 'lg', wrap: true },
+  ];
+  var footC = [{ type: 'box', layout: 'vertical', contents: [{ type: 'text', text: 'แจ้งถูกรางวัลแล้ว', align: 'center', size: 'xs', color: theme.header, weight: 'bold' }] }];
+  if (showDep) footC.push({ type: 'button', style: 'primary', color: theme.btn2, height: 'sm', margin: 'md', action: depUrl ? { type: 'uri', label: 'ฝากยอด', uri: depUrl } : { type: 'message', label: 'ฝากยอด', text: '+++ฝากยอด ' + fmtMoney(w.prize) } });
+  if (showWith) footC.push({ type: 'button', style: 'primary', color: theme.btn3, height: 'sm', margin: 'sm', action: withUrl ? { type: 'uri', label: 'ถอนเลย', uri: withUrl } : { type: 'message', label: 'ถอนเลย', text: 'ขอถอน ' + fmtMoney(w.prize) + ' บาท' } });
+  return { type: 'flex', altText: title + ' คุณ ' + w.name + ' ' + amt, contents: { type: 'bubble', size: 'kilo', header: { type: 'box', layout: 'horizontal', paddingAll: '14px', backgroundColor: theme.header, contents: [{ type: 'text', text: title, weight: 'bold', size: 'lg', color: '#FFFFFF', gravity: 'center', flex: 1 }] }, body: { type: 'box', layout: 'vertical', paddingAll: '16px', contents: bodyC }, footer: { type: 'box', layout: 'vertical', paddingAll: '12px', spacing: 'sm', contents: footC } } };
+}
+
+function buildTextMsg(w) {
+  var title = document.getElementById('cfgTitle').value || '🎉 แจ้งถูกรางวัล';
+  var footer = document.getElementById('cfgFooter').value || 'ยินดีด้วยนะคะ 🎊';
+  return title + '\n' + w.lty + '\nคุณ ' + w.name + ' ถูกรางวัล ' + fmtMoney(w.prize) + ' บาท\n' + footer;
+}
+
+// ═══ PRIZE PARSER ═══
+function prizeProcess() {
+  var raw = document.getElementById('prizeDataInput').value.trim();
+  if (!raw) return;
+  winW = [];
+  var lines = raw.split(/\n/);
+  var i = 0;
+  while (i < lines.length) {
+    var line = lines[i].trim();
+    var billMatch = line.match(/^(\d{7,8})\s+(\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2})/);
+    if (!billMatch) { i++; continue; }
+    var billId = billMatch[1];
+    var ltyMatch = line.match(/\[หวย[^\]]*\]\s*-\s*[^\d\t]*/);
+    var lty = ltyMatch ? ltyMatch[0].replace(/\s+/g, ' ').trim() : 'หวย';
+    var nums = [], numRe = /([\d,]+\.\d{2})/g, nm;
+    while ((nm = numRe.exec(line)) !== null) nums.push(parseFloat(nm[1].replace(/,/g, '')));
+    var prize = nums.length ? nums[nums.length - 1] : 0;
+    var lastNumMatch = line.match(/([\d,]+\.\d{2})\s*$/);
+    var nameFromLine = '';
+    if (!lastNumMatch) {
+      var allNums = [...line.matchAll(/([\d,]+\.\d{2})/g)];
+      if (allNums.length) {
+        var lastN = allNums[allNums.length - 1];
+        nameFromLine = line.substring(lastN.index + lastN[0].length).trim();
+      }
+    }
+    var custName = nameFromLine;
+    if (!custName && i + 1 < lines.length) {
+      var nextLine = lines[i + 1].trim();
+      if (nextLine && !nextLine.match(/^\d{7,8}\s/) && !nextLine.match(/^[\d,]+\.\d{2}$/)) {
+        custName = nextLine; i++;
+      } else if (nextLine && nextLine.match(/^[\d,]+\.\d{2}$/)) {
+        prize = parseFloat(nextLine.replace(/,/g, ''));
+        if (i + 2 < lines.length) { var nn = lines[i + 2].trim(); if (nn && !nn.match(/^\d{7,8}\s/)) { custName = nn; i += 2; } else { i++; } } else { i++; }
+      }
+    }
+    custName = custName.replace(/^[🔍👤📱💬🎰]\s*/, '').trim();
+    custName = stripPrefix(custName);
+    custName = custName.replace(/^[^\p{L}\p{Emoji}]+/u, '').trim();
+    if (prize > 0 && custName) {
+      var existing = winW.find(function(w) { return w.name === custName; });
+      if (existing) { existing.prize += prize; }
+      else { winW.push({ id: billId, name: custName, prize: prize, lty: lty }); }
+    }
+    i++;
+  }
+  if (!winW.length) { alert('ไม่พบข้อมูลผู้โชคดี'); return; }
+  winW.sort(function(a, b) { return b.prize - a.prize; });
+  winSent = winW.map(function() { return { done: false }; });
+  prizeRenderAll();
+}
+
+function prizeRenderAll() {
+  document.getElementById('prizeResults').style.display = 'block';
+  var total = winW.reduce(function(s, w) { return s + w.prize; }, 0);
+  var linked = winW.filter(function(w) { return findUid(w.name); }).length;
+  var noUid = winW.length - linked;
+  document.getElementById('prizeKpi').innerHTML =
+    kpiCard('🎉', winW.length, 'ผู้โชคดี', 'var(--gold)', 'var(--gold)') +
+    kpiCard('💰', '฿' + fmtMoney(total), 'ยอดรวม', 'var(--green)', 'var(--green)') +
+    kpiCard('🔗', linked, 'ส่ง LINE ได้', 'var(--blue)', 'var(--blue)') +
+    kpiCard('⚠️', noUid, 'ไม่มี userId', noUid > 0 ? 'var(--amber)' : 'var(--green)', 'var(--amber)');
+  prizeUpdateProg();
+  prizeRenderCards();
+}
+
+function prizeRenderCards() {
+  document.getElementById('prizeCards').innerHTML = winW.map(function(w, i) {
+    var s = winSent[i], uid = findUid(w.name), hasUid = !!uid;
+    var msg = buildTextMsg(w);
+    if (s.done) return '<div class="win-card sent"><div class="win-card-head"><span class="win-name">' + esc(w.name) + '</span><span class="win-prize">฿' + fmtMoney(w.prize) + '</span></div><div style="display:flex;align-items:center;gap:8px"><span class="bdg bdg-ok">✅ แจ้งแล้ว' + (s.mode ? ' (' + s.mode + ')' : '') + '</span><button class="btn btn-ghost btn-sm" onclick="prizeUndo(' + i + ')">↩</button></div></div>';
+    return '<div class="win-card"><div class="win-card-head"><div style="display:flex;align-items:center;gap:6px"><span class="win-name">' + esc(w.name) + '</span>' + (hasUid ? '<span class="bdg bdg-ok" style="font-size:10px">🟢 userId✓</span>' : '<span class="bdg bdg-warn" style="font-size:10px">⚠️ ไม่มี userId</span>') + '</div><span class="win-prize">฿' + fmtMoney(w.prize) + '</span></div><div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;font-size:11px;color:var(--t3);white-space:pre-wrap;line-height:1.7;margin:8px 0">' + esc(msg) + '</div><div class="win-actions">' + (hasUid ? '<button class="btn btn-gold btn-sm" onclick="prizeSendOne(' + i + ',\'flex\')">📲 Flex</button><button class="btn btn-blue btn-sm" onclick="prizeSendOne(' + i + ',\'text\')">📝 Text</button>' : '<button class="btn btn-ghost btn-sm" disabled style="opacity:.4;cursor:not-allowed">📲 ไม่มี userId</button>') + '<button class="btn btn-ghost btn-sm" onclick="prizeCopyMsg(' + i + ')">📋 ก๊อบ</button><button class="btn btn-green btn-sm" onclick="prizeMark(' + i + ')">✅ ส่งแล้ว</button></div></div>';
+  }).join('');
+}
+
+function prizeUpdateProg() {
+  var d = winSent.filter(function(s) { return s.done; }).length;
+  var t = winW.length;
+  var pct = t ? Math.round(d / t * 100) : 0;
+  document.getElementById('prizeProg').style.width = pct + '%';
+  document.getElementById('prizeDone').textContent = '✅ แจ้งแล้ว ' + d + '/' + t + ' (' + pct + '%)';
+  document.getElementById('prizeLeft').textContent = d === t ? '🎉 ครบทุกคนแล้ว!' : '⏳ เหลืออีก ' + (t - d) + ' คน';
+}
+
+async function prizeSendOne(i, mode) {
+  var w = winW[i], uid = findUid(w.name);
+  if (!uid) { alert('❌ ไม่มี userId สำหรับ ' + w.name); return; }
+  var body = { userId: uid };
+  if (mode === 'flex') { body.flex = buildFlexJSON(w); }
+  else { body.message = buildTextMsg(w); }
+  try {
+    var res = await fetch(BASE + '/api/send', { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) });
+    var data = await res.json();
+    if (!data.ok) { alert('❌ ' + (data.error || '') + '\n' + (data.detail || '')); return; }
+    winSent[i] = { done: true, mode: mode };
+  } catch (e) { alert('❌ ' + e.message); return; }
+  prizeUpdateProg();
+  prizeRenderCards();
+}
+
+async function prizeSendAll(mode) {
+  for (var i = 0; i < winW.length; i++) {
+    if (winSent[i].done) continue;
+    if (!findUid(winW[i].name)) continue;
+    await prizeSendOne(i, mode);
+    await new Promise(function(r) { setTimeout(r, 400); });
+  }
+}
+
+function prizeMark(i) { winSent[i] = { done: true, mode: 'manual' }; prizeUpdateProg(); prizeRenderCards(); }
+function prizeUndo(i) { winSent[i] = { done: false }; prizeUpdateProg(); prizeRenderCards(); }
+function prizeCopyMsg(i) { navigator.clipboard.writeText(buildTextMsg(winW[i])); }
+function prizeCopyAll() { navigator.clipboard.writeText(winW.map(buildTextMsg).join('\n\n──────────\n\n')); }
+function prizeClear() { document.getElementById('prizeDataInput').value = ''; document.getElementById('prizeResults').style.display = 'none'; winW = []; winSent = []; }
+
+// ═══ SETTINGS ═══
+async function saveAppSettings() {
+  var lineToken = document.getElementById('setLineToken').value.trim();
+  var thunderKey = document.getElementById('setThunderKey').value.trim();
+  try {
+    var res = await fetch(BASE + '/api/kv?action=appSettings', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ settings: { lineToken: lineToken, thunderKey: thunderKey } }) });
+    var data = await res.json();
+    if (data.ok) {
+      var s = document.getElementById('settingsSaveStatus');
+      s.style.display = 'inline';
+      setTimeout(function() { s.style.display = 'none'; }, 3000);
+    } else { alert('❌ บันทึกไม่สำเร็จ'); }
+  } catch (e) { alert('❌ ' + e.message); }
+}
+
+async function loadKvSettings() {
+  try {
+    var res = await fetch(BASE + '/api/kv', { headers: getHeaders() });
+    var data = await res.json();
+    if (!data.ok) return;
+    if (data.appSettings) {
+      if (data.appSettings.lineToken) document.getElementById('setLineToken').value = data.appSettings.lineToken;
+      if (data.appSettings.thunderKey) document.getElementById('setThunderKey').value = data.appSettings.thunderKey;
+    }
+    if (data.slipConfig && data.slipConfig.footerText) {
+      document.getElementById('scFooterText').value = data.slipConfig.footerText;
+      document.getElementById('scFooterSub').value = data.slipConfig.footerSubText || '';
+      document.getElementById('scPromoText').value = data.slipConfig.promoText || '';
+      if (data.slipConfig.heroPass) document.getElementById('scHeroPass').value = data.slipConfig.heroPass;
+      if (data.slipConfig.heroDup) document.getElementById('scHeroDup').value = data.slipConfig.heroDup;
+      if (data.slipConfig.heroFail) document.getElementById('scHeroFail').value = data.slipConfig.heroFail;
+      if (data.slipConfig.buttons) scButtons = data.slipConfig.buttons;
+      scRenderButtons();
+      slipCfgPreview();
+    }
+    // Load prize config from KV
+    if (data.prizeConfig) {
+      var pc = data.prizeConfig;
+      if (pc.theme !== undefined) { selectedTheme = pc.theme; renderColorPicker(); }
+      if (pc.title) document.getElementById('cfgTitle').value = pc.title;
+      if (pc.footer) document.getElementById('cfgFooter').value = pc.footer;
+      if (pc.depositUrl !== undefined) document.getElementById('cfgDepositUrl').value = pc.depositUrl;
+      if (pc.withdrawUrl !== undefined) document.getElementById('cfgWithdrawUrl').value = pc.withdrawUrl;
+      if (pc.showDeposit === false) document.getElementById('togDeposit').classList.remove('on');
+      if (pc.showWithdraw === false) document.getElementById('togWithdraw').classList.remove('on');
+      prizePreview();
+    }
+    var statusEl = document.getElementById('systemStatus');
+    if (statusEl) {
+      statusEl.innerHTML =
+        '<div style="display:flex;flex-direction:column;gap:6px">' +
+        '<div>🗄️ Redis KV: <b style="color:var(--green)">' + (data.kvReady ? 'เชื่อมต่อแล้ว' : 'ไม่พร้อม') + '</b></div>' +
+        '<div>📒 สมุดรายชื่อ: <b style="color:var(--gold)">' + contacts.length + ' รายชื่อ</b></div>' +
+        '<div>🧾 สลิปใน Redis: <b>' + allSlips.length + '</b></div>' +
+        '<div>⚡ Events ใน Redis: <b>' + allEvents.length + '</b></div>' +
+        '<div>🔒 Auth: <b style="color:var(--green)">' + (API_KEY ? 'เปิดใช้งาน' : 'dev mode') + '</b></div>' +
+        '<div>🏆 ค่ารางวัล: <b style="color:var(--gold)">' + (data.prizeConfig ? 'บันทึกแล้ว' : 'ค่าเริ่มต้น') + '</b></div>' +
+        '</div>';
+    }
+  } catch (e) { console.log('KV load error:', e); }
+}
+
+// ═══ START APP ═══
+function startApp() {
+  renderColorPicker();
+  scRenderButtons();
+  slipCfgPreview();
+  prizePreview();
+  poll();
+  setInterval(poll, 5000);
+  loadKvSettings();
+  setInterval(loadKvSettings, 60000);
+}
+
+// ═══ INIT ═══
+checkAuth();
+</script>
+</body>
+</html>
