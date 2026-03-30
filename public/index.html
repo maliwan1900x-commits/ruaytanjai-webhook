@@ -322,6 +322,7 @@ textarea.inp{resize:vertical;min-height:130px}
   </div>
   <div id="prizeCfgContent" style="display:none">
     <div class="win-box" style="border-color:var(--border-gold)">
+      <div class="setting-group"><div class="setting-label">🖼️ รูป Header รางวัล</div><input class="inp inp-mono" id="cfgPrizeHero" placeholder="https://... (1040×190 px, ratio 54:10)" oninput="prizePreview()"><div class="hint">ขนาดแนะนำ <b>1040 × 190 px</b> (54:10) — เว้นว่าง = ใช้ header สีธีม</div><div id="cfgPrizeHeroPreview" style="margin-top:6px;border-radius:8px;overflow:hidden;display:none"><img id="cfgPrizeHeroImg" style="width:100%;display:block;border-radius:8px" /></div></div>
       <div class="setting-group"><div class="setting-label">🎨 สีธีม</div><div class="setting-row" id="colorPicker"></div></div>
       <div class="setting-group"><div class="setting-label">📝 ข้อความหัว</div><input class="inp" id="cfgTitle" value="🎉 แจ้งถูกรางวัล" oninput="prizePreview()"></div>
       <div class="setting-group"><div class="setting-label">📝 ข้อความท้าย</div><input class="inp" id="cfgFooter" value="ยินดีด้วยนะคะ 🎊" oninput="prizePreview()"></div>
@@ -330,6 +331,32 @@ textarea.inp{resize:vertical;min-height:130px}
       <div class="setting-group"><div class="setting-label">🔘 แสดงปุ่ม</div>
         <div class="toggle-row"><div class="toggle on" id="togDeposit" onclick="this.classList.toggle('on');prizePreview()"></div><span style="font-size:13px">💰 ฝากยอด</span></div>
         <div class="toggle-row"><div class="toggle on" id="togWithdraw" onclick="this.classList.toggle('on');prizePreview()"></div><span style="font-size:13px">🏧 ถอนเลย</span></div>
+      </div>
+      <div class="setting-group"><div class="setting-label">🖼️ รูปปุ่ม (ใส่รูปแทนปุ่มสี)</div>
+        <div class="hint" style="margin-bottom:8px">ขนาดแนะนำ <b>800 × 100 px</b> (ratio 8:1) — เว้นว่าง = ใช้ปุ่มสีตามปกติ</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--t3);white-space:nowrap;width:70px">💰 ฝากยอด</span>
+          <input class="inp inp-mono" id="cfgDepositImg" placeholder="https://... (800×100 px)" style="flex:1" oninput="prizePreview()">
+        </div>
+        <div id="cfgDepositImgPreview" style="margin-bottom:8px;border-radius:8px;overflow:hidden;display:none"><img id="cfgDepositImgThumb" style="width:100%;max-width:300px;display:block;border-radius:8px" /></div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--t3);white-space:nowrap;width:70px">🏧 ถอนเลย</span>
+          <input class="inp inp-mono" id="cfgWithdrawImg" placeholder="https://... (800×100 px)" style="flex:1" oninput="prizePreview()">
+        </div>
+        <div id="cfgWithdrawImgPreview" style="margin-bottom:4px;border-radius:8px;overflow:hidden;display:none"><img id="cfgWithdrawImgThumb" style="width:100%;max-width:300px;display:block;border-radius:8px" /></div>
+      </div>
+      <div class="setting-group"><div class="setting-label">🎨 สีปุ่มกำหนดเอง</div>
+        <div class="hint" style="margin-bottom:8px">ใช้เมื่อไม่ได้ใส่รูปปุ่ม / เว้นว่าง = ใช้สีตามธีม</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <input type="color" id="cfgDepositColorPick" value="#22C55E" style="width:34px;height:34px;border:none;padding:0;cursor:pointer;border-radius:6px" oninput="document.getElementById('cfgDepositColor').value=this.value;prizePreview()">
+          <input class="inp inp-mono" id="cfgDepositColor" placeholder="#22C55E" style="flex:1" oninput="var v=this.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById('cfgDepositColorPick').value=v};prizePreview()">
+          <span style="font-size:12px;color:var(--t3);white-space:nowrap">💰 ฝากยอด</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="color" id="cfgWithdrawColorPick" value="#3B82F6" style="width:34px;height:34px;border:none;padding:0;cursor:pointer;border-radius:6px" oninput="document.getElementById('cfgWithdrawColor').value=this.value;prizePreview()">
+          <input class="inp inp-mono" id="cfgWithdrawColor" placeholder="#3B82F6" style="flex:1" oninput="var v=this.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById('cfgWithdrawColorPick').value=v};prizePreview()">
+          <span style="font-size:12px;color:var(--t3);white-space:nowrap">🏧 ถอนเลย</span>
+        </div>
       </div>
       <div style="display:flex;gap:8px;margin:18px 0 12px">
         <button class="btn btn-gold" onclick="savePrizeConfig()">💾 บันทึกค่ารางวัล</button>
@@ -810,12 +837,58 @@ function prizePreview() {
   var footer = document.getElementById('cfgFooter').value || 'ยินดีด้วยนะคะ 🎊';
   var showDep = document.getElementById('togDeposit').classList.contains('on');
   var showWith = document.getElementById('togWithdraw').classList.contains('on');
+  var heroUrl = document.getElementById('cfgPrizeHero').value.trim();
+  var depColor = document.getElementById('cfgDepositColor').value.trim() || theme.btn2;
+  var withColor = document.getElementById('cfgWithdrawColor').value.trim() || theme.btn3;
+  var depImg = document.getElementById('cfgDepositImg').value.trim();
+  var withImg = document.getElementById('cfgWithdrawImg').value.trim();
+  // Show/hide hero image preview
+  var heroPreviewDiv = document.getElementById('cfgPrizeHeroPreview');
+  var heroPreviewImg = document.getElementById('cfgPrizeHeroImg');
+  if (heroUrl && heroUrl.startsWith('https://')) {
+    heroPreviewDiv.style.display = 'block';
+    heroPreviewImg.src = heroUrl;
+    heroPreviewImg.onerror = function() { heroPreviewDiv.style.display = 'none'; };
+  } else {
+    heroPreviewDiv.style.display = 'none';
+  }
+  // Show/hide button image previews
+  var depImgPrev = document.getElementById('cfgDepositImgPreview');
+  var depImgThumb = document.getElementById('cfgDepositImgThumb');
+  if (depImg && depImg.startsWith('https://')) {
+    depImgPrev.style.display = 'block'; depImgThumb.src = depImg;
+    depImgThumb.onerror = function() { depImgPrev.style.display = 'none'; };
+  } else { depImgPrev.style.display = 'none'; }
+  var withImgPrev = document.getElementById('cfgWithdrawImgPreview');
+  var withImgThumb = document.getElementById('cfgWithdrawImgThumb');
+  if (withImg && withImg.startsWith('https://')) {
+    withImgPrev.style.display = 'block'; withImgThumb.src = withImg;
+    withImgThumb.onerror = function() { withImgPrev.style.display = 'none'; };
+  } else { withImgPrev.style.display = 'none'; }
   var btns = '<div style="padding:8px 12px;background:#FAFAFA;display:flex;flex-direction:column;gap:6px;border-radius:0 0 16px 16px">';
   btns += '<div style="background:' + theme.btn1 + '15;border-radius:10px;padding:8px;text-align:center;font-size:11px;font-weight:700;color:' + theme.header + '">🎉 แจ้งถูกรางวัลแล้ว</div>';
-  if (showDep) btns += '<div style="background:' + theme.btn2 + ';border-radius:10px;padding:9px;text-align:center;font-size:12px;font-weight:700;color:#fff">💰 ฝากยอด</div>';
-  if (showWith) btns += '<div style="background:' + theme.btn3 + ';border-radius:10px;padding:9px;text-align:center;font-size:12px;font-weight:700;color:#fff">🏧 ถอนเลย</div>';
+  if (showDep) {
+    if (depImg && depImg.startsWith('https://')) {
+      btns += '<div style="border-radius:10px;overflow:hidden"><img src="' + esc(depImg) + '" style="width:100%;display:block" onerror="this.parentElement.innerHTML=\'<div style=background:' + depColor + ';border-radius:10px;padding:9px;text-align:center;font-size:12px;font-weight:700;color:#fff>💰 ฝากยอด</div>\'"></div>';
+    } else {
+      btns += '<div style="background:' + depColor + ';border-radius:10px;padding:9px;text-align:center;font-size:12px;font-weight:700;color:#fff">💰 ฝากยอด</div>';
+    }
+  }
+  if (showWith) {
+    if (withImg && withImg.startsWith('https://')) {
+      btns += '<div style="border-radius:10px;overflow:hidden"><img src="' + esc(withImg) + '" style="width:100%;display:block" onerror="this.parentElement.innerHTML=\'<div style=background:' + withColor + ';border-radius:10px;padding:9px;text-align:center;font-size:12px;font-weight:700;color:#fff>🏧 ถอนเลย</div>\'"></div>';
+    } else {
+      btns += '<div style="background:' + withColor + ';border-radius:10px;padding:9px;text-align:center;font-size:12px;font-weight:700;color:#fff">🏧 ถอนเลย</div>';
+    }
+  }
   btns += '</div>';
-  area.innerHTML = '<div class="flex-preview"><div class="fp-header" style="background:' + theme.header + '"><div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:16px">🏆</div><div style="font-size:16px;font-weight:700;color:' + theme.headerText + '!important;margin-left:8px">' + esc(title) + '</div></div><div class="fp-body"><div style="text-align:center;font-family:var(--mono);font-size:28px;font-weight:800;color:#1a1a2e">฿5,225.00</div><div style="text-align:center;font-size:11px;color:#888;margin-top:2px">ยอดเงินรางวัล</div><div class="fp-divider"></div><div class="fp-row"><span class="fp-row-label">ชื่อ</span><span class="fp-row-val">ลูกค้าตัวอย่าง</span></div><div class="fp-row"><span class="fp-row-label">ประเภท</span><span class="fp-row-val" style="font-size:11px">[หวยรายวัน] - ลาว VIP</span></div><div class="fp-divider"></div><div style="text-align:center;font-size:12px;color:#666;padding:4px 0">' + esc(footer) + '</div></div>' + btns + '</div>';
+  var headerHtml = '';
+  if (heroUrl && heroUrl.startsWith('https://')) {
+    headerHtml = '<div style="border-radius:16px 16px 0 0;overflow:hidden"><img src="' + esc(heroUrl) + '" style="width:100%;display:block" onerror="this.parentElement.innerHTML=\'<div class=fp-header style=background:' + theme.header + '><div style=width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:16px>🏆</div><div style=font-size:16px;font-weight:700;color:' + theme.headerText + ';margin-left:8px>' + esc(title) + '</div></div>\'"></div>';
+  } else {
+    headerHtml = '<div class="fp-header" style="background:' + theme.header + '"><div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:16px">🏆</div><div style="font-size:16px;font-weight:700;color:' + theme.headerText + '!important;margin-left:8px">' + esc(title) + '</div></div>';
+  }
+  area.innerHTML = '<div class="flex-preview">' + headerHtml + '<div class="fp-body"><div style="text-align:center;font-family:var(--mono);font-size:28px;font-weight:800;color:#1a1a2e">฿5,225.00</div><div style="text-align:center;font-size:11px;color:#888;margin-top:2px">ยอดเงินรางวัล</div><div class="fp-divider"></div><div class="fp-row"><span class="fp-row-label">ชื่อ</span><span class="fp-row-val">ลูกค้าตัวอย่าง</span></div><div class="fp-row"><span class="fp-row-label">ประเภท</span><span class="fp-row-val" style="font-size:11px">[หวยรายวัน] - ลาว VIP</span></div><div class="fp-divider"></div><div style="text-align:center;font-size:12px;color:#666;padding:4px 0">' + esc(footer) + '</div></div>' + btns + '</div>';
 }
 
 // ═══ PRIZE FLEX BUILDER ═══
@@ -828,6 +901,11 @@ async function savePrizeConfig() {
     withdrawUrl: document.getElementById('cfgWithdrawUrl').value,
     showDeposit: document.getElementById('togDeposit').classList.contains('on'),
     showWithdraw: document.getElementById('togWithdraw').classList.contains('on'),
+    heroUrl: document.getElementById('cfgPrizeHero').value.trim(),
+    depositColor: document.getElementById('cfgDepositColor').value.trim(),
+    withdrawColor: document.getElementById('cfgWithdrawColor').value.trim(),
+    depositImg: document.getElementById('cfgDepositImg').value.trim(),
+    withdrawImg: document.getElementById('cfgWithdrawImg').value.trim(),
   };
   try {
     await fetch(BASE + '/api/kv?action=prizeConfig', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ config: cfg }) });
@@ -844,6 +922,11 @@ function buildFlexJSON(w) {
   var showWith = document.getElementById('togWithdraw').classList.contains('on');
   var depUrl = document.getElementById('cfgDepositUrl').value.trim();
   var withUrl = document.getElementById('cfgWithdrawUrl').value.trim();
+  var heroUrl = document.getElementById('cfgPrizeHero').value.trim();
+  var depColor = document.getElementById('cfgDepositColor').value.trim() || theme.btn2;
+  var withColor = document.getElementById('cfgWithdrawColor').value.trim() || theme.btn3;
+  var depImg = document.getElementById('cfgDepositImg').value.trim();
+  var withImg = document.getElementById('cfgWithdrawImg').value.trim();
   var amt = '฿' + fmtMoney(w.prize);
   var bodyC = [
     { type: 'text', text: amt, weight: 'bold', size: 'xxl', color: '#1E2D5C', align: 'center' },
@@ -855,9 +938,30 @@ function buildFlexJSON(w) {
     { type: 'text', text: footer, size: 'sm', color: '#555555', align: 'center', margin: 'lg', wrap: true },
   ];
   var footC = [{ type: 'box', layout: 'vertical', contents: [{ type: 'text', text: 'แจ้งถูกรางวัลแล้ว', align: 'center', size: 'xs', color: theme.header, weight: 'bold' }] }];
-  if (showDep) footC.push({ type: 'button', style: 'primary', color: theme.btn2, height: 'sm', margin: 'md', action: depUrl ? { type: 'uri', label: 'ฝากยอด', uri: depUrl } : { type: 'message', label: 'ฝากยอด', text: '+++ฝากยอด ' + fmtMoney(w.prize) } });
-  if (showWith) footC.push({ type: 'button', style: 'primary', color: theme.btn3, height: 'sm', margin: 'sm', action: withUrl ? { type: 'uri', label: 'ถอนเลย', uri: withUrl } : { type: 'message', label: 'ถอนเลย', text: 'ขอถอน ' + fmtMoney(w.prize) + ' บาท' } });
-  return { type: 'flex', altText: title + ' คุณ ' + w.name + ' ' + amt, contents: { type: 'bubble', size: 'kilo', header: { type: 'box', layout: 'horizontal', paddingAll: '14px', backgroundColor: theme.header, contents: [{ type: 'text', text: title, weight: 'bold', size: 'lg', color: '#FFFFFF', gravity: 'center', flex: 1 }] }, body: { type: 'box', layout: 'vertical', paddingAll: '16px', contents: bodyC }, footer: { type: 'box', layout: 'vertical', paddingAll: '12px', spacing: 'sm', contents: footC } } };
+  if (showDep) {
+    var depAction = depUrl ? { type: 'uri', label: 'ฝากยอด', uri: depUrl } : { type: 'message', label: 'ฝากยอด', text: '+++ฝากยอด ' + fmtMoney(w.prize) };
+    if (depImg && depImg.startsWith('https://')) {
+      footC.push({ type: 'box', layout: 'vertical', margin: 'md', cornerRadius: '8px', action: depAction, contents: [{ type: 'image', url: depImg, size: 'full', aspectMode: 'cover', aspectRatio: '8:1' }] });
+    } else {
+      footC.push({ type: 'button', style: 'primary', color: depColor, height: 'sm', margin: 'md', action: depAction });
+    }
+  }
+  if (showWith) {
+    var withAction = withUrl ? { type: 'uri', label: 'ถอนเลย', uri: withUrl } : { type: 'message', label: 'ถอนเลย', text: 'ขอถอน ' + fmtMoney(w.prize) + ' บาท' };
+    if (withImg && withImg.startsWith('https://')) {
+      footC.push({ type: 'box', layout: 'vertical', margin: 'sm', cornerRadius: '8px', action: withAction, contents: [{ type: 'image', url: withImg, size: 'full', aspectMode: 'cover', aspectRatio: '8:1' }] });
+    } else {
+      footC.push({ type: 'button', style: 'primary', color: withColor, height: 'sm', margin: 'sm', action: withAction });
+    }
+  }
+  var useHero = heroUrl && heroUrl.startsWith('https://');
+  var bubble = { type: 'bubble', size: 'kilo', body: { type: 'box', layout: 'vertical', paddingAll: '16px', contents: bodyC }, footer: { type: 'box', layout: 'vertical', paddingAll: '12px', spacing: 'sm', contents: footC } };
+  if (useHero) {
+    bubble.hero = { type: 'image', url: heroUrl, size: 'full', aspectMode: 'cover', aspectRatio: '54:10' };
+  } else {
+    bubble.header = { type: 'box', layout: 'horizontal', paddingAll: '14px', backgroundColor: theme.header, contents: [{ type: 'text', text: title, weight: 'bold', size: 'lg', color: '#FFFFFF', gravity: 'center', flex: 1 }] };
+  }
+  return { type: 'flex', altText: title + ' คุณ ' + w.name + ' ' + amt, contents: bubble };
 }
 
 function buildTextMsg(w) {
@@ -1026,6 +1130,11 @@ async function loadKvSettings() {
       if (pc.withdrawUrl !== undefined) document.getElementById('cfgWithdrawUrl').value = pc.withdrawUrl;
       if (pc.showDeposit === false) document.getElementById('togDeposit').classList.remove('on');
       if (pc.showWithdraw === false) document.getElementById('togWithdraw').classList.remove('on');
+      if (pc.heroUrl) document.getElementById('cfgPrizeHero').value = pc.heroUrl;
+      if (pc.depositColor) { document.getElementById('cfgDepositColor').value = pc.depositColor; if (/^#[0-9a-fA-F]{6}$/.test(pc.depositColor)) document.getElementById('cfgDepositColorPick').value = pc.depositColor; }
+      if (pc.withdrawColor) { document.getElementById('cfgWithdrawColor').value = pc.withdrawColor; if (/^#[0-9a-fA-F]{6}$/.test(pc.withdrawColor)) document.getElementById('cfgWithdrawColorPick').value = pc.withdrawColor; }
+      if (pc.depositImg) document.getElementById('cfgDepositImg').value = pc.depositImg;
+      if (pc.withdrawImg) document.getElementById('cfgWithdrawImg').value = pc.withdrawImg;
       prizePreview();
     }
     var statusEl = document.getElementById('systemStatus');
