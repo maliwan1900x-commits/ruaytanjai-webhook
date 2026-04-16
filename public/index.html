@@ -3431,26 +3431,29 @@ async function wdOcrItem(item, idx, total) {
     if (j.ok && j.found && j.data) {
       item.ocrRaw = j.data.rawText || '';
 
-      // Auto-fill receiver name
+      // Auto-fill receiver name (ไปยัง)
       if (j.data.receiverName) {
         item.receiverName = j.data.receiverName;
       }
+      // Store sender name (จาก) separately
+      item.senderName = j.data.senderName || '';
+
       // Auto-fill amount
       if (j.data.amountNum > 0) {
         item.amount = j.data.amountNum.toFixed(2);
       }
 
-      // Determine OCR status based on what we got
-      if (item.receiverName || item.amount) {
-        item.ocrStatus = 'done'; // Got at least name or amount
+      // Determine OCR status
+      if (item.receiverName || item.senderName || item.amount) {
+        item.ocrStatus = 'done';
       } else if (item.ocrRaw) {
-        item.ocrStatus = 'partial'; // Got text but couldn't parse
+        item.ocrStatus = 'partial';
       } else {
         item.ocrStatus = 'fail';
       }
 
-      // Auto-match: try receiver name first, then sender name
-      var matchTarget = item.receiverName || j.data.senderName || '';
+      // Auto-match: try senderName first (= ลูกค้าที่เคยฝาก), then receiverName
+      var matchTarget = item.senderName || item.receiverName || '';
       if (matchTarget) {
         var match = wdMatchName(matchTarget);
         if (match) {
@@ -3460,14 +3463,13 @@ async function wdOcrItem(item, idx, total) {
         }
       }
     } else if (j.ok && !j.found) {
-      item.ocrStatus = 'fail'; // No text in image at all
+      item.ocrStatus = 'fail';
     } else {
       item.ocrStatus = 'fail';
-      console.log('OCR API error:', j.error);
     }
   } catch (e) {
     item.ocrStatus = 'fail';
-    console.log('OCR error for', item.fileName, e.message);
+    console.log('OCR error:', e.message);
   }
 
   wdRenderItems();
@@ -3485,11 +3487,7 @@ function wdFileToDataUrl(file) {
 function wdRenderItems() {
   var empty = document.getElementById('wdEmptyState');
   var section = document.getElementById('wdMatchSection');
-  if (!wdItems.length) {
-    empty.style.display = 'block';
-    section.style.display = 'none';
-    return;
-  }
+  if (!wdItems.length) { empty.style.display = 'block'; section.style.display = 'none'; return; }
   empty.style.display = 'none';
   section.style.display = 'block';
 
@@ -3501,100 +3499,60 @@ function wdRenderItems() {
 
   var html = '';
   wdItems.forEach(function(it, idx) {
-    var statusBadge = '';
-    var cardBorder = 'var(--line)';
-    var cardBg = 'var(--surface)';
+    var cardBorder = 'var(--line)', cardBg = 'var(--surface)', statusBadge = '';
+    var ocrOvr = '';
+    if (it.ocrStatus === 'scanning') { ocrOvr = '<div style="position:absolute;top:6px;left:6px;padding:3px 9px;border-radius:7px;font-size:10px;font-weight:700;background:rgba(125,211,252,.9);color:#052545">🔍 อ่าน...</div>'; cardBorder = 'rgba(125,211,252,.3)'; }
+    else if (it.ocrStatus === 'done') ocrOvr = '<div style="position:absolute;top:6px;left:6px;padding:3px 9px;border-radius:7px;font-size:10px;font-weight:700;background:rgba(74,222,128,.9);color:#052e1f">✓ อ่านได้</div>';
+    else if (it.ocrStatus === 'partial') ocrOvr = '<div style="position:absolute;top:6px;left:6px;padding:3px 9px;border-radius:7px;font-size:10px;font-weight:700;background:rgba(251,191,36,.9);color:#1a1208">⚠ บางส่วน</div>';
+    else if (it.ocrStatus === 'fail') ocrOvr = '<div style="position:absolute;top:6px;left:6px;padding:3px 9px;border-radius:7px;font-size:10px;font-weight:700;background:rgba(251,191,36,.9);color:#1a1208">⚠ กรอกเอง</div>';
 
-    // OCR status indicator
-    var ocrBadge = '';
-    if (it.ocrStatus === 'scanning') {
-      ocrBadge = '<span class="bdg bdg-info" style="font-size:11px">🔍 กำลังอ่าน...</span>';
-      cardBorder = 'rgba(125,211,252,.3)';
-    } else if (it.ocrStatus === 'done') {
-      ocrBadge = '<span class="bdg bdg-ok" style="font-size:11px">✓ อ่านได้</span>';
-    } else if (it.ocrStatus === 'partial') {
-      ocrBadge = '<span class="bdg bdg-warn" style="font-size:11px">⚠ อ่านได้บางส่วน</span>';
-    } else if (it.ocrStatus === 'fail') {
-      ocrBadge = '<span class="bdg bdg-warn" style="font-size:11px">⚠ อ่านไม่ได้ — กรอกเอง</span>';
-      if (it.ocrRaw) ocrBadge += '<div style="font-size:10px;color:var(--t4);margin-top:4px;max-width:120px;word-break:break-all;line-height:1.4" title="' + esc(it.ocrRaw) + '">📝 ' + esc(it.ocrRaw.substring(0, 40)) + (it.ocrRaw.length > 40 ? '...' : '') + '</div>';
-    }
-
-    if (it.status === 'sent') {
-      statusBadge = '<span class="bdg bdg-ok">✓ ส่งแล้ว</span>';
-      cardBorder = 'rgba(74,222,128,.3)';
-      cardBg = 'rgba(74,222,128,.04)';
-    }
+    if (it.status === 'sent') { statusBadge = '<span class="bdg bdg-ok">✓ ส่งแล้ว</span>'; cardBorder = 'rgba(74,222,128,.3)'; cardBg = 'rgba(74,222,128,.04)'; }
     else if (it.status === 'sending') statusBadge = '<span class="bdg bdg-info">⏳ กำลังส่ง...</span>';
-    else if (it.status === 'fail') {
-      statusBadge = '<span class="bdg bdg-fail">✗ ' + esc(it.errorMsg || 'ล้มเหลว') + '</span>';
-      cardBorder = 'rgba(248,113,113,.3)';
-    }
-    else if (it.matchedUid) {
-      statusBadge = '<span class="bdg bdg-ok">🎯 พร้อมส่ง</span>';
-      cardBorder = 'rgba(232,193,92,.3)';
-    }
+    else if (it.status === 'fail') { statusBadge = '<span class="bdg bdg-fail">✗ ' + esc(it.errorMsg || 'ล้มเหลว') + '</span>'; cardBorder = 'rgba(248,113,113,.3)'; }
+    else if (it.matchedUid) { statusBadge = '<span class="bdg bdg-ok">🎯 พร้อมส่ง</span>'; cardBorder = 'rgba(232,193,92,.3)'; }
     else statusBadge = '<span class="bdg bdg-warn">⚠️ ต้องเลือกลูกค้า</span>';
 
     var confBar = '';
     if (it.matchedUid && it.confidence < 1) {
       var cpct = Math.round(it.confidence * 100);
       var cColor = cpct >= 85 ? 'var(--green)' : cpct >= 70 ? 'var(--amber)' : 'var(--red)';
-      confBar = '<div style="margin-top:8px"><div style="font-size:11px;color:var(--t3);margin-bottom:3px">ความมั่นใจ ' + cpct + '%</div><div style="height:4px;background:var(--bg-1);border-radius:100px;overflow:hidden"><div style="height:100%;width:' + cpct + '%;background:' + cColor + ';border-radius:100px"></div></div></div>';
+      confBar = '<div style="margin-top:6px"><div style="height:4px;background:var(--bg-1);border-radius:100px;overflow:hidden"><div style="height:100%;width:' + cpct + '%;background:' + cColor + '"></div></div><div style="font-size:10px;color:var(--t4);margin-top:2px">' + cpct + '% match</div></div>';
     }
 
-    var matchInfo = it.matchedUid
-      ? '<div style="background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.2);border-radius:12px;padding:14px">' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">' +
-          '<div style="width:36px;height:36px;border-radius:10px;background:var(--success-bg);display:grid;place-items:center;font-size:15px;color:var(--green);flex-shrink:0">✓</div>' +
-          '<div style="flex:1;min-width:0">' +
-            '<div style="font-size:15px;font-weight:700;color:var(--green)">' + esc(it.matchedName) + '</div>' +
-            '<div style="font-size:11px;color:var(--t4);font-family:var(--mono);margin-top:2px">' + esc(it.matchedUid.substring(0, 16)) + '...</div>' +
-          '</div>' +
-        '</div>' + confBar +
-        '<button class="btn btn-ghost btn-sm" onclick="wdClearMatch(' + idx + ')" style="margin-top:10px;padding:6px 12px;font-size:12px;width:100%;justify-content:center">✕ เปลี่ยนลูกค้า</button>' +
-        '</div>'
-      : '<div>' +
-          '<input class="inp" placeholder="🔍 ค้นหาชื่อลูกค้า หรือ userId..." value="' + esc(it.searchQuery || '') + '" oninput="wdSearchInput(' + idx + ', this.value)" style="width:100%">' +
-          '<div id="wdSuggest_' + idx + '" style="display:' + (it.showSuggestions ? 'block' : 'none') + ';margin-top:8px;max-height:240px;overflow-y:auto;background:var(--bg-1);border:1px solid var(--line);border-radius:12px"></div>' +
-        '</div>';
+    var matchHtml = it.matchedUid
+      ? '<div style="background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.2);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px">' +
+          '<div style="width:34px;height:34px;border-radius:9px;background:var(--success-bg);display:grid;place-items:center;font-size:14px;color:var(--green);flex-shrink:0">✓</div>' +
+          '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:var(--green)">' + esc(it.matchedName) + '</div><div style="font-size:10px;color:var(--t4);font-family:var(--mono);margin-top:1px">' + esc(it.matchedUid.substring(0, 14)) + '...</div>' + confBar + '</div>' +
+          '<button style="background:none;border:1px solid var(--line);border-radius:7px;padding:4px 8px;color:var(--t3);cursor:pointer;font-size:11px" onclick="wdClearMatch(' + idx + ')">✕</button></div>'
+      : '<input class="inp" placeholder="🔍 ค้นหาชื่อลูกค้า..." value="' + esc(it.searchQuery || '') + '" oninput="wdSearchInput(' + idx + ', this.value)" style="font-size:13px">' +
+        '<div id="wdSuggest_' + idx + '" style="display:' + (it.showSuggestions ? 'block' : 'none') + ';margin-top:6px;max-height:200px;overflow-y:auto;background:var(--bg-1);border:1px solid var(--line);border-radius:10px"></div>';
 
-    html += '<div style="background:' + cardBg + ';border:1px solid ' + cardBorder + ';border-radius:16px;padding:22px;margin-bottom:14px;display:grid;grid-template-columns:130px 1fr 1.2fr auto;gap:22px;align-items:stretch;transition:all .2s">' +
-      // Image preview (bigger!)
-      '<div>' +
-        '<img src="' + it.previewUrl + '" onclick="wdPreviewImage(' + idx + ')" style="width:120px;height:160px;object-fit:cover;border-radius:12px;cursor:pointer;border:1px solid var(--line);display:block" title="คลิกเพื่อดูใหญ่">' +
-        '<div style="font-size:11px;color:var(--t4);margin-top:8px;text-align:center;font-family:var(--mono)">#' + (idx + 1) + (it.telegramId ? ' · 📥TG' : '') + '</div>' +
-        (ocrBadge ? '<div style="margin-top:6px;text-align:center">' + ocrBadge + '</div>' : '') +
-      '</div>' +
-      // Info fields (bigger labels)
-      '<div style="display:flex;flex-direction:column;gap:12px">' +
-        '<div>' +
-          '<label style="font-size:12px;color:var(--t3);font-weight:600;margin-bottom:6px;display:block">👤 ชื่อผู้รับในสลิป</label>' +
-          '<input class="inp" placeholder="เช่น น.ส. สมหญิง ดี" value="' + esc(it.receiverName || '') + '" oninput="wdUpdateItem(' + idx + ', \'receiverName\', this.value);wdAutoMatch(' + idx + ')" style="width:100%">' +
+    var recF = it.receiverName ? 'border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.03)' : '';
+    var senF = (it.senderName||'') ? 'border-color:rgba(232,193,92,.3);background:rgba(232,193,92,.03);color:var(--gold)' : '';
+    var amtF = it.amount ? 'border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.03);font-family:var(--mono)' : 'font-family:var(--mono)';
+
+    html += '<div style="background:' + cardBg + ';border:1px solid ' + cardBorder + ';border-radius:16px;overflow:hidden;margin-bottom:14px">' +
+      '<div style="display:grid;grid-template-columns:130px 1fr 1fr;min-height:140px">' +
+        '<div style="position:relative;overflow:hidden;background:var(--bg-1);cursor:pointer" onclick="wdPreviewImage(' + idx + ')">' +
+          '<img src="' + it.previewUrl + '" style="width:100%;height:100%;object-fit:cover;display:block;min-height:140px">' +
+          '<div style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.7);color:var(--t2);font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:5px">#' + (idx+1) + (it.telegramId ? ' 📥TG' : '') + '</div>' +
+          ocrOvr + '</div>' +
+        '<div style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;border-left:1px solid var(--line)">' +
+          '<div><label style="font-size:11px;color:var(--t3);font-weight:600;margin-bottom:4px;display:block">👤 ผู้รับ (ไปยัง)</label><input class="inp" placeholder="ชื่อผู้รับ" value="' + esc(it.receiverName||'') + '" oninput="wdUpdateItem(' + idx + ',\u0027receiverName\u0027,this.value)" style="' + recF + '"></div>' +
+          '<div><label style="font-size:11px;color:var(--gold);font-weight:600;margin-bottom:4px;display:block">👤 ผู้โอน (จาก) — ใช้จับคู่</label><input class="inp" placeholder="ชื่อผู้โอน" value="' + esc(it.senderName||'') + '" oninput="wdUpdateItem(' + idx + ',\u0027senderName\u0027,this.value);wdAutoMatch(' + idx + ')" style="' + senF + '"></div>' +
+          '<div><label style="font-size:11px;color:var(--t3);font-weight:600;margin-bottom:4px;display:block">💰 จำนวนเงิน</label><input class="inp" placeholder="เช่น 1500" value="' + esc(it.amount||'') + '" oninput="wdUpdateItem(' + idx + ',\u0027amount\u0027,this.value)" style="' + amtF + '"></div>' +
         '</div>' +
-        '<div>' +
-          '<label style="font-size:12px;color:var(--t3);font-weight:600;margin-bottom:6px;display:block">💰 จำนวนเงิน (บาท)</label>' +
-          '<input class="inp" placeholder="เช่น 1500" value="' + esc(it.amount || '') + '" oninput="wdUpdateItem(' + idx + ', \'amount\', this.value)" style="width:100%;font-family:var(--mono)">' +
+        '<div style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;border-left:1px solid var(--line)">' +
+          '<div style="font-size:11px;color:var(--t3);font-weight:600">🔗 จับคู่ลูกค้า LINE</div>' +
+          matchHtml +
+          '<div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">' + statusBadge +
+          '<button style="background:var(--red-bg);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px" onclick="wdRemoveItem(' + idx + ')">🗑️</button></div>' +
         '</div>' +
-      '</div>' +
-      // Match section
-      '<div style="display:flex;flex-direction:column;gap:10px">' +
-        '<div style="font-size:12px;color:var(--t3);font-weight:600">🔗 จับคู่ลูกค้า LINE</div>' +
-        matchInfo +
-        '<div style="margin-top:auto">' + statusBadge + '</div>' +
-      '</div>' +
-      // Actions
-      '<div style="display:flex;align-items:flex-start;gap:8px">' +
-        '<button class="btn btn-sm" onclick="wdRemoveItem(' + idx + ')" style="background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.3);padding:8px 12px" title="ลบ">🗑️</button>' +
-      '</div>' +
-    '</div>';
+      '</div></div>';
   });
 
   document.getElementById('wdItemsList').innerHTML = html;
-
-  // Update suggestion lists after render
-  wdItems.forEach(function(it, idx) {
-    if (it.showSuggestions) wdUpdateSuggestList(idx);
-  });
+  wdItems.forEach(function(it, idx) { if (it.showSuggestions) wdUpdateSuggestList(idx); });
 }
 
 function wdUpdateItem(idx, field, value) {
@@ -3604,8 +3562,11 @@ function wdUpdateItem(idx, field, value) {
 
 function wdAutoMatch(idx) {
   var it = wdItems[idx];
-  if (!it || !it.receiverName) return;
-  var m = wdMatchName(it.receiverName);
+  if (!it) return;
+  // Try senderName first (= ลูกค้าที่เคยฝาก), then receiverName
+  var target = it.senderName || it.receiverName || '';
+  if (!target) return;
+  var m = wdMatchName(target);
   if (m) {
     it.matchedUid = m.userId;
     it.matchedName = m.displayName || m.senderName;

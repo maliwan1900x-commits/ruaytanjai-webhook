@@ -1,296 +1,195 @@
 // ═══════════════════════════════════════════════════
 // /api/ocr-slip.js — Google Vision OCR for Thai bank slips
+// v8.4 — Fixed จาก vs ไปยัง detection
 // ═══════════════════════════════════════════════════
-// Accepts base64 image, returns structured slip data:
-//   receiverName, senderName, amount, bank, date, refCode
 
 var config = require('./_config');
-
 var VISION_URL = 'https://vision.googleapis.com/v1/images:annotate';
 
-// ── Thai bank name patterns ──
 var BANK_PATTERNS = [
-  { pattern: /กสิกร|kbank|kasikorn/i, name: 'กสิกรไทย', code: 'KBANK' },
-  { pattern: /ไทยพาณิชย์|scb|siam commercial/i, name: 'ไทยพาณิชย์', code: 'SCB' },
-  { pattern: /กรุงเทพ|bbl|bangkok bank/i, name: 'กรุงเทพ', code: 'BBL' },
-  { pattern: /กรุงไทย|ktb|krungthai/i, name: 'กรุงไทย', code: 'KTB' },
-  { pattern: /ทหารไทยธนชาต|ttb|tmb/i, name: 'ทหารไทยธนชาต', code: 'TTB' },
-  { pattern: /กรุงศรี|bay|krungsri|ayudhya/i, name: 'กรุงศรี', code: 'BAY' },
-  { pattern: /ออมสิน|gsb|government savings/i, name: 'ออมสิน', code: 'GSB' },
-  { pattern: /ธกส|baac/i, name: 'ธ.ก.ส.', code: 'BAAC' },
-  { pattern: /ทิสโก้|tisco/i, name: 'ทิสโก้', code: 'TISCO' },
-  { pattern: /เกียรตินาคินภัทร|kkp|kiatnakin/i, name: 'เกียรตินาคินภัทร', code: 'KKP' },
-  { pattern: /แลนด์|lhbank|land/i, name: 'แลนด์ แอนด์ เฮ้าส์', code: 'LHBANK' },
-  { pattern: /ยูโอบี|uob/i, name: 'ยูโอบี', code: 'UOB' },
-  { pattern: /ซีไอเอ็มบี|cimb/i, name: 'ซีไอเอ็มบี', code: 'CIMB' },
-  { pattern: /พร้อมเพย์|promptpay/i, name: 'พร้อมเพย์', code: 'PPAY' },
+  { p: /กสิกร|kbank|kasikorn/i, name: 'กสิกรไทย', code: 'KBANK' },
+  { p: /ไทยพาณิชย์|scb|siam commercial/i, name: 'ไทยพาณิชย์', code: 'SCB' },
+  { p: /กรุงเทพ|bbl|bangkok bank/i, name: 'กรุงเทพ', code: 'BBL' },
+  { p: /กรุงไทย|ktb|krungthai/i, name: 'กรุงไทย', code: 'KTB' },
+  { p: /ทหารไทยธนชาต|ttb|tmb/i, name: 'ทหารไทยธนชาต', code: 'TTB' },
+  { p: /กรุงศรี|bay|krungsri|ayudhya/i, name: 'กรุงศรี', code: 'BAY' },
+  { p: /ออมสิน|gsb/i, name: 'ออมสิน', code: 'GSB' },
+  { p: /ธกส|baac/i, name: 'ธ.ก.ส.', code: 'BAAC' },
+  { p: /ทิสโก้|tisco/i, name: 'ทิสโก้', code: 'TISCO' },
+  { p: /เกียรตินาคิน|kkp|kiatnakin/i, name: 'เกียรตินาคินภัทร', code: 'KKP' },
+  { p: /แลนด์|lhbank/i, name: 'แลนด์ แอนด์ เฮ้าส์', code: 'LHBANK' },
+  { p: /ยูโอบี|uob/i, name: 'ยูโอบี', code: 'UOB' },
+  { p: /ซีไอเอ็มบี|cimb/i, name: 'ซีไอเอ็มบี', code: 'CIMB' },
+  { p: /พร้อมเพย์|promptpay/i, name: 'พร้อมเพย์', code: 'PPAY' },
 ];
 
-// ── Parse structured data from OCR text ──
+var TITLE_RE = /(?:นาย|นาง|นางสาว|น\.ส\.|น\. ?ส\.|MR\.?|MRS\.?|MS\.?|MISS)\s*/i;
+var TITLE_NAME_RE = /((?:นาย|นาง|นางสาว|น\.ส\.|น\. ?ส\.|MR\.?|MRS\.?|MS\.?|MISS)\s+[\u0E00-\u0E7FA-Za-z]+(?:\s+[\u0E00-\u0E7FA-Za-z]+){0,3})/gi;
+
+function cleanName(name) {
+  if (!name) return '';
+  return name
+    .replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '')
+    .replace(/\d{3}[\-]\d[\-][\w]+/g, '')
+    .replace(/[\u{1F300}-\u{1FAFF}]/gu, '')
+    .replace(/\d+/g, '')
+    .replace(/^[\s\-:,\.]+|[\s\-:,\.]+$/g, '')
+    .trim();
+}
+
+function extractNameAfter(text, keyword) {
+  // Find keyword, then extract Thai name after it
+  var re = new RegExp(keyword + '[\\s:]*([^\\n]{2,60})', 'i');
+  var m = text.match(re);
+  if (m) {
+    var raw = m[1];
+    // Try to find title+name pattern in the match
+    var nameM = raw.match(TITLE_NAME_RE);
+    if (nameM) return cleanName(nameM[0]);
+    // Fallback: extract Thai text
+    var thai = raw.match(/([\u0E00-\u0E7F\.\s]{4,50})/);
+    if (thai) return cleanName(thai[1]);
+  }
+  return '';
+}
+
 function parseSlipText(fullText) {
   var result = {
-    receiverName: '',
-    senderName: '',
-    amount: '',
-    amountNum: 0,
-    bank: '',
-    bankCode: '',
-    date: '',
-    refCode: '',
+    receiverName: '', senderName: '',
+    amount: '', amountNum: 0,
+    bank: '', bankCode: '', date: '', refCode: '',
     rawText: fullText,
   };
-
   if (!fullText) return result;
 
   var lines = fullText.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+  var hasTo = /ไปยัง|ไป\s*ยัง|ผู้รับ|ปลายทาง/i.test(fullText);
+  var hasFrom = /จาก|ผู้โอน|ต้นทาง|from/i.test(fullText);
 
-  // ── Amount: ฿X,XXX.XX or จำนวนเงิน X,XXX.XX ──
-  var amountPatterns = [
-    /(?:฿|THB|บาท)\s*([\d,]+\.?\d*)/,
-    /([\d,]+\.?\d*)\s*(?:฿|THB|บาท)/,
-    /จำนวน(?:เงิน)?\s*([\d,]+\.?\d*)/,
-    /amount\s*([\d,]+\.?\d*)/i,
-  ];
-  // Find the largest amount (usually the transfer amount)
-  var amounts = [];
-  for (var i = 0; i < lines.length; i++) {
-    for (var p = 0; p < amountPatterns.length; p++) {
-      var m = lines[i].match(amountPatterns[p]);
-      if (m) {
-        var val = parseFloat(m[1].replace(/,/g, ''));
-        if (val > 0 && val < 10000000) amounts.push(val);
-      }
-    }
-  }
-  // Also look for standalone large numbers (common in slip center)
-  for (var i = 0; i < lines.length; i++) {
-    var standalone = lines[i].match(/^([\d,]+\.\d{2})$/);
-    if (standalone) {
-      var val = parseFloat(standalone[1].replace(/,/g, ''));
-      if (val > 0 && val < 10000000) amounts.push(val);
-    }
-  }
-  if (amounts.length) {
-    // Pick the largest amount (main transfer)
-    result.amountNum = Math.max.apply(null, amounts);
-    result.amount = result.amountNum.toFixed(2);
-  }
-
-  // ── Receiver name (ไปยัง/ผู้รับ/To/ปลายทาง) ──
-  // Strategy: scan all lines for receiver keywords, also look at next line
-  var receiverPatterns = [
-    /(?:ไปยัง|ไป\s*ยัง|ผู้รับ|ปลายทาง|โอนให้|to)\s*[:\-]?\s*(.+)/i,
-  ];
-  for (var i = 0; i < lines.length; i++) {
-    // Check if line contains keyword
-    for (var p = 0; p < receiverPatterns.length; p++) {
-      var m = lines[i].match(receiverPatterns[p]);
-      if (m && m[1]) {
-        var name = m[1].replace(/[0-9x\-\.\/\(\)]/g, '').trim();
-        // Remove bank account patterns like xxx-xxx485-7
-        name = name.replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').trim();
-        if (name.length >= 2 && name.length <= 60) {
-          result.receiverName = name;
-          break;
-        }
-      }
-    }
-    if (result.receiverName) break;
-
-    // If line is just "ไปยัง" or "ผู้รับ", check next line for name
-    if (/^(ไปยัง|ผู้รับ|ปลายทาง|to)$/i.test(lines[i].trim()) && i + 1 < lines.length) {
-      var nextName = lines[i + 1].replace(/[0-9x\-\.\/\(\)]/g, '').replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').trim();
-      if (nextName.length >= 2 && nextName.length <= 60) {
-        result.receiverName = nextName;
-        break;
-      }
-    }
-  }
-
-  // Fallback: look for Thai name with title (นาย/นาง/นางสาว) anywhere
-  if (!result.receiverName) {
-    for (var i = 0; i < lines.length; i++) {
-      var nameMatch = lines[i].match(/((?:นาย|นาง|นางสาว|น\.ส\.|MR\.?|MRS\.?|MS\.?|MISS)\s+\S+(?:\s+\S+){0,3})/i);
-      if (nameMatch) {
-        var candidate = nameMatch[1].replace(/[0-9x\-\.\/]/g, '').replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').trim();
-        if (candidate.length >= 4) {
-          // Check context: if previous line contains ไปยัง/ผู้รับ → this is receiver
-          var prevLine = i > 0 ? lines[i - 1] : '';
-          var prevPrev = i > 1 ? lines[i - 2] : '';
-          var isReceiverContext = /ไปยัง|ผู้รับ|ปลายทาง|to/i.test(prevLine) || /ไปยัง|ผู้รับ|ปลายทาง|to/i.test(prevPrev) || /ไปยัง|ผู้รับ|ปลายทาง|to/i.test(lines[i]);
-          var isSenderContext = /จาก|ผู้โอน|ต้นทาง|from/i.test(prevLine) || /จาก|ผู้โอน|ต้นทาง|from/i.test(prevPrev) || /จาก|ผู้โอน|ต้นทาง|from/i.test(lines[i]);
-
-          if (isReceiverContext || !result.receiverName) {
-            if (isSenderContext && !result.senderName) {
-              result.senderName = candidate;
-            } else {
-              result.receiverName = candidate;
-            }
+  // ── RECEIVER (ไปยัง) ──
+  if (hasTo) {
+    result.receiverName = extractNameAfter(fullText, '(?:ไปยัง|ไป\\s*ยัง|ผู้รับ|ปลายทาง)');
+    // Also check next line after ไปยัง
+    if (!result.receiverName) {
+      for (var i = 0; i < lines.length; i++) {
+        if (/^(?:ไปยัง|ผู้รับ|ปลายทาง)$/i.test(lines[i]) && i + 1 < lines.length) {
+          var next = lines[i + 1];
+          if (TITLE_RE.test(next)) {
+            result.receiverName = cleanName(next);
+            break;
           }
         }
       }
     }
   }
 
-  // Extra fallback: if still no receiver, look for any Thai name pattern on same line as ไปยัง
-  if (!result.receiverName) {
-    var fullScan = fullText.match(/ไปยัง[^\n]*?((?:นาย|นาง|นางสาว|น\.ส\.|น\. ?ส\.)\s+\S+(?:\s+\S+){0,3})/i);
-    if (fullScan) {
-      result.receiverName = fullScan[1].replace(/[0-9x\-\.\/]/g, '').replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').trim();
-    }
-  }
-
-  // Aggressive fallback: scan full text for "ไปยัง" followed by any Thai text
-  if (!result.receiverName) {
-    var afterIpyang = fullText.match(/ไปยัง\s*([\u0E00-\u0E7F\.\s]+)/);
-    if (afterIpyang) {
-      var candidate = afterIpyang[1].replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').replace(/\d+/g, '').trim();
-      if (candidate.length >= 4) result.receiverName = candidate;
-    }
-  }
-
-  // Last resort: find any Thai name with title prefix anywhere in text
-  if (!result.receiverName) {
-    var titlePatterns = [
-      /(?:นาย|นาง|นางสาว|น\.ส\.|น\. ?ส\.)\s+([\u0E00-\u0E7F]+(?:\s+[\u0E00-\u0E7F]+){0,3})/g,
-    ];
-    for (var tp = 0; tp < titlePatterns.length; tp++) {
-      var matches = [];
-      var mm;
-      while ((mm = titlePatterns[tp].exec(fullText)) !== null) {
-        matches.push(mm[0].replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').trim());
-      }
-      // Pick the last match (usually receiver is listed after sender)
-      if (matches.length) {
-        result.receiverName = matches[matches.length - 1];
-        if (matches.length >= 2) result.senderName = matches[0];
-        break;
-      }
-    }
-  }
-
-  // ── Sender name (จาก/ผู้โอน/From/ต้นทาง) ──
-  var senderPatterns = [
-    /(?:จาก|ผู้โอน|ต้นทาง|from)\s*[:\-]?\s*(.+)/i,
-  ];
-  for (var i = 0; i < lines.length; i++) {
-    for (var p = 0; p < senderPatterns.length; p++) {
-      var m = lines[i].match(senderPatterns[p]);
-      if (m && m[1]) {
-        var name = m[1].replace(/[0-9x\-\.\/\(\)]/g, '').trim();
-        if (name.length >= 2 && name.length <= 60) {
-          result.senderName = name;
-          break;
+  // ── SENDER (จาก) ──
+  if (hasFrom) {
+    result.senderName = extractNameAfter(fullText, '(?:จาก|ผู้โอน|ต้นทาง|from)');
+    if (!result.senderName) {
+      for (var i = 0; i < lines.length; i++) {
+        if (/^(?:จาก|ผู้โอน|ต้นทาง|from)$/i.test(lines[i]) && i + 1 < lines.length) {
+          var next = lines[i + 1];
+          if (TITLE_RE.test(next)) {
+            result.senderName = cleanName(next);
+            break;
+          }
         }
       }
     }
-    if (result.senderName) break;
   }
 
-  // ── Detect names from context (2-pass: first name after "จาก", second after "ไปยัง") ──
-  if (!result.receiverName || !result.senderName) {
-    var foundNames = [];
-    for (var i = 0; i < lines.length; i++) {
-      var thaiName = lines[i].match(/^((?:นาย|นาง|นางสาว|น\.ส\.|MR\.?|MRS\.?|MS\.?|MISS)\s+\S+(?:\s+\S+){0,3})$/i);
-      if (thaiName) {
-        foundNames.push({ name: thaiName[1].trim(), line: i });
-      }
+  // ── FALLBACK: find all names with title ──
+  if (!result.receiverName && !result.senderName) {
+    var allNames = [];
+    var mm;
+    var re = new RegExp(TITLE_NAME_RE.source, 'gi');
+    while ((mm = re.exec(fullText)) !== null) {
+      allNames.push(cleanName(mm[0]));
     }
-    // If we found 2 names, first is usually sender, second is receiver
-    if (foundNames.length >= 2) {
-      if (!result.senderName) result.senderName = foundNames[0].name;
-      if (!result.receiverName) result.receiverName = foundNames[foundNames.length - 1].name;
-    } else if (foundNames.length === 1 && !result.receiverName) {
-      result.receiverName = foundNames[0].name;
+    allNames = allNames.filter(function(n) { return n.length >= 4; });
+    if (allNames.length >= 2) {
+      result.senderName = allNames[0];
+      result.receiverName = allNames[allNames.length - 1];
+    } else if (allNames.length === 1) {
+      // If only "จาก" context → senderName; if only "ไปยัง" → receiverName
+      if (hasFrom && !hasTo) result.senderName = allNames[0];
+      else result.receiverName = allNames[0];
     }
   }
 
-  // ── Bank detection ──
-  for (var i = 0; i < BANK_PATTERNS.length; i++) {
-    if (BANK_PATTERNS[i].pattern.test(fullText)) {
-      result.bank = BANK_PATTERNS[i].name;
-      result.bankCode = BANK_PATTERNS[i].code;
+  // ── AMOUNT ──
+  var amounts = [];
+  var amtRe = /(?:฿|THB|บาท)\s*([\d,]+\.?\d*)/g;
+  var am;
+  while ((am = amtRe.exec(fullText)) !== null) {
+    var v = parseFloat(am[1].replace(/,/g, ''));
+    if (v > 0 && v < 10000000) amounts.push(v);
+  }
+  amtRe = /([\d,]+\.?\d*)\s*(?:฿|THB|บาท)/g;
+  while ((am = amtRe.exec(fullText)) !== null) {
+    var v = parseFloat(am[1].replace(/,/g, ''));
+    if (v > 0 && v < 10000000) amounts.push(v);
+  }
+  amtRe = /จำนวน(?:เงิน)?\s*([\d,]+\.?\d*)/g;
+  while ((am = amtRe.exec(fullText)) !== null) {
+    var v = parseFloat(am[1].replace(/,/g, ''));
+    if (v > 0 && v < 10000000) amounts.push(v);
+  }
+  // Standalone amount
+  lines.forEach(function(l) {
+    var sa = l.match(/^([\d,]+\.\d{2})$/);
+    if (sa) { var v = parseFloat(sa[1].replace(/,/g, '')); if (v > 0 && v < 10000000) amounts.push(v); }
+  });
+  if (amounts.length) {
+    result.amountNum = Math.max.apply(null, amounts);
+    result.amount = result.amountNum.toFixed(2);
+  }
+
+  // ── BANK ──
+  for (var b = 0; b < BANK_PATTERNS.length; b++) {
+    if (BANK_PATTERNS[b].p.test(fullText)) {
+      result.bank = BANK_PATTERNS[b].name;
+      result.bankCode = BANK_PATTERNS[b].code;
       break;
     }
   }
 
-  // ── Reference code ──
-  var refMatch = fullText.match(/(?:รหัสอ้างอิง|เลขที่รายการ|ref(?:erence)?\.?\s*(?:no|code)?\.?)\s*[:\-]?\s*([A-Za-z0-9]{8,30})/i);
-  if (refMatch) result.refCode = refMatch[1];
+  // ── REF ──
+  var refM = fullText.match(/(?:รหัสอ้างอิง|เลขที่รายการ|ref(?:erence)?\.?\s*(?:no|code)?\.?)\s*[:\-]?\s*([A-Za-z0-9]{8,30})/i);
+  if (refM) result.refCode = refM[1];
 
-  // ── Date ──
-  var dateMatch = fullText.match(/(\d{1,2})\s*(ม\.ค\.|ก\.พ\.|มี\.ค\.|เม\.ย\.|พ\.ค\.|มิ\.ย\.|ก\.ค\.|ส\.ค\.|ก\.ย\.|ต\.ค\.|พ\.ย\.|ธ\.ค\.|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*(\d{2,4})/i);
-  if (dateMatch) result.date = dateMatch[0];
-
-  // ── Fallback: detect all "name-like" Thai strings ──
-  if (!result.receiverName) {
-    for (var i = lines.length - 1; i >= 0; i--) {
-      // Look for pure Thai name (2+ Thai words, no numbers)
-      if (/^[\u0E00-\u0E7F\s]+$/.test(lines[i]) && lines[i].split(/\s+/).length >= 2 && lines[i].length >= 4 && lines[i].length <= 50) {
-        result.receiverName = lines[i].trim();
-        break;
-      }
-    }
-  }
-
-  // Clean up names
-  result.receiverName = cleanParsedName(result.receiverName);
-  result.senderName = cleanParsedName(result.senderName);
+  // ── DATE ──
+  var dateM = fullText.match(/(\d{1,2})\s*(ม\.ค\.|ก\.พ\.|มี\.ค\.|เม\.ย\.|พ\.ค\.|มิ\.ย\.|ก\.ค\.|ส\.ค\.|ก\.ย\.|ต\.ค\.|พ\.ย\.|ธ\.ค\.|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*(\d{2,4})/i);
+  if (dateM) result.date = dateM[0];
 
   return result;
-}
-
-function cleanParsedName(name) {
-  if (!name) return '';
-  // Remove bank account patterns
-  name = name.replace(/xxx?[-x]?xxx?\d*[-x]?\d*/g, '').trim();
-  // Remove emojis and special chars
-  name = name.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim();
-  // Remove trailing/leading punctuation
-  name = name.replace(/^[\s\-:,\.]+|[\s\-:,\.]+$/g, '');
-  return name;
 }
 
 module.exports = async (req, res) => {
   config.setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!config.checkAuth(req)) return res.status(401).json({ ok: false, error: 'unauthorized' });
-
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'POST only' });
 
   try {
     var body = req.body || {};
     var base64 = body.base64 || body.image || '';
-
     if (!base64) return res.status(400).json({ ok: false, error: 'base64 image required' });
 
-    // Strip data URL prefix if present (handle all formats)
     var imageData = base64;
-    var dataUrlMatch = imageData.match(/^data:[^;]+;base64,/);
-    if (dataUrlMatch) {
-      imageData = imageData.substring(dataUrlMatch[0].length);
-    }
+    var prefix = imageData.match(/^data:[^;]+;base64,/);
+    if (prefix) imageData = imageData.substring(prefix[0].length);
 
-    // Validate it looks like base64
-    if (imageData.length < 100) {
-      console.error('OCR: image data too small:', imageData.length);
-      return res.status(400).json({ ok: false, error: 'Image data too small' });
-    }
-
-    console.log('OCR: image data length:', imageData.length, 'chars (~' + Math.round(imageData.length * 0.75 / 1024) + 'KB)');
-
-    // Check size (~4MB limit for Vision API)
-    if (imageData.length > 5500000) {
-      return res.status(400).json({ ok: false, error: 'Image too large (max ~4MB)' });
-    }
+    if (imageData.length < 100) return res.status(400).json({ ok: false, error: 'Image too small' });
+    if (imageData.length > 5500000) return res.status(400).json({ ok: false, error: 'Image too large' });
 
     var apiKey = process.env.GOOGLE_VISION_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ ok: false, error: 'GOOGLE_VISION_API_KEY not configured' });
-    }
+    if (!apiKey) return res.status(500).json({ ok: false, error: 'GOOGLE_VISION_API_KEY not set' });
 
-    // Call Google Vision API
-    var visionRes = await fetch(VISION_URL + '?key=' + apiKey, {
+    console.log('OCR: sending', Math.round(imageData.length * 0.75 / 1024) + 'KB to Vision');
+
+    var vr = await fetch(VISION_URL + '?key=' + apiKey, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -300,64 +199,36 @@ module.exports = async (req, res) => {
             { type: 'TEXT_DETECTION', maxResults: 1 },
             { type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 },
           ],
-          imageContext: {
-            languageHints: ['th', 'en'],
-          },
+          imageContext: { languageHints: ['th', 'en'] },
         }],
       }),
     });
 
-    if (!visionRes.ok) {
-      var errText = await visionRes.text();
-      console.error('Vision API error:', visionRes.status, errText);
-      return res.status(502).json({ ok: false, error: 'Vision API error: ' + visionRes.status });
+    if (!vr.ok) {
+      var et = ''; try { et = await vr.text(); } catch(e){}
+      console.error('Vision API error:', vr.status, et.substring(0, 200));
+      return res.status(502).json({ ok: false, error: 'Vision API error: ' + vr.status });
     }
 
-    var visionData = await visionRes.json();
-
-    // Extract text - prefer fullTextAnnotation (DOCUMENT_TEXT_DETECTION) over textAnnotations
-    var response = visionData.responses && visionData.responses[0];
-    if (!response) {
-      console.error('OCR: Empty Vision response');
-      return res.status(200).json({ ok: true, found: false, message: 'Empty response', data: { receiverName: '', senderName: '', amount: '', rawText: '' } });
-    }
-
-    // Check for Vision API errors
-    if (response.error) {
-      console.error('OCR: Vision error:', JSON.stringify(response.error));
-      return res.status(200).json({ ok: false, error: 'Vision: ' + (response.error.message || 'unknown error') });
+    var vd = await vr.json();
+    var resp = vd.responses && vd.responses[0];
+    if (!resp) return res.json({ ok: true, found: false, data: {} });
+    if (resp.error) {
+      console.error('Vision error:', resp.error.message);
+      return res.json({ ok: false, error: resp.error.message });
     }
 
     var fullText = '';
+    if (resp.fullTextAnnotation) fullText = resp.fullTextAnnotation.text;
+    else if (resp.textAnnotations && resp.textAnnotations.length) fullText = resp.textAnnotations[0].description || '';
 
-    // Try fullTextAnnotation first (better for structured text like slips)
-    if (response.fullTextAnnotation && response.fullTextAnnotation.text) {
-      fullText = response.fullTextAnnotation.text;
-    }
-    // Fallback to textAnnotations
-    else if (response.textAnnotations && response.textAnnotations.length) {
-      fullText = response.textAnnotations[0].description || '';
-    }
+    if (!fullText) return res.json({ ok: true, found: false, data: {} });
 
-    if (!fullText) {
-      console.log('OCR: No text found in image');
-      return res.status(200).json({
-        ok: true,
-        found: false,
-        message: 'No text found in image',
-        data: { receiverName: '', senderName: '', amount: '', rawText: '' },
-      });
-    }
+    console.log('OCR text:', fullText.substring(0, 200).replace(/\n/g, ' | '));
 
-    // Debug log to see what Vision returns
-    console.log('OCR raw text:', fullText.substring(0, 300));
-
-    // Parse structured data
     var parsed = parseSlipText(fullText);
-
-    return res.status(200).json({
-      ok: true,
-      found: true,
+    return res.json({
+      ok: true, found: true,
       data: {
         receiverName: parsed.receiverName,
         senderName: parsed.senderName,
@@ -367,10 +238,9 @@ module.exports = async (req, res) => {
         bankCode: parsed.bankCode,
         date: parsed.date,
         refCode: parsed.refCode,
-        rawText: fullText.substring(0, 500), // Limit raw text size
+        rawText: fullText.substring(0, 500),
       },
     });
-
   } catch (e) {
     console.error('OCR error:', e.message);
     return res.status(500).json({ ok: false, error: e.message });
