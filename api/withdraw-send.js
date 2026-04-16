@@ -98,7 +98,7 @@ async function buildLookupTable() {
 }
 
 // ── Push image message to LINE ──
-async function pushImageToUser(userId, imageUrl, previewUrl, textMessage) {
+async function pushImageToUser(userId, imageUrl, previewUrl, textMessage, extraMessages) {
   var token = await config.getLineToken();
   var messages = [];
   if (imageUrl) {
@@ -108,12 +108,19 @@ async function pushImageToUser(userId, imageUrl, previewUrl, textMessage) {
       previewImageUrl: previewUrl || imageUrl,
     });
   }
-  if (textMessage) {
+  // Support multiple text messages (v8)
+  if (extraMessages && Array.isArray(extraMessages) && extraMessages.length) {
+    extraMessages.forEach(function(m) {
+      if (m && m.trim()) messages.push({ type: 'text', text: m.trim() });
+    });
+  } else if (textMessage) {
     messages.push({ type: 'text', text: textMessage });
   }
   if (!messages.length) {
     return { ok: false, error: 'no content' };
   }
+  // LINE allows max 5 messages per push
+  if (messages.length > 5) messages = messages.slice(0, 5);
 
   var r = await fetch('https://api.line.me/v2/bot/message/push', {
     method: 'POST',
@@ -204,8 +211,18 @@ module.exports = async (req, res) => {
       msg = msg.replace(/\{name\}/g, it.name);
     }
 
+    // v8: Support multiple messages
+    var msgArray = it.messages || body.defaultMessages || null;
+    if (msgArray && Array.isArray(msgArray) && msgArray.length) {
+      msgArray = msgArray.map(function(m) {
+        if (it.amount) m = m.replace(/\{amount\}/g, Number(it.amount).toLocaleString('en-US'));
+        if (it.name) m = m.replace(/\{name\}/g, it.name);
+        return m;
+      }).filter(function(m) { return m && m.trim(); });
+    }
+
     try {
-      var r = await pushImageToUser(it.userId, it.imageUrl, it.previewUrl || it.imageUrl, msg);
+      var r = await pushImageToUser(it.userId, it.imageUrl, it.previewUrl || it.imageUrl, msg, msgArray);
       if (r.ok) {
         successCount++;
         results.push({ index: i, userId: it.userId, ok: true });

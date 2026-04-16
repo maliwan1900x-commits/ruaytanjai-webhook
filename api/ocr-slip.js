@@ -77,14 +77,18 @@ function parseSlipText(fullText) {
   }
 
   // ── Receiver name (ไปยัง/ผู้รับ/To/ปลายทาง) ──
+  // Strategy: scan all lines for receiver keywords, also look at next line
   var receiverPatterns = [
     /(?:ไปยัง|ไป\s*ยัง|ผู้รับ|ปลายทาง|โอนให้|to)\s*[:\-]?\s*(.+)/i,
   ];
   for (var i = 0; i < lines.length; i++) {
+    // Check if line contains keyword
     for (var p = 0; p < receiverPatterns.length; p++) {
       var m = lines[i].match(receiverPatterns[p]);
       if (m && m[1]) {
         var name = m[1].replace(/[0-9x\-\.\/\(\)]/g, '').trim();
+        // Remove bank account patterns like xxx-xxx485-7
+        name = name.replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').trim();
         if (name.length >= 2 && name.length <= 60) {
           result.receiverName = name;
           break;
@@ -92,22 +96,47 @@ function parseSlipText(fullText) {
       }
     }
     if (result.receiverName) break;
+
+    // If line is just "ไปยัง" or "ผู้รับ", check next line for name
+    if (/^(ไปยัง|ผู้รับ|ปลายทาง|to)$/i.test(lines[i].trim()) && i + 1 < lines.length) {
+      var nextName = lines[i + 1].replace(/[0-9x\-\.\/\(\)]/g, '').replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').trim();
+      if (nextName.length >= 2 && nextName.length <= 60) {
+        result.receiverName = nextName;
+        break;
+      }
+    }
   }
 
-  // Fallback: look for Thai name patterns after keywords
+  // Fallback: look for Thai name with title (นาย/นาง/นางสาว) anywhere
   if (!result.receiverName) {
     for (var i = 0; i < lines.length; i++) {
-      // Look for line after "ไปยัง" or containing Thai name with title
-      var nameMatch = lines[i].match(/(?:นาย|นาง|นางสาว|น\.ส\.|MR\.?|MRS\.?|MS\.?|MISS)\s+(.+)/i);
+      var nameMatch = lines[i].match(/((?:นาย|นาง|นางสาว|น\.ส\.|MR\.?|MRS\.?|MS\.?|MISS)\s+\S+(?:\s+\S+){0,3})/i);
       if (nameMatch) {
-        // Check if previous line or context suggests this is receiver
-        var prevLine = i > 0 ? lines[i - 1] : '';
-        if (!result.senderName || prevLine.match(/ไปยัง|ผู้รับ|ปลายทาง|to/i)) {
-          result.receiverName = lines[i].replace(/[0-9x\-\.\/]/g, '').trim();
-        } else if (!result.senderName) {
-          result.senderName = lines[i].replace(/[0-9x\-\.\/]/g, '').trim();
+        var candidate = nameMatch[1].replace(/[0-9x\-\.\/]/g, '').replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').trim();
+        if (candidate.length >= 4) {
+          // Check context: if previous line contains ไปยัง/ผู้รับ → this is receiver
+          var prevLine = i > 0 ? lines[i - 1] : '';
+          var prevPrev = i > 1 ? lines[i - 2] : '';
+          var isReceiverContext = /ไปยัง|ผู้รับ|ปลายทาง|to/i.test(prevLine) || /ไปยัง|ผู้รับ|ปลายทาง|to/i.test(prevPrev) || /ไปยัง|ผู้รับ|ปลายทาง|to/i.test(lines[i]);
+          var isSenderContext = /จาก|ผู้โอน|ต้นทาง|from/i.test(prevLine) || /จาก|ผู้โอน|ต้นทาง|from/i.test(prevPrev) || /จาก|ผู้โอน|ต้นทาง|from/i.test(lines[i]);
+
+          if (isReceiverContext || !result.receiverName) {
+            if (isSenderContext && !result.senderName) {
+              result.senderName = candidate;
+            } else {
+              result.receiverName = candidate;
+            }
+          }
         }
       }
+    }
+  }
+
+  // Extra fallback: if still no receiver, look for any Thai name pattern on same line as ไปยัง
+  if (!result.receiverName) {
+    var fullScan = fullText.match(/ไปยัง[^\n]*?((?:นาย|นาง|นางสาว|น\.ส\.)\s+\S+(?:\s+\S+){0,3})/i);
+    if (fullScan) {
+      result.receiverName = fullScan[1].replace(/[0-9x\-\.\/]/g, '').replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').trim();
     }
   }
 

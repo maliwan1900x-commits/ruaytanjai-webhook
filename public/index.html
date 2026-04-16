@@ -1500,10 +1500,24 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
             <div id="wdItemsList"></div>
           </div>
 
-          <div class="sec-head mt">3️⃣ ข้อความแนบ (ไม่บังคับ)</div>
+          <div class="sec-head mt">3️⃣ ข้อความแนบ (ส่งพร้อมสลิป)</div>
           <div class="win-box">
-            <div class="hint" style="margin-bottom:10px">💡 ข้อความนี้จะส่งพร้อมกับสลิปให้ทุกคน · ใช้ <code style="background:var(--surface-hi);padding:2px 6px;border-radius:4px;color:var(--gold)">{name}</code> แทนชื่อลูกค้า · <code style="background:var(--surface-hi);padding:2px 6px;border-radius:4px;color:var(--gold)">{amount}</code> แทนจำนวนเงิน</div>
-            <textarea class="inp" id="wdDefaultMessage" rows="2" placeholder="เช่น: น้องโอนให้คุณพี่เรียบร้อยแล้วน้า ขอบคุณที่อุดหนุนค้าบ 💛">น้องโอนให้คุณพี่เรียบร้อยแล้วน้า ขอบคุณที่อุดหนุนค้าบ 💛</textarea>
+            <div class="hint" style="margin-bottom:14px">💡 เพิ่มข้อความได้หลายบรรทัด — แต่ละบรรทัดจะส่งเป็น <b style="color:var(--gold)">ข้อความแยก</b> ตามลำดับ · ใช้ <code style="background:var(--surface-hi);padding:2px 6px;border-radius:4px;color:var(--gold)">{name}</code> แทนชื่อ · <code style="background:var(--surface-hi);padding:2px 6px;border-radius:4px;color:var(--gold)">{amount}</code> แทนยอดเงิน</div>
+            <div id="wdMsgList">
+              <div class="wd-msg-row" style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+                <span style="font-size:12px;color:var(--t3);width:20px;text-align:center;flex-shrink:0">1</span>
+                <input class="inp wd-msg-input" placeholder="เช่น: น้องโอนให้พี่เรียบร้อยแล้วนะครับ" value="น้องโอนให้คุณพี่เรียบร้อยแล้วน้า ขอบคุณที่อุดหนุนค้าบ 💛" style="flex:1">
+                <button class="btn btn-ghost btn-sm" onclick="wdRemoveMsg(this)" style="padding:6px 10px;color:var(--red)">✕</button>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="wdAddMsg()" style="margin-top:8px">+ เพิ่มข้อความอีกบรรทัด</button>
+            <div style="margin-top:12px;padding:12px;background:var(--bg-1);border-radius:10px;border:1px solid var(--line)">
+              <div style="font-size:12px;color:var(--t3);margin-bottom:8px">👁️ ตัวอย่างที่ลูกค้าจะเห็น:</div>
+              <div id="wdMsgPreview" style="font-size:13px;color:var(--t2);line-height:2">
+                <div style="background:var(--surface);border-radius:8px;padding:8px 12px;margin-bottom:4px;display:inline-block">📷 [รูปสลิป]</div><br>
+                <div style="background:var(--surface);border-radius:8px;padding:8px 12px;margin-bottom:4px;display:inline-block">น้องโอนให้คุณพี่เรียบร้อยแล้วน้า ขอบคุณที่อุดหนุนค้าบ 💛</div>
+              </div>
+            </div>
           </div>
 
           <div style="display:flex;gap:10px;margin:22px 0;flex-wrap:wrap;align-items:center">
@@ -3415,7 +3429,6 @@ async function wdOcrItem(item, idx, total) {
     var j = await res.json();
 
     if (j.ok && j.found && j.data) {
-      item.ocrStatus = 'done';
       item.ocrRaw = j.data.rawText || '';
 
       // Auto-fill receiver name
@@ -3425,6 +3438,15 @@ async function wdOcrItem(item, idx, total) {
       // Auto-fill amount
       if (j.data.amountNum > 0) {
         item.amount = j.data.amountNum.toFixed(2);
+      }
+
+      // Determine OCR status based on what we got
+      if (item.receiverName || item.amount) {
+        item.ocrStatus = 'done'; // Got at least name or amount
+      } else if (item.ocrRaw) {
+        item.ocrStatus = 'partial'; // Got text but couldn't parse
+      } else {
+        item.ocrStatus = 'fail';
       }
 
       // Auto-match: try receiver name first, then sender name
@@ -3437,8 +3459,11 @@ async function wdOcrItem(item, idx, total) {
           item.confidence = match.confidence;
         }
       }
+    } else if (j.ok && !j.found) {
+      item.ocrStatus = 'fail'; // No text in image at all
     } else {
       item.ocrStatus = 'fail';
+      console.log('OCR API error:', j.error);
     }
   } catch (e) {
     item.ocrStatus = 'fail';
@@ -3486,7 +3511,9 @@ function wdRenderItems() {
       ocrBadge = '<span class="bdg bdg-info" style="font-size:11px">🔍 กำลังอ่าน...</span>';
       cardBorder = 'rgba(125,211,252,.3)';
     } else if (it.ocrStatus === 'done') {
-      ocrBadge = '<span class="bdg bdg-ok" style="font-size:11px">✓ OCR สำเร็จ</span>';
+      ocrBadge = '<span class="bdg bdg-ok" style="font-size:11px">✓ อ่านได้</span>';
+    } else if (it.ocrStatus === 'partial') {
+      ocrBadge = '<span class="bdg bdg-warn" style="font-size:11px">⚠ อ่านได้บางส่วน</span>';
     } else if (it.ocrStatus === 'fail') {
       ocrBadge = '<span class="bdg bdg-warn" style="font-size:11px">⚠ อ่านไม่ได้ — กรอกเอง</span>';
     }
@@ -3678,6 +3705,73 @@ async function wdUploadImage(item) {
 }
 
 // ─── Send all ready items ───
+// ─── Multi-message helpers ───
+function wdAddMsg() {
+  var list = document.getElementById('wdMsgList');
+  var count = list.querySelectorAll('.wd-msg-row').length + 1;
+  var row = document.createElement('div');
+  row.className = 'wd-msg-row';
+  row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px';
+  row.innerHTML =
+    '<span style="font-size:12px;color:var(--t3);width:20px;text-align:center;flex-shrink:0">' + count + '</span>' +
+    '<input class="inp wd-msg-input" placeholder="เช่น: +++ ยอดฝาก {amount} บาท ครับ" style="flex:1" oninput="wdUpdateMsgPreview()">' +
+    '<button class="btn btn-ghost btn-sm" onclick="wdRemoveMsg(this)" style="padding:6px 10px;color:var(--red)">✕</button>';
+  list.appendChild(row);
+  row.querySelector('input').focus();
+  wdRenumberMsgs();
+  wdUpdateMsgPreview();
+}
+
+function wdRemoveMsg(btn) {
+  var list = document.getElementById('wdMsgList');
+  if (list.querySelectorAll('.wd-msg-row').length <= 1) {
+    toastWarn('ต้องมีอย่างน้อย 1 ข้อความ');
+    return;
+  }
+  btn.closest('.wd-msg-row').remove();
+  wdRenumberMsgs();
+  wdUpdateMsgPreview();
+}
+
+function wdRenumberMsgs() {
+  var rows = document.querySelectorAll('#wdMsgList .wd-msg-row');
+  rows.forEach(function(row, i) {
+    row.querySelector('span').textContent = i + 1;
+  });
+}
+
+function wdGetMessages() {
+  var inputs = document.querySelectorAll('#wdMsgList .wd-msg-input');
+  var msgs = [];
+  inputs.forEach(function(inp) {
+    var v = inp.value.trim();
+    if (v) msgs.push(v);
+  });
+  return msgs;
+}
+
+function wdUpdateMsgPreview() {
+  var msgs = wdGetMessages();
+  var preview = document.getElementById('wdMsgPreview');
+  if (!preview) return;
+  var html = '<div style="background:var(--surface);border-radius:8px;padding:8px 12px;margin-bottom:4px;display:inline-block">📷 [รูปสลิป]</div><br>';
+  if (msgs.length) {
+    msgs.forEach(function(m) {
+      var display = m.replace(/\{name\}/g, '<b style="color:var(--gold)">ชื่อลูกค้า</b>').replace(/\{amount\}/g, '<b style="color:var(--green)">1,500</b>');
+      html += '<div style="background:var(--surface);border-radius:8px;padding:8px 12px;margin-bottom:4px;display:inline-block">' + display + '</div><br>';
+    });
+  } else {
+    html += '<div style="color:var(--t4);font-size:12px;padding:4px">(ไม่มีข้อความแนบ)</div>';
+  }
+  preview.innerHTML = html;
+}
+
+// Attach oninput to first message row
+document.addEventListener('DOMContentLoaded', function() {
+  var first = document.querySelector('.wd-msg-input');
+  if (first) first.addEventListener('input', wdUpdateMsgPreview);
+});
+
 async function wdSendAll() {
   var ready = wdItems.filter(function(it) { return it.matchedUid && it.status !== 'sent'; });
   if (!ready.length) { toastWarn('ไม่มีรายการพร้อมส่ง'); return; }
@@ -3694,7 +3788,8 @@ async function wdSendAll() {
   ready.forEach(function(it) { it.status = 'sending'; });
   wdRenderItems();
 
-  var defaultMsg = document.getElementById('wdDefaultMessage').value.trim();
+  var defaultMsgs = wdGetMessages();
+  var defaultMsg = defaultMsgs.join('\n');
   var uploaded = [];
 
   try {
@@ -3730,9 +3825,11 @@ async function wdSendAll() {
           amount: it.amount,
           name: it.matchedName,
           message: defaultMsg,
+          messages: defaultMsgs,
         };
       }),
       defaultMessage: defaultMsg,
+      defaultMessages: defaultMsgs,
     };
     var res = await fetch(BASE + '/api/withdraw-send', {
       method: 'POST', headers: getHeaders(), body: JSON.stringify(payload),
