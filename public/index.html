@@ -3516,6 +3516,7 @@ function wdRenderItems() {
       ocrBadge = '<span class="bdg bdg-warn" style="font-size:11px">⚠ อ่านได้บางส่วน</span>';
     } else if (it.ocrStatus === 'fail') {
       ocrBadge = '<span class="bdg bdg-warn" style="font-size:11px">⚠ อ่านไม่ได้ — กรอกเอง</span>';
+      if (it.ocrRaw) ocrBadge += '<div style="font-size:10px;color:var(--t4);margin-top:4px;max-width:120px;word-break:break-all;line-height:1.4" title="' + esc(it.ocrRaw) + '">📝 ' + esc(it.ocrRaw.substring(0, 40)) + (it.ocrRaw.length > 40 ? '...' : '') + '</div>';
     }
 
     if (it.status === 'sent') {

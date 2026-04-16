@@ -264,8 +264,20 @@ module.exports = async (req, res) => {
 
     if (!base64) return res.status(400).json({ ok: false, error: 'base64 image required' });
 
-    // Strip data URL prefix if present
-    var imageData = base64.replace(/^data:image\/[a-z]+;base64,/, '');
+    // Strip data URL prefix if present (handle all formats)
+    var imageData = base64;
+    var dataUrlMatch = imageData.match(/^data:[^;]+;base64,/);
+    if (dataUrlMatch) {
+      imageData = imageData.substring(dataUrlMatch[0].length);
+    }
+
+    // Validate it looks like base64
+    if (imageData.length < 100) {
+      console.error('OCR: image data too small:', imageData.length);
+      return res.status(400).json({ ok: false, error: 'Image data too small' });
+    }
+
+    console.log('OCR: image data length:', imageData.length, 'chars (~' + Math.round(imageData.length * 0.75 / 1024) + 'KB)');
 
     // Check size (~4MB limit for Vision API)
     if (imageData.length > 5500000) {
@@ -286,6 +298,7 @@ module.exports = async (req, res) => {
           image: { content: imageData },
           features: [
             { type: 'TEXT_DETECTION', maxResults: 1 },
+            { type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 },
           ],
           imageContext: {
             languageHints: ['th', 'en'],
@@ -302,9 +315,32 @@ module.exports = async (req, res) => {
 
     var visionData = await visionRes.json();
 
-    // Extract text
-    var annotations = visionData.responses && visionData.responses[0] && visionData.responses[0].textAnnotations;
-    if (!annotations || !annotations.length) {
+    // Extract text - prefer fullTextAnnotation (DOCUMENT_TEXT_DETECTION) over textAnnotations
+    var response = visionData.responses && visionData.responses[0];
+    if (!response) {
+      console.error('OCR: Empty Vision response');
+      return res.status(200).json({ ok: true, found: false, message: 'Empty response', data: { receiverName: '', senderName: '', amount: '', rawText: '' } });
+    }
+
+    // Check for Vision API errors
+    if (response.error) {
+      console.error('OCR: Vision error:', JSON.stringify(response.error));
+      return res.status(200).json({ ok: false, error: 'Vision: ' + (response.error.message || 'unknown error') });
+    }
+
+    var fullText = '';
+
+    // Try fullTextAnnotation first (better for structured text like slips)
+    if (response.fullTextAnnotation && response.fullTextAnnotation.text) {
+      fullText = response.fullTextAnnotation.text;
+    }
+    // Fallback to textAnnotations
+    else if (response.textAnnotations && response.textAnnotations.length) {
+      fullText = response.textAnnotations[0].description || '';
+    }
+
+    if (!fullText) {
+      console.log('OCR: No text found in image');
       return res.status(200).json({
         ok: true,
         found: false,
@@ -312,8 +348,6 @@ module.exports = async (req, res) => {
         data: { receiverName: '', senderName: '', amount: '', rawText: '' },
       });
     }
-
-    var fullText = annotations[0].description || '';
 
     // Debug log to see what Vision returns
     console.log('OCR raw text:', fullText.substring(0, 300));
