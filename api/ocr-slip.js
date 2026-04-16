@@ -134,9 +134,38 @@ function parseSlipText(fullText) {
 
   // Extra fallback: if still no receiver, look for any Thai name pattern on same line as ไปยัง
   if (!result.receiverName) {
-    var fullScan = fullText.match(/ไปยัง[^\n]*?((?:นาย|นาง|นางสาว|น\.ส\.)\s+\S+(?:\s+\S+){0,3})/i);
+    var fullScan = fullText.match(/ไปยัง[^\n]*?((?:นาย|นาง|นางสาว|น\.ส\.|น\. ?ส\.)\s+\S+(?:\s+\S+){0,3})/i);
     if (fullScan) {
       result.receiverName = fullScan[1].replace(/[0-9x\-\.\/]/g, '').replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').trim();
+    }
+  }
+
+  // Aggressive fallback: scan full text for "ไปยัง" followed by any Thai text
+  if (!result.receiverName) {
+    var afterIpyang = fullText.match(/ไปยัง\s*([\u0E00-\u0E7F\.\s]+)/);
+    if (afterIpyang) {
+      var candidate = afterIpyang[1].replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').replace(/\d+/g, '').trim();
+      if (candidate.length >= 4) result.receiverName = candidate;
+    }
+  }
+
+  // Last resort: find any Thai name with title prefix anywhere in text
+  if (!result.receiverName) {
+    var titlePatterns = [
+      /(?:นาย|นาง|นางสาว|น\.ส\.|น\. ?ส\.)\s+([\u0E00-\u0E7F]+(?:\s+[\u0E00-\u0E7F]+){0,3})/g,
+    ];
+    for (var tp = 0; tp < titlePatterns.length; tp++) {
+      var matches = [];
+      var mm;
+      while ((mm = titlePatterns[tp].exec(fullText)) !== null) {
+        matches.push(mm[0].replace(/x{2,}[\-]?x*\d*[\-]?\d*/gi, '').trim());
+      }
+      // Pick the last match (usually receiver is listed after sender)
+      if (matches.length) {
+        result.receiverName = matches[matches.length - 1];
+        if (matches.length >= 2) result.senderName = matches[0];
+        break;
+      }
     }
   }
 
@@ -285,6 +314,9 @@ module.exports = async (req, res) => {
     }
 
     var fullText = annotations[0].description || '';
+
+    // Debug log to see what Vision returns
+    console.log('OCR raw text:', fullText.substring(0, 300));
 
     // Parse structured data
     var parsed = parseSlipText(fullText);
