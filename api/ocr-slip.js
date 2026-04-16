@@ -24,11 +24,24 @@ var BANK_PATTERNS = [
 var FROM_KEYS = ['จาก', 'ผู้โอน', 'ต้นทาง'];
 var TO_KEYS = ['ไปยัง', 'ไปที่', 'ไป ยัง', 'ผู้รับ', 'ปลายทาง', 'โอนให้'];
 var NOT_NAME_RE = /^(จาก|ไปยัง|ไปที่|ไป ยัง|ผู้โอน|ผู้รับ|ต้นทาง|ปลายทาง|โอนให้|from|to|ค่าธรรมเนียม|เลขที่|รหัสอ้างอิง|วันที่|โอนเงิน|สำเร็จ|ธนาคาร|บัญชี|พร้อมเพย์|promptpay|line bk|scb|kbank|fee|ref|หมายเหตุ|ดาวน์โหลด|qr code)$/i;
-var TITLE_RE = /^(นาย|นาง(?!สาว)|นางสาว|น\.ส\.|น\. ?ส\.|MR\.?|MRS\.?|MS\.?|MISS)\s+/i;
+var TITLE_RE = /^[\s\(\)\[\]0]*(นาย|นาง(?!สาว)|นางสาว|น\.ส\.|น\. ?ส\.|MR\.?|MRS\.?|MS\.?|MISS)\s+/i;
 
 function cleanName(s) {
   if (!s) return '';
   return s.replace(/x{2,}[\-]?[\dx]*[\-]?[\d]*/gi, '').replace(/\d{3,}[\-]\d[\-][\w]+/g, '').replace(/[\d]+/g, '').replace(/[\u{1F300}-\u{1FAFF}]/gu, '').replace(/^[\s\-:,\.]+|[\s\-:,\.]+$/g, '').trim();
+}
+
+function cleanName(s) {
+  if (!s) return '';
+  return s
+    .replace(/^\s*[\(\)\[\]0]+\s*/, '')                    // leading (), (0), [0] etc
+    .replace(/x{2,}[\-]?[\dx]*[\-]?[\d]*/gi, '')          // xxx-xxx123
+    .replace(/\d{3,}[\-]\d[\-][\w]+/g, '')                // 414-4-xxx030
+    .replace(/[\d]+/g, '')                                  // remaining digits
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '') // emojis
+    .replace(/[\(\)\[\]]/g, '')                              // brackets
+    .replace(/^[\s\-:,\.]+|[\s\-:,\.]+$/g, '')              // trim punct
+    .trim();
 }
 
 function isKeyword(line) {
@@ -38,13 +51,14 @@ function isKeyword(line) {
 
 function isLikelyName(line) {
   var l = line.trim();
+  // Strip leading () (0) before checking
+  l = l.replace(/^\s*[\(\)\[\]0]+\s*/, '').trim();
   if (l.length < 3 || l.length > 60) return false;
   if (isKeyword(l)) return false;
-  // Exclude lines that are clearly not names
-  if (/^\d/.test(l)) return false;                    // starts with digit
-  if (/^[\d,\.]+\s*(บาท|THB|฿)?$/.test(l)) return false;  // amount
-  if (/^[xX\d\-\.]+$/.test(l)) return false;          // account number
-  if (/ค่าธรรมเนียม|fee|ธนาคาร|bank|บัญชี|สาขา|ref|เลขที่|หมายเหตุ|ดาวน์โหลด|qr/i.test(l)) return false;
+  if (/^\d/.test(l)) return false;
+  if (/^[\d,\.]+\s*(บาท|THB|฿)?$/.test(l)) return false;
+  if (/^[xX\d\-\.]+$/.test(l)) return false;
+  if (/ค่าธรรมเนียม|fee|ธนาคาร|bank|บัญชี|สาขา|ref|เลขที่|หมายเหตุ|ดาวน์โหลด|qr|line bk|โอนเงิน|สำเร็จ/i.test(l)) return false;
   if (TITLE_RE.test(l)) return true;
   var thai = l.replace(/[^ก-๙\s\.]/g, '').trim();
   return thai.split(/\s+/).length >= 2 && thai.length >= 4;
@@ -58,7 +72,15 @@ function findNameAfterKeyword(lines, keyList) {
       var pos = l.indexOf(key);
       if (pos < 0) { var lw = l.replace(/\s+/g, ''); var kw = key.replace(/\s+/g, ''); pos = lw.indexOf(kw); if (pos < 0) continue; }
       var after = l.substring(l.indexOf(key) + key.length).replace(/^[\s:\-]+/, '').trim();
-      if (after && isLikelyName(after)) return cleanName(after);
+
+      // If after contains a title name, extract it (handles single-line text)
+      if (after) {
+        var titleMatch = after.match(/((?:นาย|นาง(?!สาว)|นางสาว|น\.ส\.|น\. ?ส\.)\s+[\u0E00-\u0E7FA-Za-z]+(?:\s+[\u0E00-\u0E7FA-Za-z]+){0,3})/i);
+        if (titleMatch) return cleanName(titleMatch[1]);
+        if (isLikelyName(after)) return cleanName(after);
+      }
+
+      // Check next lines
       for (var j = i + 1; j < Math.min(i + 4, lines.length); j++) {
         var next = lines[j].trim();
         if (isLikelyName(next)) return cleanName(next);

@@ -100,7 +100,7 @@ async function buildLookupTable() {
   var uids = Object.keys(table);
   for (var u = 0; u < uids.length; u++) {
     try {
-      var sn = await store.kv.get('slipnames:' + uids[u]);
+      var sn = await config.kvGet('slipnames:' + uids[u]);
       if (sn) table[uids[u]].slipNames = JSON.parse(sn);
     } catch(e) {}
   }

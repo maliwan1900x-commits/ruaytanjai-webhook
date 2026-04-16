@@ -76,7 +76,7 @@ module.exports = async (req, res) => {
 
         // Load slipNames (ชื่อในสลิปที่เพิ่มเอง)
         var slipNames = [];
-        try { var sn = await store.kv.get('slipnames:' + uid); if (sn) slipNames = JSON.parse(sn); } catch(e) {}
+        try { var sn = await config.kvGet('slipnames:' + uid); if (sn) slipNames = JSON.parse(sn); } catch(e) {}
 
         return res.status(200).json({
           ok: true,
@@ -104,7 +104,7 @@ module.exports = async (req, res) => {
         var uid = req.query.uid;
         if (!uid) return res.status(400).json({ ok: false, error: 'uid required' });
         var names = (req.query.names || '').split(',').map(function(n) { return n.trim(); }).filter(Boolean);
-        await store.kv.set('slipnames:' + uid, JSON.stringify(names));
+        await config.kvSet('slipnames:' + uid, JSON.stringify(names));
         return res.status(200).json({ ok: true, slipNames: names });
       }
 
