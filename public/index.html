@@ -3313,20 +3313,42 @@ function wdMatchName(receiverName) {
   var target = wdNormName(receiverName);
   if (!target) return null;
   var best = null, bestScore = 0;
+
   for (var i = 0; i < wdLookup.length; i++) {
     var e = wdLookup[i];
-    var cand = wdNormName(e.senderName);
-    if (!cand) continue;
-    var score = 0;
-    if (cand === target) score = 1.0;
-    else if (cand.indexOf(target) !== -1 || target.indexOf(cand) !== -1) score = 0.85;
-    else {
-      var ml = Math.min(cand.length, target.length);
-      if (ml >= 6 && cand.substring(0, 6) === target.substring(0, 6)) score = 0.6;
-    }
-    if (score > bestScore) {
-      bestScore = score;
-      best = { userId: e.userId, senderName: e.senderName, displayName: e.displayName, confidence: score };
+    // Check against BOTH senderName (ชื่อจากสลิปฝาก) AND displayName (ชื่อ LINE)
+    var candidates = [];
+    if (e.senderName) candidates.push(wdNormName(e.senderName));
+    if (e.displayName) candidates.push(wdNormName(e.displayName));
+
+    for (var c = 0; c < candidates.length; c++) {
+      var cand = candidates[c];
+      if (!cand) continue;
+      var score = 0;
+
+      // Exact match
+      if (cand === target) score = 1.0;
+      // Contains match (one contains the other)
+      else if (cand.indexOf(target) !== -1 || target.indexOf(cand) !== -1) score = 0.85;
+      // First name match (ชื่อต้น ตรงกัน)
+      else {
+        var targetFirst = target.split(/\s+/)[0];
+        var candFirst = cand.split(/\s+/)[0];
+        if (targetFirst.length >= 3 && candFirst.length >= 3) {
+          if (targetFirst === candFirst) score = 0.8;
+          else if (targetFirst.indexOf(candFirst) !== -1 || candFirst.indexOf(targetFirst) !== -1) score = 0.7;
+        }
+        // Prefix match (6+ chars)
+        if (score === 0) {
+          var ml = Math.min(cand.length, target.length);
+          if (ml >= 6 && cand.substring(0, 6) === target.substring(0, 6)) score = 0.6;
+        }
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        best = { userId: e.userId, senderName: e.senderName, displayName: e.displayName, confidence: score };
+      }
     }
   }
   return best && bestScore >= 0.6 ? best : null;
