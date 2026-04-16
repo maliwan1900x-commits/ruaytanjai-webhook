@@ -3350,6 +3350,7 @@ async function wdHandleFiles(fileList) {
   var prog = document.getElementById('wdUploadProgress');
   prog.style.display = 'block';
 
+  var newItems = [];
   for (var i = 0; i < files.length; i++) {
     var f = files[i];
     if (f.size > 4 * 1024 * 1024) {
@@ -3358,7 +3359,7 @@ async function wdHandleFiles(fileList) {
     }
     prog.textContent = '📤 กำลังโหลดไฟล์ ' + (i + 1) + '/' + files.length + ': ' + f.name;
     var dataUrl = await wdFileToDataUrl(f);
-    wdItems.push({
+    var item = {
       id: 'wd_' + Date.now() + '_' + i,
       fileName: f.name,
       previewUrl: dataUrl,
@@ -3372,12 +3373,78 @@ async function wdHandleFiles(fileList) {
       searchQuery: '',
       showSuggestions: false,
       telegramId: null,
-    });
+      ocrStatus: 'pending', // pending | scanning | done | fail
+      ocrRaw: '',
+    };
+    wdItems.push(item);
+    newItems.push(item);
   }
 
   prog.style.display = 'none';
   prog.textContent = '';
   document.getElementById('wdFileInput').value = '';
+  wdRenderItems();
+
+  // Auto-OCR all new items
+  if (newItems.length) {
+    toastInfo('🔍 กำลังอ่านสลิป ' + newItems.length + ' ใบด้วย Google Vision...');
+    for (var j = 0; j < newItems.length; j++) {
+      await wdOcrItem(newItems[j], j, newItems.length);
+    }
+    var ocrOk = newItems.filter(function(it) { return it.ocrStatus === 'done'; }).length;
+    var matched = newItems.filter(function(it) { return it.matchedUid; }).length;
+    if (ocrOk > 0) {
+      toastSuccess('อ่านสลิปได้ ' + ocrOk + '/' + newItems.length + ' ใบ · จับคู่ได้ ' + matched + ' คน');
+    } else {
+      toastWarn('ไม่สามารถอ่านสลิปได้ — กรุณากรอกเอง');
+    }
+  }
+}
+
+// ─── OCR single item via /api/ocr-slip ───
+async function wdOcrItem(item, idx, total) {
+  item.ocrStatus = 'scanning';
+  wdRenderItems();
+
+  try {
+    var res = await fetch(BASE + '/api/ocr-slip', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ base64: item.previewUrl }),
+    });
+    var j = await res.json();
+
+    if (j.ok && j.found && j.data) {
+      item.ocrStatus = 'done';
+      item.ocrRaw = j.data.rawText || '';
+
+      // Auto-fill receiver name
+      if (j.data.receiverName) {
+        item.receiverName = j.data.receiverName;
+      }
+      // Auto-fill amount
+      if (j.data.amountNum > 0) {
+        item.amount = j.data.amountNum.toFixed(2);
+      }
+
+      // Auto-match: try receiver name first, then sender name
+      var matchTarget = item.receiverName || j.data.senderName || '';
+      if (matchTarget) {
+        var match = wdMatchName(matchTarget);
+        if (match) {
+          item.matchedUid = match.userId;
+          item.matchedName = match.displayName || match.senderName;
+          item.confidence = match.confidence;
+        }
+      }
+    } else {
+      item.ocrStatus = 'fail';
+    }
+  } catch (e) {
+    item.ocrStatus = 'fail';
+    console.log('OCR error for', item.fileName, e.message);
+  }
+
   wdRenderItems();
 }
 
@@ -3412,6 +3479,18 @@ function wdRenderItems() {
     var statusBadge = '';
     var cardBorder = 'var(--line)';
     var cardBg = 'var(--surface)';
+
+    // OCR status indicator
+    var ocrBadge = '';
+    if (it.ocrStatus === 'scanning') {
+      ocrBadge = '<span class="bdg bdg-info" style="font-size:11px">🔍 กำลังอ่าน...</span>';
+      cardBorder = 'rgba(125,211,252,.3)';
+    } else if (it.ocrStatus === 'done') {
+      ocrBadge = '<span class="bdg bdg-ok" style="font-size:11px">✓ OCR สำเร็จ</span>';
+    } else if (it.ocrStatus === 'fail') {
+      ocrBadge = '<span class="bdg bdg-warn" style="font-size:11px">⚠ อ่านไม่ได้ — กรอกเอง</span>';
+    }
+
     if (it.status === 'sent') {
       statusBadge = '<span class="bdg bdg-ok">✓ ส่งแล้ว</span>';
       cardBorder = 'rgba(74,222,128,.3)';
@@ -3456,6 +3535,7 @@ function wdRenderItems() {
       '<div>' +
         '<img src="' + it.previewUrl + '" onclick="wdPreviewImage(' + idx + ')" style="width:120px;height:160px;object-fit:cover;border-radius:12px;cursor:pointer;border:1px solid var(--line);display:block" title="คลิกเพื่อดูใหญ่">' +
         '<div style="font-size:11px;color:var(--t4);margin-top:8px;text-align:center;font-family:var(--mono)">#' + (idx + 1) + (it.telegramId ? ' · 📥TG' : '') + '</div>' +
+        (ocrBadge ? '<div style="margin-top:6px;text-align:center">' + ocrBadge + '</div>' : '') +
       '</div>' +
       // Info fields (bigger labels)
       '<div style="display:flex;flex-direction:column;gap:12px">' +
@@ -3919,13 +3999,13 @@ function addPendingToItems() {
   var selectedIds = Object.keys(pendingSelected);
   if (!selectedIds.length) return;
 
-  var added = 0;
+  var newItems = [];
   selectedIds.forEach(function(id) {
     var ps = pendingSlips.find(function(s) { return s.id === id; });
     if (!ps) return;
     var dataUrl = ps.dataUrl || ('data:' + (ps.contentType || 'image/jpeg') + ';base64,' + (ps.base64 || ''));
-    wdItems.push({
-      id: 'tg_' + Date.now() + '_' + added,
+    var item = {
+      id: 'tg_' + Date.now() + '_' + newItems.length,
       fileName: 'telegram_' + ps.id.substring(0, 10) + '.jpg',
       previewUrl: dataUrl,
       receiverName: '',
@@ -3938,8 +4018,11 @@ function addPendingToItems() {
       searchQuery: '',
       showSuggestions: false,
       telegramId: ps.id,
-    });
-    added++;
+      ocrStatus: 'pending',
+      ocrRaw: '',
+    };
+    wdItems.push(item);
+    newItems.push(item);
   });
 
   pendingSelected = {};
@@ -3949,6 +4032,21 @@ function addPendingToItems() {
   var navWd = document.querySelector('.nav-item[data-page="withdraw"]');
   if (navWd && !navWd.classList.contains('active')) switchPage('withdraw', navWd);
   wdRenderItems();
+
+  // Auto-OCR all new Telegram items
+  if (newItems.length) {
+    toastInfo('🔍 กำลังอ่านสลิป ' + newItems.length + ' ใบจาก Telegram...');
+    (async function() {
+      for (var j = 0; j < newItems.length; j++) {
+        await wdOcrItem(newItems[j], j, newItems.length);
+      }
+      var ocrOk = newItems.filter(function(it) { return it.ocrStatus === 'done'; }).length;
+      var matched = newItems.filter(function(it) { return it.matchedUid; }).length;
+      if (ocrOk > 0) {
+        toastSuccess('อ่านสลิปได้ ' + ocrOk + '/' + newItems.length + ' ใบ · จับคู่ได้ ' + matched + ' คน');
+      }
+    })();
+  }
 
   setTimeout(function() {
     var section = document.getElementById('wdMatchSection');
