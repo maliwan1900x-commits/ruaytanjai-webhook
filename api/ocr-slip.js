@@ -97,31 +97,80 @@ function parseSlipText(fullText) {
   if (!fullText) return result;
   var lines = fullText.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
 
+  // ── Owner names (ชื่อเจ้าของบัญชีที่ใช้โอนถอน) ──
+  // ถ้า OCR เจอชื่อเหล่านี้ = ผู้โอน (เจ้าของ) ไม่ใช่ลูกค้า
+  // โหลดจาก Settings หรือใช้ค่าเริ่มต้น
+  var ownerNames = parseSlipText._ownerNames || ['ลดาวรรณ', 'อุรัมย์', 'ปัทมาสน์', 'ปราบมาก', 'กวี', 'สีสมบัติ', 'นภาพร', 'เรไรสระน้อย'];
+
+  function isOwnerName(name) {
+    if (!name) return false;
+    var n = name.toLowerCase().replace(/[\s\.]/g, '');
+    for (var i = 0; i < ownerNames.length; i++) {
+      if (n.indexOf(ownerNames[i].toLowerCase()) !== -1) return true;
+    }
+    return false;
+  }
+
+  // Step 1: Try keyword-based extraction
   result.receiverName = findNameAfterKeyword(lines, TO_KEYS);
   result.senderName = findNameAfterKeyword(lines, FROM_KEYS);
   if (result.receiverName && result.senderName && result.receiverName === result.senderName) result.receiverName = '';
 
-  // FALLBACK: if no keywords found (จาก/ไปยัง not in OCR text), find names by position
-  // In Thai slips: first name = sender (จาก), second name = receiver (ไปยัง)
+  // Step 2: FALLBACK — no keywords found
   if (!result.receiverName && !result.senderName) {
-    var foundNames = lines.filter(function(l) { return isLikelyName(l); });
+    var foundNames = lines.filter(function(l) { return isLikelyName(l); }).map(cleanName).filter(Boolean);
     if (foundNames.length >= 2) {
-      result.senderName = cleanName(foundNames[0]);
-      result.receiverName = cleanName(foundNames[1]);
+      // Use owner detection to assign correctly
+      var owner = null, customer = null;
+      foundNames.forEach(function(n) {
+        if (isOwnerName(n)) { if (!owner) owner = n; }
+        else { if (!customer) customer = n; }
+      });
+      if (owner && customer) {
+        result.senderName = owner;
+        result.receiverName = customer;
+      } else {
+        result.senderName = foundNames[0];
+        result.receiverName = foundNames[1];
+      }
     } else if (foundNames.length === 1) {
-      // Only 1 name: assume it's sender (ลูกค้า) since that's more useful for matching
-      result.senderName = cleanName(foundNames[0]);
+      if (isOwnerName(foundNames[0])) result.senderName = foundNames[0];
+      else result.receiverName = foundNames[0];
     }
   }
-  // If only receiver found but not sender, also scan for extra name
+
+  // Step 3: If only one found via keywords, try to find the other
   if (result.receiverName && !result.senderName) {
-    var names = lines.filter(function(l) { return isLikelyName(l) && cleanName(l) !== result.receiverName; });
-    if (names.length) result.senderName = cleanName(names[0]);
+    var others = lines.filter(function(l) { return isLikelyName(l) && cleanName(l) !== result.receiverName; }).map(cleanName);
+    if (others.length) result.senderName = others[0];
   }
   if (!result.receiverName && result.senderName) {
-    var names = lines.filter(function(l) { return isLikelyName(l) && cleanName(l) !== result.senderName; });
-    if (names.length) result.receiverName = cleanName(names[names.length - 1]);
+    var others = lines.filter(function(l) { return isLikelyName(l) && cleanName(l) !== result.senderName; }).map(cleanName);
+    if (others.length) result.receiverName = others[others.length - 1];
   }
+
+  // Step 4: SMART FIX — if receiver is actually owner, swap!
+  if (result.receiverName && isOwnerName(result.receiverName)) {
+    if (result.senderName && !isOwnerName(result.senderName)) {
+      var tmp = result.receiverName;
+      result.receiverName = result.senderName;
+      result.senderName = tmp;
+    } else if (!result.senderName) {
+      result.senderName = result.receiverName;
+      result.receiverName = '';
+    }
+  }
+
+  // Step 5: if only sender found + sender is NOT owner → it's actually the customer (receiver)!
+  // เพราะสลิปส่วนใหญ่ Vision จับคำว่า "จาก" แล้วชื่อถัดไปคือลูกค้า (ผู้ถอน)
+  // ไม่ใช่เจ้าของบัญชีที่โอน
+  if (result.senderName && !result.receiverName && !isOwnerName(result.senderName)) {
+    result.receiverName = result.senderName;
+    result.senderName = '';
+  }
+
+  // Step 6: if sender is owner + no receiver, that's fine (crop ของเจ้าของ)
+  // (ไม่ต้องทำอะไร)
 
   var amounts = [];
   [/฿\s*([\d,]+\.?\d*)/g, /([\d,]+\.?\d*)\s*(?:฿|THB|บาท)/g, /จำนวน(?:เงิน)?\s*([\d,]+\.?\d*)/g].forEach(function(re) {
@@ -153,6 +202,16 @@ module.exports = async (req, res) => {
     var apiKey = process.env.GOOGLE_VISION_API_KEY;
     if (!apiKey) return res.status(500).json({ ok: false, error: 'GOOGLE_VISION_API_KEY not set' });
     console.log('OCR: sending', Math.round(imageData.length * 0.75 / 1024) + 'KB');
+
+    // Load owner names from settings (if configured), fallback to defaults
+    try {
+      var ownerRaw = await config.kvGet('ownerNames');
+      if (ownerRaw) {
+        var customOwners = JSON.parse(ownerRaw);
+        if (customOwners.length) parseSlipText._ownerNames = customOwners;
+      }
+    } catch(e) {}
+
     var vr = await fetch(VISION_URL + '?key=' + apiKey, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ requests: [{ image: { content: imageData }, features: [{ type: 'TEXT_DETECTION', maxResults: 1 }, { type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 }], imageContext: { languageHints: ['th', 'en'] } }] }),
