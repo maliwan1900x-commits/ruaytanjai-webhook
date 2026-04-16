@@ -3303,50 +3303,64 @@ async function wdLoadLookup() {
 
 function wdNormName(s) {
   if (!s) return '';
-  s = String(s).replace(/^(นาย|นาง|นางสาว|น\.ส\.|ด\.ช\.|ด\.ญ\.|mr\.?|mrs\.?|ms\.?|miss)\s*/i, '');
-  s = s.replace(/[\s\.\*\-_()]/g, '');
-  return s.toLowerCase();
+  s = String(s);
+  // Strip emojis (all Unicode emoji ranges)
+  s = s.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{231A}-\u{231B}\u{25AA}-\u{25AB}\u{25B6}\u{25C0}\u{25FB}-\u{25FE}\u{2614}-\u{2615}\u{2648}-\u{2653}\u{267F}\u{2693}\u{26A1}\u{26AA}-\u{26AB}\u{26BD}-\u{26BE}\u{26C4}-\u{26C5}\u{26CE}\u{26D4}\u{26EA}\u{26F2}-\u{26F3}\u{26F5}\u{26FA}\u{26FD}\u{2702}\u{2705}\u{2708}-\u{270D}\u{270F}]/gu, '');
+  // Strip title prefixes
+  s = s.replace(/^(นาย|นาง|นางสาว|น\.ส\.|ด\.ช\.|ด\.ญ\.|mr\.?|mrs\.?|ms\.?|miss)\s*/i, '');
+  // Strip special chars but keep Thai and alphanumeric
+  s = s.replace(/[\s\.\*\-_()\/\\,'"]+/g, '');
+  return s.toLowerCase().trim();
 }
 
 function wdMatchName(receiverName) {
   if (!receiverName || !wdLookup.length) return null;
   var target = wdNormName(receiverName);
-  if (!target) return null;
-  var best = null, bestScore = 0;
+  if (!target || target.length < 2) return null;
+  var best = null, bestScore = 0, bestLen = 0;
 
   for (var i = 0; i < wdLookup.length; i++) {
     var e = wdLookup[i];
-    // Check against BOTH senderName (ชื่อจากสลิปฝาก) AND displayName (ชื่อ LINE)
     var candidates = [];
-    if (e.senderName) candidates.push(wdNormName(e.senderName));
-    if (e.displayName) candidates.push(wdNormName(e.displayName));
+    if (e.senderName) candidates.push({ name: e.senderName, norm: wdNormName(e.senderName) });
+    if (e.displayName) candidates.push({ name: e.displayName, norm: wdNormName(e.displayName) });
+    // Also check slipNames (ชื่อในสลิปที่เพิ่มเอง)
+    if (e.slipNames && e.slipNames.length) {
+      e.slipNames.forEach(function(sn) { if (sn) candidates.push({ name: sn, norm: wdNormName(sn) }); });
+    }
 
     for (var c = 0; c < candidates.length; c++) {
-      var cand = candidates[c];
-      if (!cand) continue;
+      var cand = candidates[c].norm;
+      if (!cand || cand.length < 2) continue;
       var score = 0;
 
       // Exact match
-      if (cand === target) score = 1.0;
-      // Contains match (one contains the other)
-      else if (cand.indexOf(target) !== -1 || target.indexOf(cand) !== -1) score = 0.85;
-      // First name match (ชื่อต้น ตรงกัน)
+      if (cand === target) {
+        score = 1.0;
+      }
+      // Contains match — prefer shorter match (more precise)
+      else if (cand.indexOf(target) !== -1 || target.indexOf(cand) !== -1) {
+        // "จันจิ" vs "จันจิราทิพย์" → ถ้า target="จันจิราทิพย์" match กับ "จันจิราทิพย์" (exact) ไม่ใช่ "จันจิ"
+        // Score based on length ratio: ยิ่งใกล้ exact ยิ่งดี
+        var shorter = Math.min(cand.length, target.length);
+        var longer = Math.max(cand.length, target.length);
+        score = 0.6 + (shorter / longer) * 0.25; // 0.6 - 0.85
+      }
+      // First name match
       else {
-        var targetFirst = target.split(/\s+/)[0];
-        var candFirst = cand.split(/\s+/)[0];
-        if (targetFirst.length >= 3 && candFirst.length >= 3) {
-          if (targetFirst === candFirst) score = 0.8;
-          else if (targetFirst.indexOf(candFirst) !== -1 || candFirst.indexOf(targetFirst) !== -1) score = 0.7;
-        }
-        // Prefix match (6+ chars)
-        if (score === 0) {
-          var ml = Math.min(cand.length, target.length);
-          if (ml >= 6 && cand.substring(0, 6) === target.substring(0, 6)) score = 0.6;
+        var targetWords = target.replace(/[^ก-๙a-z]/gi, ' ').trim().split(/\s+/);
+        var candWords = cand.replace(/[^ก-๙a-z]/gi, ' ').trim().split(/\s+/);
+        if (targetWords[0] && candWords[0] && targetWords[0].length >= 3 && candWords[0].length >= 3) {
+          if (targetWords[0] === candWords[0]) score = 0.75;
+          else if (targetWords[0].indexOf(candWords[0]) !== -1 || candWords[0].indexOf(targetWords[0]) !== -1) score = 0.65;
         }
       }
 
-      if (score > bestScore) {
+      // Tiebreaker: prefer candidate with closer length to target
+      var lenDiff = Math.abs(cand.length - target.length);
+      if (score > bestScore || (score === bestScore && lenDiff < bestLen)) {
         bestScore = score;
+        bestLen = lenDiff;
         best = { userId: e.userId, senderName: e.senderName, displayName: e.displayName, confidence: score };
       }
     }
@@ -4162,6 +4176,39 @@ function closeCustStats() {
   document.getElementById('custStatsModal').style.display = 'none';
 }
 
+function custAddSlipName() {
+  var container = document.getElementById('custSlipNames');
+  if (!container) return;
+  var row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:6px';
+  row.innerHTML = '<input class="inp cust-sn-input" value="" placeholder="เช่น นาง สมศรี จันทร์ดี" style="flex:1;font-size:13px">' +
+    '<button style="background:var(--red-bg);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px" onclick="this.parentElement.remove()">✕</button>';
+  container.appendChild(row);
+  row.querySelector('input').focus();
+}
+
+async function custSaveSlipNames(uid) {
+  var inputs = document.querySelectorAll('#custSlipNames .cust-sn-input');
+  var names = [];
+  inputs.forEach(function(inp) { var v = inp.value.trim(); if (v) names.push(v); });
+  var statusEl = document.getElementById('custSnStatus');
+
+  try {
+    var res = await fetch(BASE + '/api/stats?action=save_slip_names&uid=' + encodeURIComponent(uid) + '&names=' + encodeURIComponent(names.join(',')), { headers: getHeaders() });
+    var j = await res.json();
+    if (j.ok) {
+      if (statusEl) { statusEl.style.display = 'inline'; setTimeout(function() { statusEl.style.display = 'none'; }, 3000); }
+      toastSuccess('บันทึกชื่อในสลิปแล้ว (' + names.length + ' ชื่อ)');
+      // Reload lookup so matching uses new names
+      wdLookupLoaded = false;
+    } else {
+      toastWarn('บันทึกไม่สำเร็จ: ' + (j.error || ''));
+    }
+  } catch (e) {
+    toastWarn('Error: ' + e.message);
+  }
+}
+
 function renderCustStats(data) {
   var name = data.name || '—';
   document.getElementById('custStatsName').textContent = name;
@@ -4170,6 +4217,26 @@ function renderCustStats(data) {
 
   function fmt(n) { return (n || 0).toLocaleString('en-US'); }
   function fmtMoney(n) { return '฿' + (n || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+
+  // ─── slipNames section (ชื่อในสลิป) ───
+  var slipNames = data.slipNames || [];
+  var snHtml = '<div style="background:var(--bg-1);border:1px solid var(--accent-line);border-radius:14px;padding:18px;margin-bottom:14px">' +
+    '<div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px">📝 ชื่อในสลิป (ใช้จับคู่ตอนส่งสลิปถอน)</div>' +
+    '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">เพิ่มชื่อจริงที่ปรากฏในสลิป เช่น "นาย สมชาย ใจดี" — ระบบจะใช้จับคู่อัตโนมัติเมื่อ OCR อ่านสลิปถอน</div>' +
+    '<div id="custSlipNames">';
+  slipNames.forEach(function(sn, i) {
+    snHtml += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">' +
+      '<input class="inp cust-sn-input" value="' + esc(sn) + '" placeholder="เช่น นาย สมชาย ใจดี" style="flex:1;font-size:13px">' +
+      '<button style="background:var(--red-bg);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px" onclick="this.parentElement.remove()">✕</button>' +
+    '</div>';
+  });
+  snHtml += '</div>' +
+    '<div style="display:flex;gap:8px;margin-top:8px">' +
+      '<button class="btn btn-ghost" style="font-size:12px;padding:8px 14px" onclick="custAddSlipName()">+ เพิ่มชื่อ</button>' +
+      '<button class="btn btn-gold" style="font-size:12px;padding:8px 14px" onclick="custSaveSlipNames(\'' + data.uid + '\')">💾 บันทึก</button>' +
+      '<span id="custSnStatus" style="font-size:12px;color:var(--green);display:none;align-self:center">✅ บันทึกแล้ว!</span>' +
+    '</div>' +
+  '</div>';
 
   function statCard(title, stats, color) {
     var rate = stats.total > 0 ? Math.round((stats.pass / stats.total) * 100) : 0;
@@ -4184,7 +4251,7 @@ function renderCustStats(data) {
     '</div>';
   }
 
-  var html = '<div style="display:flex;flex-direction:column;gap:14px">' +
+  var html = snHtml + '<div style="display:flex;flex-direction:column;gap:14px">' +
     statCard('📅 วันนี้', data.today, 'var(--gold)') +
     statCard('📊 7 วันล่าสุด', data.past7, 'var(--blue)') +
     statCard('📆 30 วันล่าสุด', data.past30, 'var(--purple)') +

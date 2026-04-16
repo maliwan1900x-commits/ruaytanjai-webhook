@@ -74,10 +74,15 @@ module.exports = async (req, res) => {
         var contact = contacts.find(function(c) { return c.uid === uid; });
         var profile = await store.getProfile(uid);
 
+        // Load slipNames (ชื่อในสลิปที่เพิ่มเอง)
+        var slipNames = [];
+        try { var sn = await store.kv.get('slipnames:' + uid); if (sn) slipNames = JSON.parse(sn); } catch(e) {}
+
         return res.status(200).json({
           ok: true,
           uid: uid,
           name: (contact && contact.name) || (profile && profile.displayName) || '',
+          slipNames: slipNames,
           today: computeStats(today),
           past7: computeStats(past7),
           past30: computeStats(past30),
@@ -92,6 +97,15 @@ module.exports = async (req, res) => {
             };
           }),
         });
+      }
+
+      // Save slipNames for a customer
+      if (action === 'save_slip_names') {
+        var uid = req.query.uid;
+        if (!uid) return res.status(400).json({ ok: false, error: 'uid required' });
+        var names = (req.query.names || '').split(',').map(function(n) { return n.trim(); }).filter(Boolean);
+        await store.kv.set('slipnames:' + uid, JSON.stringify(names));
+        return res.status(200).json({ ok: true, slipNames: names });
       }
 
       // Top customers today

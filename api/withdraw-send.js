@@ -78,6 +78,7 @@ async function buildLookupTable() {
         senderName: s.slipInfo.senderName,
         displayName: s.customerName || contactMap[s.userId] || '',
         timestamp: s.timestamp,
+        slipNames: [],
       };
     }
   }
@@ -87,12 +88,22 @@ async function buildLookupTable() {
     if (!table[c.uid]) {
       table[c.uid] = {
         userId: c.uid,
-        senderName: '', // ไม่มีข้อมูลชื่อจริง
+        senderName: '',
         displayName: c.name,
         timestamp: 0,
+        slipNames: [],
       };
     }
   });
+
+  // Load slipNames for each customer
+  var uids = Object.keys(table);
+  for (var u = 0; u < uids.length; u++) {
+    try {
+      var sn = await store.kv.get('slipnames:' + uids[u]);
+      if (sn) table[uids[u]].slipNames = JSON.parse(sn);
+    } catch(e) {}
+  }
 
   return table;
 }
@@ -153,6 +164,7 @@ module.exports = async (req, res) => {
             userId: e.userId,
             senderName: e.senderName || '',
             displayName: e.displayName || '',
+            slipNames: e.slipNames || [],
             lastSeen: e.timestamp,
           };
         });
