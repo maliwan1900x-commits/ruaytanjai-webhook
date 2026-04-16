@@ -43,6 +43,31 @@ async function kvSet(key, value) {
   }
 }
 
+// SET with TTL (expiration in seconds)
+async function kvSetEx(key, value, ttlSeconds) {
+  if (!KV_URL || !KV_TOKEN) return false;
+  try {
+    var r = await fetch(KV_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + KV_TOKEN,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([
+        'SET',
+        key,
+        typeof value === 'string' ? value : JSON.stringify(value),
+        'EX',
+        String(ttlSeconds),
+      ]),
+    });
+    var data = await r.json();
+    return data.result === 'OK';
+  } catch (e) {
+    return false;
+  }
+}
+
 async function kvDel(key) {
   if (!KV_URL || !KV_TOKEN) return false;
   try {
@@ -169,6 +194,7 @@ function invalidateCache() {
 module.exports = {
   kvGet,
   kvSet,
+  kvSetEx,
   kvDel,
   getLineToken,
   getThunderKey,

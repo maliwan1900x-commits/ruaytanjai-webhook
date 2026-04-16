@@ -3,457 +3,1280 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>รวยทันใจ — เช็คสลิป & แจ้งรางวัล</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>รวยทันใจ — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#08090D;--surface:#12141C;--surface2:#181B26;--surface3:#1E2130;--gold:#E8B931;--gold-dim:#9A7B1F;--gold-glow:rgba(232,185,49,.08);--green:#2DD4A0;--green-bg:rgba(45,212,160,.06);--red:#F06B7E;--red-bg:rgba(240,107,126,.06);--amber:#F5B731;--amber-bg:rgba(245,183,49,.06);--blue:#5B9CF5;--blue-bg:rgba(91,156,245,.06);--purple:#A78BFA;--t1:#EEEEF2;--t2:#9498A8;--t3:#6B6F80;--t4:#484C5B;--border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.1);--r:14px;--rs:10px;--font:'Noto Sans Thai','DM Sans',sans-serif;--mono:'JetBrains Mono',monospace}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--t4);border-radius:4px}
-.shell{max-width:1200px;margin:0 auto;padding:0 16px}
-.header{position:sticky;top:0;z-index:100;background:rgba(8,9,13,.85);backdrop-filter:blur(24px) saturate(1.2);border-bottom:1px solid var(--border);padding:14px 0}
-.header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;padding:0 16px}
-.brand{display:flex;align-items:center;gap:10px}
-.brand-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#C49A18);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 20px rgba(232,185,49,.3),inset 0 1px 0 rgba(255,255,255,.2)}
-.brand-name{font-weight:800;font-size:18px;letter-spacing:-.02em;background:linear-gradient(135deg,#F5D76E,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.brand-sub{font-size:10px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;font-weight:500}
-.header-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t3);padding:6px 12px;border-radius:100px;background:var(--surface);border:1px solid var(--border)}
-.status-dot{width:8px;height:8px;border-radius:50%}
-.status-dot.on{background:var(--green);box-shadow:0 0 8px rgba(45,212,160,.5);animation:pulse 3s ease-in-out infinite}
-.status-dot.off{background:var(--red)}
-@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px rgba(45,212,160,.5)}50%{opacity:.5;box-shadow:0 0 4px rgba(45,212,160,.2)}}
-
-.tabs{display:flex;gap:4px;padding:16px 0 0}
-.tab{padding:11px 24px;border-radius:12px 12px 0 0;font-size:15px;font-weight:600;cursor:pointer;border:1px solid transparent;border-bottom:none;color:var(--t3);background:transparent;transition:all .2s;position:relative;display:flex;align-items:center;gap:8px}
-.tab:hover{color:var(--t2);background:rgba(255,255,255,.02)}
-.tab.active{color:var(--gold);background:var(--surface);border-color:var(--border)}
-.tab.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-.tab .count{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:rgba(255,255,255,.06);color:var(--t3)}
-.tab.active .count{background:var(--gold-glow);color:var(--gold)}
-
-.tab-body{background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 var(--r) var(--r) var(--r);padding:28px;min-height:65vh;box-shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.25)}
-.tab-page{display:none;animation:fadeUp .25s ease}.tab-page.active{display:block}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-
-.sec-head{display:flex;align-items:center;gap:8px;margin:0 0 16px;font-size:14px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.04em}
-.sec-head::before{content:'';width:3px;height:15px;border-radius:2px;background:linear-gradient(180deg,var(--gold),var(--gold-dim))}
-.sec-head.mt{margin-top:28px}
-
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
-.kpi{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
-.kpi:hover{border-color:var(--border2);transform:translateY(-2px)}
-.kpi-glow{display:none}
-.kpi-icon{font-size:24px;margin-bottom:10px}
-.kpi-val{font-family:var(--mono);font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.kpi{animation:fadeUp .4s ease backwards}
-.kpi:nth-child(1){animation-delay:.05s}.kpi:nth-child(2){animation-delay:.1s}.kpi:nth-child(3){animation-delay:.15s}.kpi:nth-child(4){animation-delay:.2s}.kpi:nth-child(5){animation-delay:.25s}
-.kpi-label{font-size:12px;color:var(--t3);margin-top:4px}
-
-.bdg{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap;letter-spacing:.01em}
-.bdg-ok{background:var(--green-bg);color:var(--green)}
-.bdg-fail{background:var(--red-bg);color:var(--red)}
-.bdg-warn{background:var(--amber-bg);color:var(--amber)}
-.bdg-info{background:var(--blue-bg);color:var(--blue)}
-
-.dtable-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
-.dtable-toolbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
-.dtable-title{font-size:14px;font-weight:600}
-.sel{background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:6px 30px 6px 12px;font-size:12px;color:var(--t1);font-family:var(--font);outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2394A3B8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
-table{width:100%;border-collapse:collapse}
-th{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;padding:10px 12px;text-align:left;background:rgba(255,255,255,.02);white-space:nowrap}
-td{font-size:13px;padding:12px 14px;border-bottom:1px solid rgba(30,41,59,.6);vertical-align:middle}
-tr{transition:background .15s}
-tr:hover td{background:rgba(255,255,255,.015)}
-.mono{font-family:var(--mono);font-size:12px}
-.td-name{display:flex;align-items:center;gap:8px}
-.td-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;background:var(--surface3)}
-
-.err-chart{display:flex;gap:12px;flex-wrap:wrap}
-.err-bar{flex:1;min-width:140px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;align-items:center}
-.err-icon{font-size:28px;margin-bottom:6px}
-.err-val{font-family:var(--mono);font-size:24px;font-weight:700}
-.err-label{font-size:11px;color:var(--t3);margin-top:2px}
-.err-pct{font-size:11px;font-weight:600;margin-top:4px}
-
-.live-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:18px}
-.live-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.live-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
-.live-list{display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto}
-.live-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.015);animation:fadeIn .3s}
-@keyframes fadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
-.live-item .time{font-family:var(--mono);font-size:11px;color:var(--t4);flex-shrink:0;width:56px}
-.live-item .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.live-item .name{font-size:13px;font-weight:600;min-width:80px}
-.live-item .detail{font-size:12px;color:var(--t3);flex:1}
-.live-item .tag{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600}
-
-.win-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px}
-.win-box-title{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px}
-.inp{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;color:var(--t1);font-size:13px;padding:10px 14px;font-family:var(--font);outline:none}
-.inp:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px rgba(232,185,49,.08)}
-.inp-mono{font-family:var(--mono);font-size:12px;line-height:1.8}
-textarea.inp{resize:vertical;min-height:130px}
-.hint{font-size:11px;color:var(--t4);margin-top:6px;line-height:1.6}
-.hint b{color:var(--blue)}
-
-.btn{padding:10px 20px;border-radius:10px;border:none;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
-.btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
-.btn-gold{background:linear-gradient(135deg,var(--gold),#C49A18);color:#000;box-shadow:0 2px 12px rgba(232,185,49,.25)}
-.btn-gold:hover{box-shadow:0 4px 20px rgba(232,185,49,.35)}
-.btn-ghost{background:rgba(255,255,255,.04);color:var(--t2);border:1px solid var(--border)}
-.btn-green{background:var(--green);color:#000;box-shadow:0 2px 12px rgba(45,212,160,.2)}
-.btn-red{background:rgba(251,113,133,.12);color:var(--red);border:1px solid rgba(251,113,133,.15)}
-.btn-blue{background:var(--blue);color:#000}
-.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px}
-
-.win-card{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;transition:all .2s}
-.win-card.sent{opacity:.5;border-color:rgba(52,211,153,.2)}
-.win-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.win-name{font-weight:700;font-size:15px}
-.win-prize{font-family:var(--mono);font-weight:700;color:var(--gold)}
-.win-actions{display:flex;gap:6px;flex-wrap:wrap}
-
-.prog-wrap{height:5px;background:rgba(255,255,255,.03);border-radius:100px;overflow:hidden;margin:10px 0}
-.prog-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--gold),var(--green));transition:width .5s ease}
-
-.contact-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
-.contact-av{width:34px;height:34px;border-radius:10px;background:var(--gold-glow);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
-
-.flex-preview{background:#fff;border-radius:18px;max-width:300px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.3);font-family:'Kanit',sans-serif;margin:12px auto}
-.flex-preview *{color:#333}
-.fp-header{padding:14px 16px;display:flex;align-items:center;gap:10px}
-.fp-body{padding:16px;background:#fff}
-.fp-divider{height:1px;background:#f0f0f0;margin:12px 0}
-.fp-row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px}
-.fp-row-label{color:#999}
-.fp-row-val{font-weight:600;color:#333}
-
-.setting-group{margin-bottom:14px}
-.setting-label{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.setting-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-
-.color-dot{width:24px;height:24px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all .15s}
-.color-dot.active{border-color:var(--gold);transform:scale(1.12);box-shadow:0 0 12px rgba(232,185,49,.3)}
-
-.toggle-row{display:flex;align-items:center;gap:10px;padding:6px 0}
-.toggle{width:40px;height:22px;border-radius:11px;background:var(--border2);position:relative;cursor:pointer;transition:background .2s}
-.toggle.on{background:var(--green)}
-.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
-.toggle.on::after{left:21px}
-
-.btn-row-item{display:flex;gap:6px;align-items:center;padding:8px;background:rgba(0,0,0,.15);border-radius:8px;margin-bottom:6px;flex-wrap:wrap}
-.btn-row-item .inp{flex:1;min-width:100px}
-.color-sel{width:36px;height:32px;border:1px solid var(--border);border-radius:6px;background:none;cursor:pointer;padding:0}
-
-/* Auth overlay */
-.auth-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(11,15,25,.95);z-index:9999;display:flex;align-items:center;justify-content:center}
-.auth-box{background:var(--surface);border:1px solid rgba(232,185,49,.15);border-radius:20px;padding:40px;max-width:380px;width:90%;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.5),0 16px 48px rgba(0,0,0,.35),0 0 80px rgba(232,185,49,.05)}
-.auth-box h2{font-size:20px;font-weight:700;margin-bottom:8px;color:var(--gold)}
-.auth-box p{font-size:13px;color:var(--t3);margin-bottom:16px}
-
-@media(max-width:640px){
-  .tabs{overflow-x:auto}
-  .tab{font-size:12px;padding:8px 14px;white-space:nowrap}
-  .tab-body{padding:16px}
-  .kpi-grid{grid-template-columns:1fr 1fr}
-  .err-chart{flex-direction:column}
-  .flex-preview{max-width:100%}
+:root {
+  --bg: #0a0b0f;
+  --bg-1: #101219;
+  --bg2: #101219;
+  --surface: #1a1d2a;
+  --surface2: #1a1d2a;
+  --surface3: #22263a;
+  --surface-hi: #22263a;
+  --line: rgba(255,255,255,.06);
+  --line-hi: rgba(255,255,255,.1);
+  --border: rgba(255,255,255,.06);
+  --border2: rgba(255,255,255,.1);
+  --border-gold: rgba(232,193,92,.2);
+  --accent: #e8c15c;
+  --accent-2: #f5d47a;
+  --accent-dim: rgba(232,193,92,.08);
+  --accent-line: rgba(232,193,92,.2);
+  --gold: #e8c15c;
+  --gold-dim: #b08d2e;
+  --gold-glow: rgba(232,193,92,.08);
+  --gold-glow2: rgba(232,193,92,.12);
+  --success: #4ade80;
+  --success-bg: rgba(74,222,128,.08);
+  --green: #4ade80;
+  --green-bg: rgba(74,222,128,.08);
+  --danger: #f87171;
+  --danger-bg: rgba(248,113,113,.08);
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,.08);
+  --warning: #fbbf24;
+  --warning-bg: rgba(251,191,36,.08);
+  --amber: #fbbf24;
+  --amber-bg: rgba(251,191,36,.08);
+  --info: #7dd3fc;
+  --info-bg: rgba(125,211,252,.08);
+  --blue: #7dd3fc;
+  --blue-bg: rgba(125,211,252,.08);
+  --purple: #c4b5fd;
+  --purple-bg: rgba(196,181,253,.08);
+  --t0: #ffffff;
+  --t1: #e8eaf0;
+  --t2: #a8adc0;
+  --t3: #6e7390;
+  --t4: #3d425c;
+  --font: 'IBM Plex Sans Thai', 'Sora', sans-serif;
+  --font-display: 'Sora', 'IBM Plex Sans Thai', sans-serif;
+  --font-body: 'IBM Plex Sans Thai', 'Sora', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --r: 14px;
+  --r2: 10px;
+  --rs: 10px;
 }
 
-/* ── Premium Prize Section ── */
-.prize-hero{background:linear-gradient(135deg,rgba(232,185,49,.06),rgba(232,185,49,.02));border:1px solid var(--border-gold);border-radius:var(--r);padding:24px;margin-bottom:18px;position:relative;overflow:hidden}
-.prize-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(232,185,49,.08),transparent 70%);pointer-events:none}
-.prize-hero-title{font-size:18px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:10px}
-.prize-hero-sub{font-size:13px;color:var(--t3);line-height:1.7}
-.prize-hero-sub b{color:var(--gold)}
-.prize-steps{display:flex;gap:12px;margin:16px 0 0;flex-wrap:wrap}
-.prize-step{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2);font-weight:500}
-.prize-step-num{width:24px;height:24px;border-radius:50%;background:var(--gold-glow2);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-.prize-step-arrow{color:var(--t4);font-size:14px}
-.prize-input-area{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:18px;transition:border-color .3s}
-.prize-input-area:focus-within{border-color:var(--gold-dim)}
-.prize-input-label{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.prize-textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);color:var(--t1);font-size:13px;padding:14px 16px;font-family:var(--mono);outline:none;resize:vertical;min-height:150px;line-height:1.8;transition:border-color .2s}
-.prize-textarea:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px rgba(232,185,49,.08)}
-.prize-textarea::placeholder{color:var(--t4)}
-.prize-actions{display:flex;gap:10px;margin-top:14px;align-items:center}
-.prize-results-header{display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px;flex-wrap:wrap;gap:10px}
-.prize-results-left{display:flex;align-items:center;gap:12px}
-.prize-results-left .stat{font-size:13px;font-weight:600}
-.prize-results-right{display:flex;gap:8px;flex-wrap:wrap}
-.prize-prog{height:6px;background:rgba(255,255,255,.03);border-radius:100px;overflow:hidden;margin:0 0 18px}
-.prize-prog-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--gold),var(--green));transition:width .5s ease;position:relative}
-.prize-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:0;margin-bottom:10px;overflow:hidden;transition:all .25s}
-.prize-card:hover{border-color:var(--border2)}
-.prize-card.sent{opacity:.4;border-color:rgba(45,212,160,.12)}
-.prize-card-top{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;gap:12px}
-.prize-card-info{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
-.prize-card-avatar{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
-.prize-card-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.prize-card-lty{font-size:11px;color:var(--t3);margin-top:2px}
-.prize-card-amount{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--gold);white-space:nowrap;flex-shrink:0}
-.prize-card-msg{background:rgba(0,0,0,.2);padding:12px 18px;font-size:12px;color:var(--t3);white-space:pre-wrap;line-height:1.8;border-top:1px solid var(--border);display:none}
-.prize-card.expanded .prize-card-msg{display:block}
-.prize-card-bottom{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--border);gap:8px;flex-wrap:wrap}
-.prize-card-actions{display:flex;gap:6px;flex-wrap:wrap}
-.prize-card-toggle{font-size:11px;color:var(--t4);cursor:pointer;padding:4px 8px;border-radius:6px;transition:color .15s}
-.prize-card-toggle:hover{color:var(--t2)}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--t1);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 100;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  opacity: .02; mix-blend-mode: overlay;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-hi); border-radius: 10px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: var(--t4); }
 
+/* ─── Layout ─── */
+.app {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+/* ─── Sidebar ─── */
+.sidebar {
+  background: var(--bg-1);
+  border-right: 1px solid var(--line);
+  padding: 28px 16px;
+  display: flex; flex-direction: column; gap: 28px;
+  position: sticky; top: 0;
+  height: 100vh; overflow-y: auto;
+}
+.brand { display: flex; align-items: center; gap: 12px; padding: 0 8px; }
+.brand-mark {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), #b08d2e);
+  display: grid; place-items: center;
+  font-size: 22px; font-weight: 700; color: #1a1208;
+  box-shadow: 0 6px 20px rgba(232,193,92,.25), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.brand-name { font-family: var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: -.01em; color: var(--t0); line-height: 1.1; }
+.brand-tag { font-size: 10px; color: var(--t3); letter-spacing: .18em; text-transform: uppercase; font-weight: 600; margin-top: 4px; font-family: var(--mono); }
+.nav-group { display: flex; flex-direction: column; gap: 2px; }
+.nav-label { font-size: 10px; color: var(--t4); letter-spacing: .18em; text-transform: uppercase; font-weight: 700; padding: 0 12px; margin-bottom: 8px; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 10px;
+  font-size: 14px; font-weight: 500; color: var(--t2);
+  cursor: pointer; user-select: none;
+  transition: all .18s;
+  border: 1px solid transparent; position: relative;
+}
+.nav-item:hover { background: var(--surface); color: var(--t1); }
+.nav-item.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -16px; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 24px;
+  background: var(--accent); border-radius: 0 3px 3px 0;
+}
+.nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+.nav-text { flex: 1; }
+.nav-count { font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 100px; background: var(--surface-hi); color: var(--t3); font-weight: 600; }
+.nav-item.active .nav-count { background: var(--accent); color: #1a1208; }
+
+.sidebar-footer {
+  margin-top: auto; padding: 16px 12px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex; align-items: center; gap: 12px;
+}
+.user-avatar {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--info), #2563eb);
+  display: grid; place-items: center;
+  font-size: 13px; font-weight: 600; color: white;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 13px; font-weight: 600; color: var(--t1); }
+.user-role { font-size: 11px; color: var(--t3); margin-top: 1px; }
+
+/* ─── Main ─── */
+.main { padding: 0; min-width: 0; }
+.topbar {
+  background: rgba(10,11,15,.7);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border-bottom: 1px solid var(--line);
+  padding: 18px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px; flex-wrap: wrap;
+  position: sticky; top: 0; z-index: 40;
+}
+.topbar-left { display: flex; flex-direction: column; gap: 2px; }
+.topbar-crumb { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--t3); letter-spacing: .1em; text-transform: uppercase; font-weight: 600; font-family: var(--mono); }
+.topbar-title { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--t0); letter-spacing: -.01em; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 100px;
+  background: var(--surface); border: 1px solid var(--line);
+  font-size: 13px; color: var(--t2); font-weight: 500;
+}
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--t4);
+}
+.status-dot.on {
+  background: var(--success); box-shadow: 0 0 12px var(--success);
+  animation: pulse-dot 2s ease infinite;
+}
+.status-dot.off { background: var(--danger); }
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .6; transform: scale(.85); }
+}
+
+.icon-btn {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; cursor: pointer;
+  font-size: 16px; color: var(--t2);
+  transition: all .15s;
+}
+.icon-btn:hover { background: var(--surface-hi); color: var(--t1); border-color: var(--line-hi); }
+
+.content { padding: 32px 40px 60px; max-width: 1600px; }
+
+.tab-page { display: none; animation: pageIn .25s ease; }
+.tab-page.active { display: block; }
+@keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Section heads */
+.sec-head {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 18px;
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 600;
+  color: var(--t1);
+}
+.sec-head::before {
+  content: ''; width: 3px; height: 18px; border-radius: 2px;
+  background: var(--accent);
+}
+.sec-head.mt { margin-top: 32px; }
+
+/* ─── KPI ─── */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 22px 24px;
+  position: relative; overflow: hidden;
+  transition: all .2s;
+}
+.kpi:hover { border-color: var(--line-hi); transform: translateY(-2px); }
+.kpi-glow {
+  display: none;
+}
+.kpi-icon { font-size: 22px; margin-bottom: 14px; }
+.kpi-val {
+  font-family: var(--font-display);
+  font-size: 30px; font-weight: 700;
+  letter-spacing: -.02em; color: var(--t0);
+  line-height: 1;
+}
+.kpi-label { font-size: 12px; color: var(--t3); font-weight: 500; margin-top: 8px; }
+
+/* ─── Badges ─── */
+.bdg, .badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px; border-radius: 100px;
+  font-size: 12px; font-weight: 600;
+  white-space: nowrap; border: 1px solid transparent;
+}
+.bdg-ok, .badge-success { background: var(--success-bg); color: var(--success); border-color: rgba(74,222,128,.2); }
+.bdg-fail, .badge-danger { background: var(--danger-bg); color: var(--danger); border-color: rgba(248,113,113,.2); }
+.bdg-warn, .badge-warning { background: var(--warning-bg); color: var(--warning); border-color: rgba(251,191,36,.2); }
+.bdg-info, .badge-info { background: var(--info-bg); color: var(--info); border-color: rgba(125,211,252,.2); }
+
+/* ─── Panel / Table ─── */
+.dtable-wrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.dtable-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--line);
+  gap: 10px; flex-wrap: wrap;
+  background: var(--bg-1);
+}
+.dtable-title { font-size: 14px; font-weight: 600; color: var(--t1); }
+.sel {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; padding: 8px 30px 8px 14px;
+  font-size: 13px; color: var(--t1); font-family: var(--font);
+  outline: none; cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%236e7390' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  transition: all .15s;
+}
+table { width: 100%; border-collapse: collapse; }
+th {
+  padding: 14px 20px; text-align: left;
+  font-size: 11px; font-weight: 700; color: var(--t3);
+  letter-spacing: .08em; text-transform: uppercase;
+  font-family: var(--mono);
+  background: var(--bg-1); border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+td {
+  padding: 16px 20px; border-bottom: 1px solid var(--line);
+  font-size: 14px; color: var(--t1); vertical-align: middle;
+}
+tr { transition: background .1s; }
+tr:hover td { background: var(--bg-1); }
+.mono { font-family: var(--mono); font-size: 13px; }
+.td-name { display: flex; align-items: center; gap: 10px; }
+.td-av {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: grid; place-items: center;
+  font-size: 11px; font-weight: 700; color: var(--accent);
+  background: var(--accent-dim); flex-shrink: 0;
+}
+
+/* ─── Error chart ─── */
+.err-chart { display: flex; gap: 14px; flex-wrap: wrap; }
+.err-bar {
+  flex: 1; min-width: 160px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 18px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.err-icon { font-size: 28px; margin-bottom: 8px; }
+.err-val { font-family: var(--font-display); font-size: 26px; font-weight: 700; }
+.err-label { font-size: 12px; color: var(--t3); margin-top: 4px; }
+.err-pct { font-size: 11px; font-weight: 600; margin-top: 4px; font-family: var(--mono); }
+
+/* ─── Live feed ─── */
+.live-wrap {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 20px;
+}
+.live-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.live-title { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; color: var(--t1); }
+.live-list { display: flex; flex-direction: column; gap: 4px; max-height: 320px; overflow-y: auto; }
+.live-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: 10px;
+  background: var(--bg-1);
+  animation: fadeIn .3s;
+  transition: background .1s;
+}
+.live-item:hover { background: var(--surface-hi); }
+@keyframes fadeIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+.live-item .time { font-family: var(--mono); font-size: 11px; color: var(--t3); flex-shrink: 0; width: 64px; }
+.live-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.live-item .name { font-size: 13px; font-weight: 600; color: var(--t1); min-width: 100px; }
+.live-item .detail { font-size: 12px; color: var(--t3); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.live-item .tag { font-size: 11px; padding: 3px 9px; border-radius: 100px; font-weight: 600; white-space: nowrap; }
+
+/* ─── Config card ─── */
+.win-box {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 20px; margin-bottom: 16px;
+}
+.win-box-title {
+  font-size: 14px; font-weight: 600; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px; color: var(--t1);
+}
+
+/* ─── Input / Form ─── */
+.inp {
+  width: 100%; background: var(--bg-1);
+  border: 1px solid var(--line); border-radius: 10px;
+  color: var(--t1); font-size: 14px; padding: 11px 14px;
+  font-family: var(--font); outline: none;
+  transition: border-color .15s;
+}
+.inp:focus { border-color: var(--accent-line); background: var(--surface); }
+.inp-mono { font-family: var(--mono); font-size: 13px; line-height: 1.7; }
+textarea.inp { resize: vertical; min-height: 140px; }
+.hint { font-size: 12px; color: var(--t3); margin-top: 6px; line-height: 1.6; }
+.hint b { color: var(--info); }
+
+.setting-group { margin-bottom: 16px; }
+.setting-label {
+  font-size: 13px; font-weight: 600; color: var(--t2);
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.setting-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* ─── Buttons ─── */
+.btn {
+  padding: 10px 18px; border-radius: 10px;
+  border: 1px solid transparent;
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all .15s;
+  display: inline-flex; align-items: center; gap: 8px;
+  white-space: nowrap;
+}
+.btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.btn:active { transform: translateY(0); }
+.btn-gold {
+  background: linear-gradient(135deg, var(--accent), #c49a2b);
+  color: #1a1208;
+  box-shadow: 0 4px 16px rgba(232,193,92,.2);
+}
+.btn-gold:hover { box-shadow: 0 6px 20px rgba(232,193,92,.3); }
+.btn-ghost { background: var(--surface); color: var(--t1); border-color: var(--line); }
+.btn-ghost:hover { background: var(--surface-hi); }
+.btn-green { background: var(--green); color: #052e1f; }
+.btn-blue { background: var(--info); color: #052545; }
+.btn-red { background: var(--red-bg); color: var(--red); border-color: rgba(248,113,113,.3); }
+.btn-sm { padding: 7px 13px; font-size: 12px; border-radius: 8px; }
+
+/* ─── Win cards ─── */
+.win-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 16px; margin-bottom: 10px;
+  transition: all .2s;
+}
+.win-card.sent { opacity: .5; border-color: rgba(74,222,128,.2); }
+.win-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+.win-name { font-weight: 700; font-size: 15px; color: var(--t1); }
+.win-prize { font-family: var(--mono); font-weight: 700; color: var(--gold); font-size: 16px; }
+.win-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ─── Progress ─── */
+.prog-wrap {
+  height: 6px; background: var(--bg-1); border-radius: 100px;
+  overflow: hidden; margin: 12px 0;
+}
+.prog-fill {
+  height: 100%; border-radius: 100px;
+  background: linear-gradient(90deg, var(--gold), var(--green));
+  transition: width .5s ease;
+}
+
+/* ─── Contact ─── */
+.contact-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--line);
+}
+.contact-av {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--accent-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--gold);
+  flex-shrink: 0;
+}
+
+/* ─── Flex preview ─── */
+.flex-preview {
+  background: #fff; border-radius: 18px;
+  max-width: 320px; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  margin: 14px auto;
+}
+.flex-preview * { color: #333; }
+.fp-header { padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+.fp-body { padding: 16px; background: #fff; }
+.fp-divider { height: 1px; background: #f0f0f0; margin: 12px 0; }
+.fp-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; }
+.fp-row-label { color: #999; }
+.fp-row-val { font-weight: 600; color: #333; }
+
+/* ─── Toggle ─── */
+.toggle-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.toggle {
+  width: 42px; height: 24px; border-radius: 12px;
+  background: var(--surface-hi); border: 1px solid var(--line);
+  position: relative; cursor: pointer;
+  transition: background .2s; flex-shrink: 0;
+}
+.toggle.on { background: var(--green); border-color: transparent; }
+.toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; transition: left .2s;
+}
+.toggle.on::after { left: 21px; }
+
+/* ─── Color picker ─── */
+.color-dot {
+  width: 28px; height: 28px; border-radius: 8px;
+  cursor: pointer; border: 2px solid transparent;
+  transition: all .15s;
+}
+.color-dot.active {
+  border-color: var(--gold);
+  transform: scale(1.1);
+  box-shadow: 0 0 14px rgba(232,193,92,.3);
+}
+
+/* ─── Button row items (slip config) ─── */
+.btn-row-item {
+  display: flex; gap: 6px; align-items: center;
+  padding: 10px;
+  background: var(--bg-1); border: 1px solid var(--line);
+  border-radius: 10px; margin-bottom: 6px; flex-wrap: wrap;
+}
+.btn-row-item .inp { flex: 1; min-width: 100px; }
+.color-sel {
+  width: 36px; height: 36px; border: 1px solid var(--line);
+  border-radius: 8px; background: none; cursor: pointer;
+  padding: 0;
+}
+
+/* ─── Auth overlay ─── */
+.auth-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(10,11,15,.95);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(10px);
+}
+.auth-box {
+  background: var(--surface);
+  border: 1px solid var(--accent-line);
+  border-radius: 20px; padding: 40px;
+  max-width: 380px; width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+.auth-box h2 {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 700;
+  margin-bottom: 10px; color: var(--gold);
+}
+.auth-box p { font-size: 14px; color: var(--t3); margin-bottom: 20px; }
+
+/* ─── Prize hero ─── */
+.prize-hero {
+  background: linear-gradient(135deg, var(--accent-dim), rgba(196,181,253,.04));
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r); padding: 26px;
+  margin-bottom: 18px;
+  position: relative; overflow: hidden;
+}
+.prize-hero::before {
+  content: ''; position: absolute; top: -50%; right: -10%;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-dim), transparent 70%);
+  pointer-events: none;
+}
+.prize-hero-title {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 700; color: var(--t0);
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.prize-hero-sub { font-size: 14px; color: var(--t2); line-height: 1.7; }
+.prize-hero-sub b { color: var(--gold); }
+.prize-steps { display: flex; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
+.prize-step { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--t2); font-weight: 500; }
+.prize-step-num {
+  width: 26px; height: 26px; border-radius: 8px;
+  background: var(--accent-dim); color: var(--accent);
+  display: grid; place-items: center;
+  font-family: var(--mono); font-weight: 700; font-size: 12px;
+  flex-shrink: 0;
+}
+.prize-step-arrow { color: var(--t4); font-size: 14px; }
+
+.prize-input-area {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 22px; margin-bottom: 18px;
+  transition: border-color .2s;
+}
+.prize-input-area:focus-within { border-color: var(--accent-line); }
+.prize-input-label {
+  font-size: 14px; font-weight: 600; color: var(--t1);
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.prize-textarea {
+  width: 100%; background: var(--bg-1); border: 1px solid var(--line);
+  border-radius: 10px; color: var(--t1);
+  font-size: 13px; padding: 14px 16px;
+  font-family: var(--mono); outline: none;
+  resize: vertical; min-height: 160px; line-height: 1.7;
+  transition: border-color .2s;
+}
+.prize-textarea:focus { border-color: var(--accent-line); }
+.prize-textarea::placeholder { color: var(--t4); }
+.prize-actions { display: flex; gap: 10px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+
+.prize-results-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 8px 0 14px; flex-wrap: wrap; gap: 10px;
+}
+.prize-results-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.prize-results-left .stat { font-size: 13px; font-weight: 600; }
+.prize-results-right { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ─── Mobile ─── */
+.menu-toggle { display: none; }
+.sidebar-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 55;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
+}
+.sidebar-backdrop.open { display: block; }
+
+@media(max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar {
+    position: fixed; top: 0; left: 0; z-index: 60;
+    transform: translateX(-100%); transition: transform .25s;
+    width: 260px;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .menu-toggle { display: grid; }
+  .topbar { padding: 14px 20px; }
+  .topbar-title { font-size: 18px; }
+  .content { padding: 20px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .kpi { padding: 18px; }
+  .kpi-val { font-size: 24px; }
+  .err-chart { flex-direction: column; }
+  .flex-preview { max-width: 100%; }
+  th, td { padding: 12px 14px; font-size: 13px; }
+}
 </style>
 </head>
 <body>
 
-<!-- Auth overlay -->
+<!-- ═══ Auth overlay ═══ -->
 <div class="auth-overlay" id="authOverlay" style="display:none">
   <div class="auth-box">
-    <div style="font-size:32px;margin-bottom:12px">👑</div>
+    <div style="font-size:36px;margin-bottom:12px">👑</div>
     <h2>รวยทันใจ Dashboard</h2>
     <p>ใส่ API Key เพื่อเข้าใช้งาน</p>
-    <input class="inp inp-mono" id="authKeyInput" type="password" placeholder="API Key..." style="margin-bottom:12px" onkeydown="if(event.key==='Enter')authLogin()">
-    <div><button class="btn btn-gold" onclick="authLogin()" style="width:100%">🔓 เข้าสู่ระบบ</button></div>
-    <div id="authError" style="color:var(--red);font-size:11px;margin-top:8px;display:none">❌ API Key ไม่ถูกต้อง</div>
+    <input class="inp inp-mono" id="authKeyInput" type="password" placeholder="API Key..." style="margin-bottom:14px;text-align:center" onkeydown="if(event.key==='Enter')authLogin()">
+    <button class="btn btn-gold" onclick="authLogin()" style="width:100%;justify-content:center;padding:13px">🔓 เข้าสู่ระบบ</button>
+    <div id="authError" style="color:var(--red);font-size:12px;margin-top:10px;display:none">❌ API Key ไม่ถูกต้อง</div>
   </div>
 </div>
 
-<div class="header"><div class="header-inner">
-  <div class="brand"><div class="brand-icon">👑</div><div><div class="brand-name">รวยทันใจ</div><div class="brand-sub">Admin Dashboard</div></div></div>
-  <div class="header-status"><div class="status-dot" id="connDot"></div><span id="connLabel">กำลังเชื่อมต่อ...</span></div>
-</div></div>
+<div class="app">
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
-<div class="shell">
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('slip',this)">🧾 สลิป <span class="count" id="tabSlipCount">0</span></div>
-  <div class="tab" onclick="switchTab('prize',this)">🏆 แจ้งรางวัล</div>
-  <div class="tab" onclick="switchTab('summary',this)">📊 สรุปยอด</div>
-  <div class="tab" onclick="switchTab('settings',this)">⚙️ ตั้งค่า</div>
-</div>
-<div class="tab-body">
-
-<!-- ═══ TAB: สลิป ═══ -->
-<div class="tab-page active" id="page-slip">
-  <div class="win-box">
-    <div class="win-box-title" style="cursor:pointer" onclick="document.getElementById('slipCfgContent').style.display=document.getElementById('slipCfgContent').style.display==='none'?'block':'none'">
-      ⚙️ ตั้งค่า Flex Message สลิป <span style="font-size:10px;color:var(--t4);margin-left:auto">คลิกเพื่อเปิด/ปิด ▼</span>
-    </div>
-    <div id="slipCfgContent" style="display:none">
-      <div style="background:var(--blue-bg);border:1px solid rgba(96,165,250,.15);border-radius:8px;padding:10px;margin-bottom:14px;font-size:11px;color:var(--t3);line-height:1.7">
-        <b style="color:var(--blue)">💡</b> ตั้งค่าข้อความ + ปุ่มที่จะแสดงท้ายทุกการตรวจสลิป
-      </div>
-      <div class="setting-group"><div class="setting-label">📝 ข้อความ Footer หลัก</div><input class="inp" id="scFooterText" value="🔒 สลิปจริงตรวจสอบโดย ธันเดอร์ โซลูชั่น" oninput="slipCfgPreview()"></div>
-      <div class="setting-group"><div class="setting-label">📝 ข้อความ Footer รอง</div><input class="inp" id="scFooterSub" value="ผู้ให้บริการเช็กสลิปอันดับ 1" oninput="slipCfgPreview()"></div>
-      <div class="setting-group"><div class="setting-label">📢 ข้อความโปรโมท (เว้นว่างถ้าไม่ต้องการ)</div><input class="inp" id="scPromoText" value="" placeholder="เช่น: ⚠️ แอดไลน์สำรอง @ruaytanjai2" oninput="slipCfgPreview()"></div>
-      <div class="setting-group"><div class="setting-label">🖼️ รูป Header สลิปถูกต้อง (URL รูปภาพ HTTPS)</div><input class="inp inp-mono" id="scHeroPass" value="" placeholder="https://i.imgur.com/xxxxx.png (เว้นว่าง = ใช้ header แบบข้อความ)" oninput="slipCfgPreview()"><div class="hint">อัพรูปขึ้น <b>imgur.com</b> แล้ววาง URL ตรงนี้ · ขนาดแนะนำ 1040x350px · เว้นว่าง = ใช้แบบเดิม</div></div>
-      <div class="setting-group"><div class="setting-label">🖼️ รูป Header สลิปซ้ำ (เว้นว่างได้)</div><input class="inp inp-mono" id="scHeroDup" value="" placeholder="https://i.imgur.com/xxxxx.png" oninput="slipCfgPreview()"></div>
-      <div class="setting-group"><div class="setting-label">🖼️ รูป Header บัญชีไม่ตรง (เว้นว่างได้)</div><input class="inp inp-mono" id="scHeroFail" value="" placeholder="https://i.imgur.com/xxxxx.png" oninput="slipCfgPreview()"></div>
-      <div class="setting-group"><div class="setting-label">🔘 ปุ่มกดท้ายสลิป (สูงสุด 4 ปุ่ม)</div><div id="scButtonsList"></div><button class="btn btn-ghost btn-sm" onclick="scAddBtn()" style="margin-top:6px">+ เพิ่มปุ่ม</button></div>
-      <div style="display:flex;gap:8px;margin:16px 0 10px"><button class="btn btn-gold" onclick="scSave()">💾 บันทึกค่า</button><span id="scSaveStatus" style="font-size:11px;color:var(--green);display:none">✅ บันทึกแล้ว!</span></div>
-      <div class="sec-head mt">👁️ ตัวอย่าง Flex สลิป</div>
-      <div id="slipPreviewArea"></div>
-    </div>
-  </div>
-
-  <div class="sec-head">ภาพรวมสลิปวันนี้</div>
-  <div class="kpi-grid" id="slipKpi"></div>
-
-  <div class="sec-head mt">⚡ Realtime Feed</div>
-  <div class="live-wrap">
-    <div class="live-header"><div class="live-title"><div class="status-dot on"></div> Webhook Live</div><span style="font-size:10px;color:var(--t4)">LINE OA</span></div>
-    <div class="live-list" id="liveFeed"><div style="text-align:center;color:var(--t4);font-size:12px;padding:24px">รอรับ event จาก LINE...</div></div>
-  </div>
-
-  <div class="sec-head mt">ประวัติสลิปล่าสุด</div>
-  <div class="dtable-wrap">
-    <div class="dtable-toolbar"><div class="dtable-title">📋 ประวัติตรวจสลิป</div><select class="sel" id="slipFilterStatus" onchange="renderSlipTable()"><option value="all">ทุกสถานะ</option><option value="pass">✅ ผ่าน</option><option value="fail">❌ ไม่ผ่าน</option></select></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>เวลา</th><th>ลูกค้า</th><th>จำนวนเงิน</th><th>ผู้โอน</th><th>สถานะ</th><th>สาเหตุ</th><th>ส่ง</th></tr></thead><tbody id="slipTableBody"></tbody></table></div>
-  </div>
-</div>
-
-<!-- ═══ TAB: แจ้งรางวัล ═══ -->
-<div class="tab-page" id="page-prize">
-
-  <!-- Hero Section -->
-  <div class="prize-hero">
-    <div class="prize-hero-title">🏆 แจ้งรางวัลลูกค้า</div>
-    <div class="prize-hero-sub">ก๊อบข้อมูลจาก <b>HUAY</b> วางตรงนี้ ระบบจะจับชื่อ + ยอดให้อัตโนมัติ แล้วส่ง Flex หาลูกค้าทาง LINE ได้ทันที</div>
-    <div class="prize-steps">
-      <div class="prize-step"><div class="prize-step-num">1</div> เข้า HUAY → บิลได้</div>
-      <div class="prize-step-arrow">→</div>
-      <div class="prize-step"><div class="prize-step-num">2</div> ก๊อบตาราง</div>
-      <div class="prize-step-arrow">→</div>
-      <div class="prize-step"><div class="prize-step-num">3</div> วางด้านล่าง</div>
-      <div class="prize-step-arrow">→</div>
-      <div class="prize-step"><div class="prize-step-num">4</div> กดส่ง LINE</div>
-    </div>
-  </div>
-
-  <!-- Input Area -->
-  <div class="prize-input-area">
-    <div class="prize-input-label">📋 วางข้อมูลจาก HUAY</div>
-    <textarea class="prize-textarea" id="prizeDataInput" placeholder="ก๊อบข้อมูลจากหน้า บิลได้ แล้ววางตรงนี้..."></textarea>
-    <div class="prize-actions">
-      <button class="btn btn-gold" onclick="prizeProcess()" style="padding:12px 28px;font-size:14px">🔍 ค้นหาผู้โชคดี</button>
-      <button class="btn btn-ghost" onclick="prizeClear()">ล้างข้อมูล</button>
-    </div>
-  </div>
-
-  <!-- Results -->
-  <div id="prizeResults" style="display:none">
-    <div class="kpi-grid" id="prizeKpi" style="margin-bottom:16px"></div>
-    <div class="prize-results-header">
-      <div class="prize-results-left">
-        <span class="stat" style="color:var(--green)" id="prizeDone">แจ้งแล้ว 0</span>
-        <span class="stat" style="color:var(--t3)" id="prizeLeft">เหลือ 0</span>
-      </div>
-      <div class="prize-results-right">
-        <button class="btn btn-green btn-sm" onclick="prizeSendAll('flex')">📲 ส่ง Flex ทั้งหมด</button>
-        <button class="btn btn-ghost btn-sm" onclick="prizeSendAll('text')">📝 Text ทั้งหมด</button>
-        <button class="btn btn-ghost btn-sm" onclick="prizeCopyAll()">📋 ก๊อบทั้งหมด</button>
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">R</div>
+      <div>
+        <div class="brand-name">รวยทันใจ</div>
+        <div class="brand-tag">v3.0</div>
       </div>
     </div>
-    <div class="prize-prog"><div class="prize-prog-fill" id="prizeProg"></div></div>
-    <div id="prizeCards"></div>
-  </div>
 
-  <!-- Config (collapsed) -->
-  <div class="sec-head mt" style="cursor:pointer" onclick="document.getElementById('prizeCfgContent').style.display=document.getElementById('prizeCfgContent').style.display==='none'?'block':'none'">
-    ⚙️ ตั้งค่า Flex Message
-    <span style="margin-left:auto;font-size:12px;color:var(--t4);font-weight:400">แตะเพื่อเปิด/ปิด</span>
-  </div>
-  <div id="prizeCfgContent" style="display:none">
-    <div class="win-box" style="border-color:var(--border-gold)">
-      <div class="setting-group"><div class="setting-label">🖼️ รูป Header รางวัล</div><input class="inp inp-mono" id="cfgPrizeHero" placeholder="https://... (1040×190 px, ratio 54:10)" oninput="prizePreview()"><div class="hint">ขนาดแนะนำ <b>1040 × 190 px</b> (54:10) — เว้นว่าง = ใช้ header สีธีม</div><div id="cfgPrizeHeroPreview" style="margin-top:6px;border-radius:8px;overflow:hidden;display:none"><img id="cfgPrizeHeroImg" style="width:100%;display:block;border-radius:8px" /></div></div>
-      <div class="setting-group"><div class="setting-label">🎨 สีธีม</div><div class="setting-row" id="colorPicker"></div></div>
-      <div class="setting-group"><div class="setting-label">📝 ข้อความหัว</div><input class="inp" id="cfgTitle" value="🎉 แจ้งถูกรางวัล" oninput="prizePreview()"></div>
-      <div class="setting-group"><div class="setting-label">📝 ข้อความท้าย</div><input class="inp" id="cfgFooter" value="ยินดีด้วยนะคะ 🎊" oninput="prizePreview()"></div>
-      <div class="setting-group"><div class="setting-label">💬 ปุ่มฝากยอด</div><input class="inp inp-mono" id="cfgDepositUrl" placeholder="เว้นว่าง = ส่งข้อความอัตโนมัติ / ใส่ URL = เปิดลิงก์" oninput="prizePreview()"><div class="hint">เว้นว่าง → ลูกค้ากดแล้วส่ง <b>+++ฝากยอด 5,225.00</b></div></div>
-      <div class="setting-group"><div class="setting-label">💬 ปุ่มถอนเลย</div><input class="inp inp-mono" id="cfgWithdrawUrl" placeholder="เว้นว่าง = ส่งข้อความอัตโนมัติ / ใส่ URL = เปิดลิงก์" oninput="prizePreview()"><div class="hint">เว้นว่าง → ลูกค้ากดแล้วส่ง <b>🏧 ขอถอน 5,225.00 บาท</b></div></div>
-      <div class="setting-group"><div class="setting-label">🔘 แสดงปุ่ม</div>
-        <div class="toggle-row"><div class="toggle on" id="togDeposit" onclick="this.classList.toggle('on');prizePreview()"></div><span style="font-size:13px">💰 ฝากยอด</span></div>
-        <div class="toggle-row"><div class="toggle on" id="togWithdraw" onclick="this.classList.toggle('on');prizePreview()"></div><span style="font-size:13px">🏧 ถอนเลย</span></div>
+    <nav class="nav-group">
+      <div class="nav-label">ภาพรวม</div>
+      <div class="nav-item active" data-page="slip" onclick="switchPage('slip', this)">
+        <span class="nav-icon">🧾</span>
+        <span class="nav-text">สลิป</span>
+        <span class="nav-count" id="tabSlipCount">0</span>
       </div>
-      <div class="setting-group"><div class="setting-label">🖼️ รูปปุ่ม (ใส่รูปแทนปุ่มสี)</div>
-        <div class="hint" style="margin-bottom:8px">ขนาดแนะนำ <b>800 × 100 px</b> (ratio 8:1) — เว้นว่าง = ใช้ปุ่มสีตามปกติ</div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-          <span style="font-size:12px;color:var(--t3);white-space:nowrap;width:70px">💰 ฝากยอด</span>
-          <input class="inp inp-mono" id="cfgDepositImg" placeholder="https://... (800×100 px)" style="flex:1" oninput="prizePreview()">
+      <div class="nav-item" data-page="prize" onclick="switchPage('prize', this)">
+        <span class="nav-icon">🏆</span>
+        <span class="nav-text">แจ้งรางวัล</span>
+      </div>
+      <div class="nav-item" data-page="withdraw" onclick="switchPage('withdraw', this)">
+        <span class="nav-icon">💸</span>
+        <span class="nav-text">ส่งสลิปถอน</span>
+        <span class="nav-count" id="navPendingCount" style="display:none;background:var(--blue);color:#052545">0</span>
+      </div>
+      <div class="nav-item" data-page="summary" onclick="switchPage('summary', this)">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">สรุปยอด</span>
+      </div>
+    </nav>
+
+    <nav class="nav-group">
+      <div class="nav-label">การจัดการ</div>
+      <div class="nav-item" data-page="contacts" onclick="switchPage('contacts', this)">
+        <span class="nav-icon">👥</span>
+        <span class="nav-text">ลูกค้า</span>
+        <span class="nav-count" id="navContactCount">0</span>
+      </div>
+      <div class="nav-item" data-page="events" onclick="switchPage('events', this)">
+        <span class="nav-icon">📋</span>
+        <span class="nav-text">Events</span>
+      </div>
+      <div class="nav-item" data-page="webhook" onclick="switchPage('webhook', this)">
+        <span class="nav-icon">🔔</span>
+        <span class="nav-text">Webhook</span>
+      </div>
+    </nav>
+
+    <nav class="nav-group">
+      <div class="nav-label">ระบบ</div>
+      <div class="nav-item" data-page="settings" onclick="switchPage('settings', this)">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">ตั้งค่า</span>
+      </div>
+      <div class="nav-item" data-page="docs" onclick="switchPage('docs', this)">
+        <span class="nav-icon">📖</span>
+        <span class="nav-text">เอกสาร</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-avatar">AM</div>
+      <div class="user-info">
+        <div class="user-name">Admin</div>
+        <div class="user-role">เจ้าของระบบ</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main">
+
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-crumb">
+          <button class="icon-btn menu-toggle" onclick="openSidebar()" style="margin-right:8px">☰</button>
+          <span>หน้าหลัก</span>
+          <span style="color:var(--t4)">/</span>
+          <span id="crumbCurrent">สลิป</span>
         </div>
-        <div id="cfgDepositImgPreview" style="margin-bottom:8px;border-radius:8px;overflow:hidden;display:none"><img id="cfgDepositImgThumb" style="width:100%;max-width:300px;display:block;border-radius:8px" /></div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-          <span style="font-size:12px;color:var(--t3);white-space:nowrap;width:70px">🏧 ถอนเลย</span>
-          <input class="inp inp-mono" id="cfgWithdrawImg" placeholder="https://... (800×100 px)" style="flex:1" oninput="prizePreview()">
+        <h1 class="topbar-title" id="pageTitle">ภาพรวมการตรวจสลิป</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="pill">
+          <div class="status-dot" id="connDot"></div>
+          <span id="connLabel">กำลังเชื่อมต่อ...</span>
         </div>
-        <div id="cfgWithdrawImgPreview" style="margin-bottom:4px;border-radius:8px;overflow:hidden;display:none"><img id="cfgWithdrawImgThumb" style="width:100%;max-width:300px;display:block;border-radius:8px" /></div>
+        <button class="icon-btn" title="รีเฟรช" onclick="poll()">🔄</button>
       </div>
-      <div class="setting-group"><div class="setting-label">🎨 สีปุ่มกำหนดเอง</div>
-        <div class="hint" style="margin-bottom:8px">ใช้เมื่อไม่ได้ใส่รูปปุ่ม / เว้นว่าง = ใช้สีตามธีม</div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-          <input type="color" id="cfgDepositColorPick" value="#22C55E" style="width:34px;height:34px;border:none;padding:0;cursor:pointer;border-radius:6px" oninput="document.getElementById('cfgDepositColor').value=this.value;prizePreview()">
-          <input class="inp inp-mono" id="cfgDepositColor" placeholder="#22C55E" style="flex:1" oninput="var v=this.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById('cfgDepositColorPick').value=v};prizePreview()">
-          <span style="font-size:12px;color:var(--t3);white-space:nowrap">💰 ฝากยอด</span>
+    </div>
+
+    <div class="content">
+
+      <!-- ═══ SLIP PAGE ═══ -->
+      <div class="tab-page active" id="page-slip">
+
+        <div class="win-box" style="cursor:pointer;padding:0;overflow:hidden">
+          <div class="win-box-title" style="padding:16px 20px;margin:0;cursor:pointer" onclick="var e=document.getElementById('slipCfgContent');e.style.display=e.style.display==='none'?'block':'none'">
+            ⚙️ ตั้งค่า Flex Message สลิป
+            <span style="font-size:11px;color:var(--t4);margin-left:auto;font-weight:500">คลิกเพื่อเปิด/ปิด ▼</span>
+          </div>
+          <div id="slipCfgContent" style="display:none;padding:0 20px 20px;border-top:1px solid var(--line)">
+            <div style="background:var(--blue-bg);border:1px solid rgba(125,211,252,.15);border-radius:10px;padding:12px;margin:16px 0;font-size:12px;color:var(--t2);line-height:1.7">
+              <b style="color:var(--blue)">💡</b> ตั้งค่าข้อความ + ปุ่มที่จะแสดงท้ายทุกการตรวจสลิป
+            </div>
+            <div class="setting-group"><div class="setting-label">📝 ข้อความ Footer หลัก</div><input class="inp" id="scFooterText" value="🔒 สลิปจริงตรวจสอบโดย ธันเดอร์ โซลูชั่น" oninput="slipCfgPreview()"></div>
+            <div class="setting-group"><div class="setting-label">📝 ข้อความ Footer รอง</div><input class="inp" id="scFooterSub" value="ผู้ให้บริการเช็กสลิปอันดับ 1" oninput="slipCfgPreview()"></div>
+            <div class="setting-group"><div class="setting-label">📢 ข้อความโปรโมท (เว้นว่างถ้าไม่ต้องการ)</div><input class="inp" id="scPromoText" value="" placeholder="เช่น: ⚠️ แอดไลน์สำรอง @ruaytanjai2" oninput="slipCfgPreview()"></div>
+            <div class="setting-group"><div class="setting-label">🖼️ รูป Header สลิปถูกต้อง (URL รูปภาพ HTTPS)</div><input class="inp inp-mono" id="scHeroPass" value="" placeholder="https://i.imgur.com/xxxxx.png" oninput="slipCfgPreview()"><div class="hint">อัพรูปขึ้น <b>imgur.com</b> แล้ววาง URL · ขนาดแนะนำ 1040x350px · เว้นว่าง = ใช้แบบเดิม</div></div>
+            <div class="setting-group"><div class="setting-label">🖼️ รูป Header สลิปซ้ำ (เว้นว่างได้)</div><input class="inp inp-mono" id="scHeroDup" value="" placeholder="https://i.imgur.com/xxxxx.png" oninput="slipCfgPreview()"></div>
+            <div class="setting-group"><div class="setting-label">🖼️ รูป Header บัญชีไม่ตรง (เว้นว่างได้)</div><input class="inp inp-mono" id="scHeroFail" value="" placeholder="https://i.imgur.com/xxxxx.png" oninput="slipCfgPreview()"></div>
+            <div class="setting-group"><div class="setting-label">🔘 ปุ่มกดท้ายสลิป (สูงสุด 4 ปุ่ม)</div><div id="scButtonsList"></div><button class="btn btn-ghost btn-sm" onclick="scAddBtn()" style="margin-top:8px">+ เพิ่มปุ่ม</button></div>
+            <div style="display:flex;gap:8px;margin:18px 0 12px;align-items:center">
+              <button class="btn btn-gold" onclick="scSave()">💾 บันทึกค่า</button>
+              <span id="scSaveStatus" style="font-size:12px;color:var(--green);display:none">✅ บันทึกแล้ว!</span>
+            </div>
+            <div class="sec-head mt">👁️ ตัวอย่าง Flex สลิป</div>
+            <div id="slipPreviewArea"></div>
+          </div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="color" id="cfgWithdrawColorPick" value="#3B82F6" style="width:34px;height:34px;border:none;padding:0;cursor:pointer;border-radius:6px" oninput="document.getElementById('cfgWithdrawColor').value=this.value;prizePreview()">
-          <input class="inp inp-mono" id="cfgWithdrawColor" placeholder="#3B82F6" style="flex:1" oninput="var v=this.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById('cfgWithdrawColorPick').value=v};prizePreview()">
-          <span style="font-size:12px;color:var(--t3);white-space:nowrap">🏧 ถอนเลย</span>
+
+        <div class="sec-head mt">ภาพรวมสลิปวันนี้</div>
+        <div class="kpi-grid" id="slipKpi"></div>
+
+        <div class="sec-head mt">⚡ Realtime Feed</div>
+        <div class="live-wrap">
+          <div class="live-header">
+            <div class="live-title">
+              <div class="status-dot on"></div>
+              Webhook Live
+            </div>
+            <span style="font-size:11px;color:var(--t4);font-family:var(--mono);letter-spacing:.1em">LINE OA</span>
+          </div>
+          <div class="live-list" id="liveFeed">
+            <div style="text-align:center;color:var(--t4);font-size:13px;padding:28px">รอรับ event จาก LINE...</div>
+          </div>
+        </div>
+
+        <div class="sec-head mt">ประวัติสลิปล่าสุด</div>
+        <div class="dtable-wrap">
+          <div class="dtable-toolbar">
+            <div class="dtable-title">📋 ประวัติตรวจสลิป</div>
+            <select class="sel" id="slipFilterStatus" onchange="renderSlipTable()">
+              <option value="all">ทุกสถานะ</option>
+              <option value="pass">✅ ผ่าน</option>
+              <option value="fail">❌ ไม่ผ่าน</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>เวลา</th><th>ลูกค้า</th><th>จำนวนเงิน</th><th>ผู้โอน</th><th>สถานะ</th><th>สาเหตุ</th><th>ส่ง</th></tr></thead>
+              <tbody id="slipTableBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;margin:18px 0 12px">
-        <button class="btn btn-gold" onclick="savePrizeConfig()">💾 บันทึกค่ารางวัล</button>
-        <span id="prizeCfgSaveStatus" style="font-size:12px;color:var(--green);display:none;align-self:center">บันทึกแล้ว ✓</span>
+
+      <!-- ═══ PRIZE PAGE ═══ -->
+      <div class="tab-page" id="page-prize">
+
+        <div class="prize-hero">
+          <div class="prize-hero-title">🏆 แจ้งรางวัลลูกค้า</div>
+          <div class="prize-hero-sub">ก๊อบข้อมูลจาก <b>HUAY</b> วางตรงนี้ ระบบจะจับชื่อ + ยอดให้อัตโนมัติ แล้วส่ง Flex หาลูกค้าทาง LINE ได้ทันที</div>
+          <div class="prize-steps">
+            <div class="prize-step"><div class="prize-step-num">1</div> เข้า HUAY → บิลได้</div>
+            <div class="prize-step-arrow">→</div>
+            <div class="prize-step"><div class="prize-step-num">2</div> ก๊อบตาราง</div>
+            <div class="prize-step-arrow">→</div>
+            <div class="prize-step"><div class="prize-step-num">3</div> วางด้านล่าง</div>
+            <div class="prize-step-arrow">→</div>
+            <div class="prize-step"><div class="prize-step-num">4</div> กดส่ง LINE</div>
+          </div>
+        </div>
+
+        <div class="prize-input-area">
+          <div class="prize-input-label">📋 วางข้อมูลจาก HUAY</div>
+          <textarea class="prize-textarea" id="prizeDataInput" placeholder="ก๊อบข้อมูลจากหน้า บิลได้ แล้ววางตรงนี้..."></textarea>
+          <div class="prize-actions">
+            <button class="btn btn-gold" onclick="prizeProcess()" style="padding:12px 28px;font-size:14px">🔍 ค้นหาผู้โชคดี</button>
+            <button class="btn btn-ghost" onclick="prizeClear()">ล้างข้อมูล</button>
+          </div>
+        </div>
+
+        <div id="prizeResults" style="display:none">
+          <div class="kpi-grid" id="prizeKpi" style="margin-bottom:18px"></div>
+          <div class="prize-results-header">
+            <div class="prize-results-left">
+              <span class="stat" style="color:var(--green)" id="prizeDone">แจ้งแล้ว 0</span>
+              <span class="stat" style="color:var(--t3)" id="prizeLeft">เหลือ 0</span>
+            </div>
+            <div class="prize-results-right">
+              <button class="btn btn-green btn-sm" onclick="prizeSendAll('flex')">📲 ส่ง Flex ทั้งหมด</button>
+              <button class="btn btn-ghost btn-sm" onclick="prizeSendAll('text')">📝 Text ทั้งหมด</button>
+              <button class="btn btn-ghost btn-sm" onclick="prizeCopyAll()">📋 ก๊อบทั้งหมด</button>
+            </div>
+          </div>
+          <div class="prog-wrap"><div class="prog-fill" id="prizeProg" style="width:0"></div></div>
+          <div id="prizeCards"></div>
+        </div>
+
+        <div class="sec-head mt" style="cursor:pointer" onclick="var e=document.getElementById('prizeCfgContent');e.style.display=e.style.display==='none'?'block':'none'">
+          ⚙️ ตั้งค่า Flex Message
+          <span style="margin-left:auto;font-size:12px;color:var(--t4);font-weight:400">แตะเพื่อเปิด/ปิด</span>
+        </div>
+        <div id="prizeCfgContent" style="display:none">
+          <div class="win-box" style="border-color:var(--accent-line)">
+            <div class="setting-group"><div class="setting-label">🖼️ รูป Header รางวัล</div><input class="inp inp-mono" id="cfgPrizeHero" placeholder="https://... (1040×190 px)" oninput="prizePreview()"><div class="hint">ขนาดแนะนำ <b>1040 × 190 px</b> (54:10) — เว้นว่าง = ใช้ header สีธีม</div><div id="cfgPrizeHeroPreview" style="margin-top:8px;border-radius:10px;overflow:hidden;display:none"><img id="cfgPrizeHeroImg" style="width:100%;display:block;border-radius:10px" /></div></div>
+            <div class="setting-group"><div class="setting-label">🎨 สีธีม</div><div class="setting-row" id="colorPicker"></div></div>
+            <div class="setting-group"><div class="setting-label">📝 ข้อความหัว</div><input class="inp" id="cfgTitle" value="🎉 แจ้งถูกรางวัล" oninput="prizePreview()"></div>
+            <div class="setting-group"><div class="setting-label">📝 ข้อความท้าย</div><input class="inp" id="cfgFooter" value="ยินดีด้วยนะคะ 🎊" oninput="prizePreview()"></div>
+            <div class="setting-group"><div class="setting-label">💬 ปุ่มฝากยอด</div><input class="inp inp-mono" id="cfgDepositUrl" placeholder="เว้นว่าง = ส่งข้อความอัตโนมัติ / ใส่ URL = เปิดลิงก์" oninput="prizePreview()"><div class="hint">เว้นว่าง → ลูกค้ากดแล้วส่ง <b>+++ฝากยอด 5,225.00</b></div></div>
+            <div class="setting-group"><div class="setting-label">💬 ปุ่มถอนเลย</div><input class="inp inp-mono" id="cfgWithdrawUrl" placeholder="เว้นว่าง = ส่งข้อความอัตโนมัติ / ใส่ URL = เปิดลิงก์" oninput="prizePreview()"><div class="hint">เว้นว่าง → ลูกค้ากดแล้วส่ง <b>🏧 ขอถอน 5,225.00 บาท</b></div></div>
+            <div class="setting-group"><div class="setting-label">🔘 แสดงปุ่ม</div>
+              <div class="toggle-row"><div class="toggle on" id="togDeposit" onclick="this.classList.toggle('on');prizePreview()"></div><span style="font-size:14px;color:var(--t2)">💰 ฝากยอด</span></div>
+              <div class="toggle-row"><div class="toggle on" id="togWithdraw" onclick="this.classList.toggle('on');prizePreview()"></div><span style="font-size:14px;color:var(--t2)">🏧 ถอนเลย</span></div>
+            </div>
+            <div class="setting-group"><div class="setting-label">🖼️ รูปปุ่ม (ใส่รูปแทนปุ่มสี)</div>
+              <div class="hint" style="margin-bottom:10px">ขนาดแนะนำ <b>800 × 100 px</b> (ratio 8:1) — เว้นว่าง = ใช้ปุ่มสีตามปกติ</div>
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+                <span style="font-size:12px;color:var(--t3);white-space:nowrap;width:80px">💰 ฝากยอด</span>
+                <input class="inp inp-mono" id="cfgDepositImg" placeholder="https://... (800×100 px)" style="flex:1" oninput="prizePreview()">
+              </div>
+              <div id="cfgDepositImgPreview" style="margin-bottom:10px;border-radius:8px;overflow:hidden;display:none"><img id="cfgDepositImgThumb" style="width:100%;max-width:300px;display:block;border-radius:8px" /></div>
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+                <span style="font-size:12px;color:var(--t3);white-space:nowrap;width:80px">🏧 ถอนเลย</span>
+                <input class="inp inp-mono" id="cfgWithdrawImg" placeholder="https://... (800×100 px)" style="flex:1" oninput="prizePreview()">
+              </div>
+              <div id="cfgWithdrawImgPreview" style="margin-bottom:4px;border-radius:8px;overflow:hidden;display:none"><img id="cfgWithdrawImgThumb" style="width:100%;max-width:300px;display:block;border-radius:8px" /></div>
+            </div>
+            <div class="setting-group"><div class="setting-label">🎨 สีปุ่มกำหนดเอง</div>
+              <div class="hint" style="margin-bottom:10px">ใช้เมื่อไม่ได้ใส่รูปปุ่ม / เว้นว่าง = ใช้สีตามธีม</div>
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+                <input type="color" id="cfgDepositColorPick" value="#22C55E" style="width:36px;height:36px;border:none;padding:0;cursor:pointer;border-radius:8px" oninput="document.getElementById('cfgDepositColor').value=this.value;prizePreview()">
+                <input class="inp inp-mono" id="cfgDepositColor" placeholder="#22C55E" style="flex:1" oninput="var v=this.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById('cfgDepositColorPick').value=v};prizePreview()">
+                <span style="font-size:12px;color:var(--t3);white-space:nowrap">💰 ฝากยอด</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="color" id="cfgWithdrawColorPick" value="#3B82F6" style="width:36px;height:36px;border:none;padding:0;cursor:pointer;border-radius:8px" oninput="document.getElementById('cfgWithdrawColor').value=this.value;prizePreview()">
+                <input class="inp inp-mono" id="cfgWithdrawColor" placeholder="#3B82F6" style="flex:1" oninput="var v=this.value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById('cfgWithdrawColorPick').value=v};prizePreview()">
+                <span style="font-size:12px;color:var(--t3);white-space:nowrap">🏧 ถอนเลย</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin:20px 0 14px;align-items:center">
+              <button class="btn btn-gold" onclick="savePrizeConfig()">💾 บันทึกค่ารางวัล</button>
+              <span id="prizeCfgSaveStatus" style="font-size:13px;color:var(--green);display:none">บันทึกแล้ว ✓</span>
+            </div>
+            <div class="sec-head mt">👁️ ตัวอย่าง</div>
+            <div id="prizePreviewArea"></div>
+          </div>
+        </div>
+
+        <div class="sec-head mt" style="cursor:pointer" onclick="toggleContacts()">
+          📒 สมุดรายชื่อ <span id="contactsCount" style="font-family:var(--mono);color:var(--gold);margin-left:4px">0</span>
+          <span id="contactsToggle" style="margin-left:auto;font-size:12px;color:var(--t4);font-weight:500;cursor:pointer">แตะเพื่อเปิด ▼</span>
+        </div>
+        <div id="contactsWrapper" style="display:none">
+          <div class="win-box">
+            <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+              <div style="position:relative;flex:1;min-width:220px">
+                <input class="inp" id="contactSearch" placeholder="🔍 ค้นหาชื่อหรือ userId..." oninput="renderContacts()">
+              </div>
+              <span id="contactsFiltered" style="font-size:12px;color:var(--t3)"></span>
+            </div>
+            <div id="contactsList" style="max-height:400px;overflow-y:auto"></div>
+            <div style="border-top:1px solid var(--line);padding-top:14px;margin-top:14px">
+              <div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:10px">เพิ่มรายชื่อใหม่</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <input class="inp" id="addContactName" placeholder="ชื่อลูกค้า" style="flex:1;min-width:140px">
+                <input class="inp inp-mono" id="addContactUid" placeholder="userId (U1234...)" style="flex:1;min-width:140px">
+                <button class="btn btn-green btn-sm" onclick="addContact()">+ เพิ่ม</button>
+              </div>
+              <div class="hint" style="margin-top:8px">💡 userId เพิ่มอัตโนมัติเมื่อลูกค้าทักมาทาง LINE OA · ข้อมูลเก็บถาวรใน Redis</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="sec-head mt">👁️ ตัวอย่าง</div>
-      <div id="prizePreviewArea"></div>
-    </div>
-  </div>
-  <div class="sec-head mt" style="cursor:pointer" onclick="toggleContacts()">
-    📒 สมุดรายชื่อ <span id="contactsCount" style="font-family:var(--mono);color:var(--gold);margin-left:4px">0</span>
-    <span id="contactsToggle" style="margin-left:auto;font-size:11px;color:var(--t4);font-weight:400;cursor:pointer">แตะเพื่อเปิด ▼</span>
-  </div>
-  <div id="contactsWrapper" style="display:none">
-  <div class="win-box">
-    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-      <div style="position:relative;flex:1;min-width:200px">
-        <input class="inp" id="contactSearch" placeholder="🔍 ค้นหาชื่อหรือ userId..." oninput="renderContacts()" style="padding-left:14px">
+
+      <!-- ═══ WITHDRAW PAGE ═══ -->
+      <div class="tab-page" id="page-withdraw">
+
+        <!-- Pending Telegram Banner (shows when pending > 0) -->
+        <div id="pendingBanner" style="display:none;background:linear-gradient(135deg,rgba(125,211,252,.12),rgba(125,211,252,.04));border:1px solid rgba(125,211,252,.3);border-radius:var(--r);padding:16px 20px;margin-bottom:18px;cursor:pointer;transition:all .2s" onclick="openPendingModal()" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='rgba(125,211,252,.3)'">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <div style="font-size:28px">📥</div>
+            <div style="flex:1;min-width:200px">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-weight:600;font-size:14px;color:var(--blue)">มีสลิปใหม่จาก Telegram</span>
+                <span id="pendingCount" style="background:var(--blue);color:#052545;border-radius:100px;padding:2px 10px;font-family:var(--mono);font-size:11px;font-weight:700">0</span>
+                <span id="pendingBatchInfo" style="font-size:11px;color:var(--blue);font-weight:500"></span>
+              </div>
+              <div id="pendingSubText" style="font-size:12px;color:var(--t3);margin-top:4px">สลิปที่เครื่องถอนเงินส่งเข้ามา · รอคุณเพิ่มในรายการเพื่อส่งให้ลูกค้า</div>
+            </div>
+            <button class="btn btn-ghost btn-sm">👁️ ดู & เลือก</button>
+          </div>
+        </div>
+
+        <div class="win-box" style="background:linear-gradient(135deg,rgba(232,193,92,.06),rgba(74,222,128,.03));border-color:rgba(232,193,92,.2)">
+          <div class="win-box-title" style="color:var(--gold);font-size:15px">💸 ส่งสลิปถอนให้ลูกค้า</div>
+          <div style="font-size:13px;color:var(--t3);line-height:1.8;margin-top:6px">
+            อัพโหลดสลิปโอนเงินทีละหลายใบ → ระบบจับคู่กับไลน์ให้อัตโนมัติจาก <b style="color:var(--gold)">ชื่อบัญชีที่ลูกค้าเคยส่งสลิปฝากมา</b> → กดปุ่มเดียวส่งทั้งหมด<br>
+            <span style="color:var(--t4)">✨ ไม่ต้องนั่งไล่ชื่อทีละคนอีกต่อไป</span>
+          </div>
+        </div>
+
+        <!-- Step 1: Upload -->
+        <div class="sec-head mt">1️⃣ อัพโหลดสลิปถอน</div>
+        <div class="win-box">
+          <div id="wdDropZone" style="border:2px dashed rgba(232,193,92,.3);border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(232,193,92,.02)" onclick="document.getElementById('wdFileInput').click()">
+            <div style="font-size:40px;margin-bottom:10px">📤</div>
+            <div style="font-size:15px;font-weight:600;color:var(--t2);margin-bottom:6px">คลิกเพื่อเลือกไฟล์ หรือลากรูปมาวาง</div>
+            <div style="font-size:12px;color:var(--t4)">เลือกหลายไฟล์พร้อมกันได้ · รองรับ JPG, PNG · ขนาดไม่เกิน 4MB ต่อไฟล์</div>
+            <input type="file" id="wdFileInput" accept="image/*" multiple style="display:none" onchange="wdHandleFiles(this.files)">
+          </div>
+          <div id="wdUploadProgress" style="display:none;margin-top:12px;font-size:13px;color:var(--gold)"></div>
+        </div>
+
+        <!-- Step 2: Match table -->
+        <div id="wdMatchSection" style="display:none">
+          <div class="sec-head mt">2️⃣ ตรวจความถูกต้องก่อนส่ง <span id="wdMatchSummary" style="font-size:12px;color:var(--t4);font-weight:400;margin-left:8px"></span></div>
+          <div class="win-box" style="padding:0;overflow:hidden">
+            <div id="wdItemsList"></div>
+          </div>
+
+          <div class="sec-head mt">3️⃣ ข้อความแนบ (ไม่บังคับ)</div>
+          <div class="win-box">
+            <div class="hint" style="margin-bottom:10px">💡 ข้อความนี้จะส่งพร้อมกับสลิปให้ทุกคน · ใช้ <code style="background:var(--surface-hi);padding:2px 6px;border-radius:4px;color:var(--gold)">{name}</code> แทนชื่อลูกค้า · <code style="background:var(--surface-hi);padding:2px 6px;border-radius:4px;color:var(--gold)">{amount}</code> แทนจำนวนเงิน</div>
+            <textarea class="inp" id="wdDefaultMessage" rows="2" placeholder="เช่น: น้องโอนให้คุณพี่เรียบร้อยแล้วน้า ขอบคุณที่อุดหนุนค้าบ 💛">น้องโอนให้คุณพี่เรียบร้อยแล้วน้า ขอบคุณที่อุดหนุนค้าบ 💛</textarea>
+          </div>
+
+          <div style="display:flex;gap:10px;margin:22px 0;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-gold" id="wdSendBtn" onclick="wdSendAll()" style="padding:13px 26px;font-size:14px">🚀 ส่งทั้งหมด</button>
+            <button class="btn btn-ghost" onclick="wdReset()">🗑️ ล้างรายการ</button>
+            <span id="wdSendStatus" style="font-size:13px;color:var(--t3)"></span>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="wdEmptyState" style="text-align:center;padding:40px 20px;color:var(--t4);font-size:14px">
+          <div style="font-size:52px;margin-bottom:14px;opacity:.5">🎯</div>
+          <div style="margin-bottom:6px">ยังไม่มีสลิปที่เลือก</div>
+          <div style="font-size:12px">เลือกสลิปด้านบนเพื่อเริ่มต้น</div>
+        </div>
       </div>
-      <span id="contactsFiltered" style="font-size:12px;color:var(--t4)"></span>
-    </div>
-    <div id="contactsList" style="max-height:360px;overflow-y:auto"></div>
-    <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px">
-      <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:8px">เพิ่มรายชื่อใหม่</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input class="inp" id="addContactName" placeholder="ชื่อลูกค้า" style="flex:1;min-width:120px">
-        <input class="inp inp-mono" id="addContactUid" placeholder="userId (U1234...)" style="flex:1;min-width:120px">
-        <button class="btn btn-green btn-sm" onclick="addContact()">+ เพิ่ม</button>
+
+      <!-- ═══ SUMMARY PAGE ═══ -->
+      <div class="tab-page" id="page-summary">
+        <div class="sec-head">สรุปยอดทั้งหมด</div>
+        <div class="kpi-grid" id="summaryKpi"></div>
+        <div class="sec-head mt">สาเหตุผิดพลาด</div>
+        <div class="err-chart" id="errChart"></div>
+        <div class="sec-head mt">ยอดรวมตามวัน</div>
+        <div class="dtable-wrap">
+          <div class="dtable-toolbar">
+            <div class="dtable-title">📅 รายงานรายวัน</div>
+            <select class="sel" id="summaryDayFilter" onchange="renderDailySummary()">
+              <option value="7">7 วันล่าสุด</option>
+              <option value="30">30 วัน</option>
+              <option value="all">ทั้งหมด</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>วันที่</th><th>สลิปทั้งหมด</th><th>ผ่าน</th><th>ไม่ผ่าน</th><th>ยอดเงินรวม</th><th>อัตราผ่าน</th></tr></thead>
+              <tbody id="dailyTableBody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <div class="hint" style="margin-top:6px">💡 userId เพิ่มอัตโนมัติเมื่อลูกค้าทักมาทาง LINE OA · ข้อมูลเก็บถาวรใน Redis</div>
-    </div>
-  </div>
-  </div>
-</div>
 
-<!-- ═══ TAB: สรุปยอด ═══ -->
-<div class="tab-page" id="page-summary">
-  <div class="sec-head">สรุปยอดทั้งหมด</div><div class="kpi-grid" id="summaryKpi"></div>
-  <div class="sec-head mt">สาเหตุผิดพลาด</div><div class="err-chart" id="errChart"></div>
-  <div class="sec-head mt">ยอดรวมตามวัน</div>
-  <div class="dtable-wrap"><div class="dtable-toolbar"><div class="dtable-title">📅 รายงานรายวัน</div><select class="sel" id="summaryDayFilter" onchange="renderDailySummary()"><option value="7">7 วันล่าสุด</option><option value="30">30 วัน</option><option value="all">ทั้งหมด</option></select></div><div style="overflow-x:auto"><table><thead><tr><th>วันที่</th><th>สลิปทั้งหมด</th><th>ผ่าน</th><th>ไม่ผ่าน</th><th>ยอดเงินรวม</th><th>อัตราผ่าน</th></tr></thead><tbody id="dailyTableBody"></tbody></table></div></div>
-</div>
+      <!-- ═══ SETTINGS PAGE ═══ -->
+      <div class="tab-page" id="page-settings">
 
-<!-- ═══ TAB: ตั้งค่า ═══ -->
-<div class="tab-page" id="page-settings">
+        <div id="settingsLocked" style="text-align:center;padding:80px 20px">
+          <div style="font-size:56px;margin-bottom:20px">🔐</div>
+          <div style="font-size:20px;font-weight:700;margin-bottom:8px;color:var(--t1);font-family:var(--font-display)">เฉพาะเจ้าของเท่านั้น</div>
+          <div style="font-size:14px;color:var(--t3);margin-bottom:24px">กรอกรหัสผ่านเพื่อเข้าหน้าตั้งค่า</div>
+          <div style="max-width:340px;margin:0 auto">
+            <input class="inp" id="settingsPassInput" type="password" placeholder="รหัสผ่าน..." style="text-align:center;font-size:15px;padding:13px 16px;margin-bottom:14px" onkeydown="if(event.key==='Enter')unlockSettings()">
+            <button class="btn btn-gold" onclick="unlockSettings()" style="width:100%;justify-content:center;padding:13px;font-size:14px">ปลดล็อค</button>
+            <div id="settingsPassError" style="color:var(--red);font-size:13px;margin-top:12px;display:none">รหัสผ่านไม่ถูกต้อง</div>
+          </div>
+        </div>
 
-  <!-- Password Gate -->
-  <div id="settingsLocked" style="text-align:center;padding:60px 20px">
-    <div style="font-size:48px;margin-bottom:16px">🔐</div>
-    <div style="font-size:18px;font-weight:700;margin-bottom:6px">เฉพาะเจ้าของเท่านั้น</div>
-    <div style="font-size:13px;color:var(--t3);margin-bottom:20px">กรอกรหัสผ่านเพื่อเข้าหน้าตั้งค่า</div>
-    <div style="max-width:320px;margin:0 auto">
-      <input class="inp" id="settingsPassInput" type="password" placeholder="รหัสผ่าน..." style="text-align:center;font-size:15px;padding:12px 16px;margin-bottom:12px" onkeydown="if(event.key==='Enter')unlockSettings()">
-      <button class="btn btn-gold" onclick="unlockSettings()" style="width:100%;justify-content:center;padding:12px;font-size:14px">ปลดล็อค</button>
-      <div id="settingsPassError" style="color:var(--red);font-size:12px;margin-top:10px;display:none">รหัสผ่านไม่ถูกต้อง</div>
-    </div>
-  </div>
+        <div id="settingsContent" style="display:none">
+          <div class="sec-head">🔑 LINE Channel Access Token</div>
+          <div class="win-box">
+            <div class="hint" style="margin-bottom:10px">ใส่ Token จาก LINE Developers Console → Messaging API</div>
+            <input class="inp inp-mono" id="setLineToken" type="password" placeholder="วาง Channel Access Token ที่นี่...">
+            <div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="toggleVis('setLineToken')">👁️ แสดง/ซ่อน</button></div>
+          </div>
 
-  <!-- Settings Content (hidden until unlocked) -->
-  <div id="settingsContent" style="display:none">
-    <div class="sec-head">🔑 LINE Channel Access Token</div>
-    <div class="win-box">
-      <div class="hint" style="margin-bottom:10px">ใส่ Token จาก LINE Developers Console → Messaging API</div>
-      <input class="inp inp-mono" id="setLineToken" type="password" placeholder="วาง Channel Access Token ที่นี่...">
-      <div style="margin-top:6px"><button class="btn btn-ghost btn-sm" onclick="toggleVis('setLineToken')">👁️ แสดง/ซ่อน</button></div>
-    </div>
-    <div class="sec-head mt">🔑 Thunder API Key (เช็คสลิป)</div>
-    <div class="win-box">
-      <input class="inp inp-mono" id="setThunderKey" type="password" placeholder="วาง Thunder API Key ที่นี่...">
-      <div style="margin-top:6px"><button class="btn btn-ghost btn-sm" onclick="toggleVis('setThunderKey')">👁️ แสดง/ซ่อน</button></div>
-    </div>
-    <div style="display:flex;gap:8px;margin:20px 0">
-      <button class="btn btn-gold" onclick="saveAppSettings()">💾 บันทึกการตั้งค่า</button>
-      <span id="settingsSaveStatus" style="font-size:11px;color:var(--green);display:none;align-self:center">✅ บันทึกแล้ว!</span>
-    </div>
-    <div class="sec-head mt">📊 สถานะระบบ</div>
-    <div class="win-box"><div id="systemStatus" style="font-size:12px;color:var(--t3)">กำลังโหลด...</div></div>
-    <div class="sec-head mt">⚠️ คำเตือน</div>
-    <div class="win-box" style="border-color:rgba(251,113,133,.2)">
-      <div style="font-size:12px;color:var(--t3);line-height:1.8">
-        • Token และ Key เก็บใน <b style="color:var(--green)">Upstash Redis</b> อย่างปลอดภัย<br>
-        • ข้อมูลสลิป, contacts, events ทั้งหมดอยู่ใน Redis — ไม่หายเมื่อ Vercel รีสตาร์ท<br>
-        • Dashboard ป้องกันด้วย API Key (ตั้งใน env var: ADMIN_API_KEY)<br>
-        • หน้าตั้งค่าป้องกันด้วยรหัสผ่านเพิ่มอีกชั้น
+          <div class="sec-head mt">🔑 Thunder API Key (เช็คสลิป)</div>
+          <div class="win-box">
+            <input class="inp inp-mono" id="setThunderKey" type="password" placeholder="วาง Thunder API Key ที่นี่...">
+            <div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="toggleVis('setThunderKey')">👁️ แสดง/ซ่อน</button></div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin:24px 0;align-items:center">
+            <button class="btn btn-gold" onclick="saveAppSettings()">💾 บันทึกการตั้งค่า</button>
+            <span id="settingsSaveStatus" style="font-size:13px;color:var(--green);display:none">✅ บันทึกแล้ว!</span>
+          </div>
+
+          <div class="sec-head mt">📊 สถานะระบบ</div>
+          <div class="win-box">
+            <div id="systemStatus" style="font-size:13px;color:var(--t2);line-height:2">กำลังโหลด...</div>
+          </div>
+
+          <div class="sec-head mt">⚠️ คำเตือน</div>
+          <div class="win-box" style="border-color:rgba(248,113,113,.2)">
+            <div style="font-size:13px;color:var(--t2);line-height:2">
+              • Token และ Key เก็บใน <b style="color:var(--green)">Upstash Redis</b> อย่างปลอดภัย<br>
+              • ข้อมูลสลิป, contacts, events ทั้งหมดอยู่ใน Redis — ไม่หายเมื่อ Vercel รีสตาร์ท<br>
+              • Dashboard ป้องกันด้วย API Key (ตั้งใน env var: ADMIN_API_KEY)<br>
+              • หน้าตั้งค่าป้องกันด้วยรหัสผ่านเพิ่มอีกชั้น
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
 
-</div></div>
+      <!-- ═══ CONTACTS PAGE ═══ -->
+      <div class="tab-page" id="page-contacts">
+        <div class="dtable-wrap">
+          <div class="dtable-toolbar">
+            <div class="dtable-title">👥 รายชื่อลูกค้าทั้งหมด</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <span style="font-size:13px;color:var(--t3)" id="contactsPageCount">0 รายชื่อ</span>
+              <input class="inp" id="contactSearchPage" placeholder="🔍 ค้นหาชื่อหรือ userId..." style="min-width:240px;padding:8px 14px" oninput="renderContactsPage()">
+            </div>
+          </div>
+          <div style="padding:20px">
+            <div id="contactsGridPage" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px">
+              <div style="padding:20px;text-align:center;color:var(--t4);font-size:13px;grid-column:1/-1">รอโหลดข้อมูล...</div>
+            </div>
+            <div style="border-top:1px solid var(--line);padding-top:16px;margin-top:20px">
+              <div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:10px">เพิ่มรายชื่อใหม่</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <input class="inp" id="addContactNamePage" placeholder="ชื่อลูกค้า" style="flex:1;min-width:160px">
+                <input class="inp inp-mono" id="addContactUidPage" placeholder="userId (U1234...)" style="flex:1;min-width:160px">
+                <button class="btn btn-green btn-sm" onclick="addContactPage()">+ เพิ่มรายชื่อ</button>
+              </div>
+              <div class="hint" style="margin-top:8px">💡 userId เพิ่มอัตโนมัติเมื่อลูกค้าทักมาทาง LINE OA · ข้อมูลเก็บถาวรใน Redis</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ EVENTS PAGE ═══ -->
+      <div class="tab-page" id="page-events">
+        <div class="dtable-wrap">
+          <div class="dtable-toolbar">
+            <div class="dtable-title">📋 Webhook Events ทั้งหมด</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <span style="font-size:13px;color:var(--t3)" id="eventsCount">0 events</span>
+              <select class="sel" id="eventTypeFilter" onchange="renderEventsPage()">
+                <option value="all">ทุกประเภท</option>
+                <option value="slip">🧾 สลิป</option>
+                <option value="message">💬 ข้อความ</option>
+                <option value="follow">➕ เพิ่มเพื่อน</option>
+                <option value="unfollow">➖ บล็อค</option>
+              </select>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>เวลา</th>
+                  <th>User ID</th>
+                  <th>ชื่อ</th>
+                  <th>ข้อความ</th>
+                  <th>ประเภท</th>
+                </tr>
+              </thead>
+              <tbody id="eventsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ WEBHOOK PAGE ═══ -->
+      <div class="tab-page" id="page-webhook">
+        <div class="win-box">
+          <div class="win-box-title">🌐 Webhook URL</div>
+          <input class="inp inp-mono" id="webhookUrlDisplay" readonly value="" style="margin-bottom:8px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="copyWebhookUrl()">📋 คัดลอก URL</button>
+          </div>
+          <div class="hint" style="margin-top:10px">นำ URL นี้ไปใส่ใน <b>LINE Developers Console → Messaging API → Webhook URL</b> แล้วเปิดใช้งาน</div>
+        </div>
+
+        <div class="sec-head mt">🔐 สถานะความปลอดภัย</div>
+        <div class="win-box">
+          <div id="webhookSecurityStatus" style="font-size:13px;line-height:2;color:var(--t2)">
+            <div style="padding:10px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+              <span>🔑 ADMIN_API_KEY</span>
+              <span id="secApiKey" class="bdg bdg-warn">กำลังตรวจสอบ...</span>
+            </div>
+            <div style="padding:10px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+              <span>✍️ LINE Signature Verification</span>
+              <span id="secSignature" class="bdg bdg-warn">กำลังตรวจสอบ...</span>
+            </div>
+            <div style="padding:10px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+              <span>🗄️ Upstash Redis</span>
+              <span id="secRedis" class="bdg bdg-warn">กำลังตรวจสอบ...</span>
+            </div>
+            <div style="padding:10px 0;display:flex;align-items:center;justify-content:space-between">
+              <span>🌍 CORS Origin</span>
+              <span id="secCors" class="bdg bdg-info">ตามค่า env</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-head mt">📊 สถิติ Webhook</div>
+        <div class="kpi-grid" id="webhookStats">
+          <div class="kpi"><div class="kpi-icon">📥</div><div class="kpi-val" id="whTotalEvents" style="color:var(--gold)">0</div><div class="kpi-label">Events ทั้งหมดใน Redis</div></div>
+          <div class="kpi"><div class="kpi-icon">🧾</div><div class="kpi-val" id="whTotalSlips" style="color:var(--green)">0</div><div class="kpi-label">สลิปทั้งหมด</div></div>
+          <div class="kpi"><div class="kpi-icon">👤</div><div class="kpi-val" id="whTotalProfiles" style="color:var(--blue)">0</div><div class="kpi-label">Profiles ที่ cache</div></div>
+          <div class="kpi"><div class="kpi-icon">📒</div><div class="kpi-val" id="whTotalContacts" style="color:var(--amber)">0</div><div class="kpi-label">รายชื่อใน Redis</div></div>
+        </div>
+
+        <div class="sec-head mt">🛠️ เครื่องมือ</div>
+        <div class="win-box">
+          <div style="font-size:13px;color:var(--t2);margin-bottom:14px;line-height:1.7">
+            ถ้าสงสัยว่ามี userId หายไป (ลูกค้าทักมาแล้วแต่ไม่อยู่ในรายชื่อ) ลองกดปุ่มนี้<br>
+            ระบบจะเช็ค events + profiles ทั้งหมดแล้วเติมรายชื่อที่ขาดหาย
+          </div>
+          <button class="btn btn-gold" onclick="rebuildContacts()">🔄 ค้นหารายชื่อที่หายไป</button>
+          <span id="rebuildStatus" style="margin-left:10px;font-size:13px;color:var(--green);display:none"></span>
+        </div>
+      </div>
+
+      <!-- ═══ DOCS PAGE ═══ -->
+      <div class="tab-page" id="page-docs">
+        <div class="win-box">
+          <div class="win-box-title">🚀 เริ่มต้นใช้งาน</div>
+          <ol style="padding-left:24px;color:var(--t2);line-height:2;font-size:14px">
+            <li>เปิด <b style="color:var(--gold)">LINE Developers Console</b> → สร้าง Messaging API channel</li>
+            <li>คัดลอก <b style="color:var(--accent)">Channel Access Token</b> → ใส่ในหน้า "ตั้งค่า"</li>
+            <li>คัดลอก Webhook URL จากหน้า "Webhook" → ใส่ใน LINE Console</li>
+            <li>สมัคร Thunder API ที่ <b style="color:var(--accent)">thunder.in.th</b> → ใส่ API Key ในหน้า "ตั้งค่า"</li>
+            <li>เปิด <b>"Use webhook"</b> ใน LINE Developers Console</li>
+            <li>ส่งรูปสลิปเข้า LINE OA เพื่อทดสอบ</li>
+          </ol>
+        </div>
+
+        <div class="sec-head mt">📡 API Endpoints</div>
+        <div style="display:grid;gap:8px">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;font-family:var(--mono);font-size:13px">
+            <span style="color:var(--green);font-weight:700">GET</span> &nbsp; <span style="color:var(--t1)">/api/stats</span> <span style="color:var(--t3);margin-left:10px;font-family:var(--font)">— ดึงสรุปข้อมูล</span>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;font-family:var(--mono);font-size:13px">
+            <span style="color:var(--green);font-weight:700">GET</span> &nbsp; <span style="color:var(--t1)">/api/webhook</span> <span style="color:var(--t3);margin-left:10px;font-family:var(--font)">— ดึงข้อมูลสำหรับ Dashboard</span>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;font-family:var(--mono);font-size:13px">
+            <span style="color:var(--info);font-weight:700">POST</span> &nbsp; <span style="color:var(--t1)">/api/webhook</span> <span style="color:var(--t3);margin-left:10px;font-family:var(--font)">— รับ events จาก LINE</span>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;font-family:var(--mono);font-size:13px">
+            <span style="color:var(--info);font-weight:700">POST</span> &nbsp; <span style="color:var(--t1)">/api/send</span> <span style="color:var(--t3);margin-left:10px;font-family:var(--font)">— ส่งข้อความไปยังลูกค้า</span>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;font-family:var(--mono);font-size:13px">
+            <span style="color:var(--info);font-weight:700">POST</span> &nbsp; <span style="color:var(--t1)">/api/kv?action=...</span> <span style="color:var(--t3);margin-left:10px;font-family:var(--font)">— บันทึก contacts/config</span>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;font-family:var(--mono);font-size:13px">
+            <span style="color:var(--red);font-weight:700">DELETE</span> &nbsp; <span style="color:var(--t1)">/api/stats</span> <span style="color:var(--t3);margin-left:10px;font-family:var(--font)">— ล้างข้อมูลสลิป+events</span>
+          </div>
+        </div>
+
+        <div class="sec-head mt">🔐 Environment Variables</div>
+        <div class="dtable-wrap">
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>ตัวแปร</th><th>สถานะ</th><th>คำอธิบาย</th></tr></thead>
+              <tbody>
+                <tr><td class="mono" style="color:var(--gold)">KV_REST_API_URL</td><td><span class="bdg bdg-fail">จำเป็น</span></td><td class="mono" style="color:var(--t3);font-size:12px">Upstash Redis URL</td></tr>
+                <tr><td class="mono" style="color:var(--gold)">KV_REST_API_TOKEN</td><td><span class="bdg bdg-fail">จำเป็น</span></td><td class="mono" style="color:var(--t3);font-size:12px">Upstash Redis Token</td></tr>
+                <tr><td class="mono" style="color:var(--gold)">LINE_TOKEN</td><td><span class="bdg bdg-fail">จำเป็น</span></td><td class="mono" style="color:var(--t3);font-size:12px">LINE Channel Access Token</td></tr>
+                <tr><td class="mono" style="color:var(--gold)">THUNDER_KEY</td><td><span class="bdg bdg-fail">จำเป็น</span></td><td class="mono" style="color:var(--t3);font-size:12px">Thunder API Key</td></tr>
+                <tr><td class="mono" style="color:var(--gold)">LINE_CHANNEL_SECRET</td><td><span class="bdg bdg-warn">แนะนำ</span></td><td class="mono" style="color:var(--t3);font-size:12px">Verify webhook signature</td></tr>
+                <tr><td class="mono" style="color:var(--gold)">ADMIN_API_KEY</td><td><span class="bdg bdg-warn">แนะนำ</span></td><td class="mono" style="color:var(--t3);font-size:12px">รหัสเข้า Dashboard</td></tr>
+                <tr><td class="mono" style="color:var(--gold)">ALLOWED_ORIGIN</td><td><span class="bdg bdg-info">ไม่จำเป็น</span></td><td class="mono" style="color:var(--t3);font-size:12px">CORS origin (default: *)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="sec-head mt">💡 เคล็ดลับ</div>
+        <div class="win-box">
+          <div style="font-size:13px;color:var(--t2);line-height:2">
+            <div style="padding:8px 0">• สลิปกรุงเทพต้องรอ 5-10 นาทีก่อนตรวจได้</div>
+            <div style="padding:8px 0">• ถ้าไม่มี QR ตรวจไม่ได้ — ต้องขอรูปสลิปใหม่</div>
+            <div style="padding:8px 0">• Dashboard auto-refresh ทุก 5 วินาที ไม่ต้องกด F5</div>
+            <div style="padding:8px 0">• ข้อมูลเก็บถาวรใน Upstash Redis — ไม่หายแม้ Vercel restart</div>
+            <div style="padding:8px 0">• ใช้ "ค้นหารายชื่อที่หายไป" ใน Webhook tab ถ้าสงสัยว่า userId หาย</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- .content -->
+  </main>
+</div><!-- .app -->
 
 <script>
+// ═══════════════════════════════════════════════════
+// รวยทันใจ Admin Dashboard — Production v3
+// ═══════════════════════════════════════════════════
+
 // ═══ CONFIG ═══
 var BASE = location.origin;
 var API_KEY = '';
 var allSlips = [], allEvents = [], allProfiles = {}, contacts = [];
 var winW = [], winSent = [];
+
+// ═══ PAGE NAVIGATION (new sidebar-based) ═══
+var pageTitles = {
+  slip:     { title: 'ภาพรวมการตรวจสลิป', crumb: 'สลิป' },
+  prize:    { title: 'แจ้งรางวัลลูกค้า',   crumb: 'แจ้งรางวัล' },
+  withdraw: { title: 'ส่งสลิปถอนให้ลูกค้า', crumb: 'ส่งสลิปถอน' },
+  summary:  { title: 'สรุปยอด',           crumb: 'สรุปยอด' },
+  contacts: { title: 'จัดการรายชื่อลูกค้า', crumb: 'ลูกค้า' },
+  events:   { title: 'Webhook Events',    crumb: 'Events' },
+  webhook:  { title: 'ตั้งค่า Webhook',   crumb: 'Webhook' },
+  settings: { title: 'ตั้งค่าระบบ',        crumb: 'ตั้งค่า' },
+  docs:     { title: 'เอกสารและคู่มือ',   crumb: 'เอกสาร' },
+};
+
+function switchPage(name, el) {
+  document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
+  document.querySelectorAll('.tab-page').forEach(function(p) { p.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  else {
+    var n = document.querySelector('.nav-item[data-page="' + name + '"]');
+    if (n) n.classList.add('active');
+  }
+  var pageEl = document.getElementById('page-' + name);
+  if (pageEl) pageEl.classList.add('active');
+  if (pageTitles[name]) {
+    document.getElementById('pageTitle').textContent = pageTitles[name].title;
+    document.getElementById('crumbCurrent').textContent = pageTitles[name].crumb;
+  }
+  closeSidebar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Compatibility: old JS calls switchTab — forward to switchPage
+function switchTab(name, el) { switchPage(name, null); }
+
+// Mobile sidebar
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarBackdrop').classList.add('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('open');
+}
 
 // ═══ AUTH ═══
 function getHeaders() {
@@ -491,18 +1314,11 @@ async function checkAuth() {
     document.getElementById('authOverlay').style.display = 'none';
     startApp();
   } catch (e) {
-    // No auth required or server down — start anyway
     startApp();
   }
 }
 
 // ═══ UTILS ═══
-function switchTab(t, el) {
-  document.querySelectorAll('.tab').forEach(function(x) { x.classList.remove('active'); });
-  el.classList.add('active');
-  document.querySelectorAll('.tab-page').forEach(function(p) { p.classList.remove('active'); });
-  document.getElementById('page-' + t).classList.add('active');
-}
 function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function fmtMoney(n) { return n ? n.toLocaleString('th-TH', { minimumFractionDigits: 2 }) : '0.00'; }
 function fmtTime(ts) { var d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0'); }
@@ -512,13 +1328,13 @@ function dateKey(ts) { var d = new Date(ts); return d.getFullYear() + '-' + Stri
 function isToday(ts) { return dateKey(ts) === dateKey(Date.now()); }
 function stripPrefix(name) { return name.replace(/^(YT|FB|TT|IG|TW|LN)\s*/i, '').trim(); }
 function cleanName(name) {
-  // ลบ emoji, prefix, ช่องว่างพิเศษ, เครื่องหมาย แล้ว lowercase
   return stripPrefix(name).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}❤️💛💚💙💜🖤💗💖✨🎀👑]/gu, '').replace(/["""''`*_~#@!]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
+
+// ═══ USER-ID FIX: Enhanced findUid with better matching ═══
 function findUid(name) {
   var clean = cleanName(name);
   if (!clean) return null;
-  // 1) exact match on name or aliases
   for (var i = 0; i < contacts.length; i++) {
     var c = contacts[i];
     if (cleanName(c.name) === clean) return c.uid;
@@ -528,7 +1344,6 @@ function findUid(name) {
       }
     }
   }
-  // 2) partial match — ชื่อ HUAY อยู่ในชื่อ LINE หรือกลับกัน
   for (var i = 0; i < contacts.length; i++) {
     var c = contacts[i];
     var cClean = cleanName(c.name);
@@ -542,9 +1357,10 @@ function findUid(name) {
   }
   return null;
 }
+
 function toggleVis(id) { var el = document.getElementById(id); el.type = el.type === 'password' ? 'text' : 'password'; }
 
-// ═══ SETTINGS PASSWORD PROTECTION ═══
+// ═══ SETTINGS PASSWORD ═══
 var SETTINGS_PASS_HASH = '5688be630bcc39d09868fe27ddfe0afaf91a283ccbb1b496f8678a568c433594';
 var settingsUnlocked = false;
 
@@ -598,8 +1414,8 @@ async function poll() {
 // ═══ RENDER ═══
 function renderAll() { renderSlipKpi(); renderLiveFeed(); renderSlipTable(); renderSummaryKpi(); renderErrChart(); renderDailySummary(); renderContacts(); }
 
-function kpiCard(icon, v, l, c, g) {
-  return '<div class="kpi"><div class="kpi-glow" style="background:' + g + '"></div><div class="kpi-icon">' + icon + '</div><div class="kpi-val" style="color:' + c + '">' + v + '</div><div class="kpi-label">' + l + '</div></div>';
+function kpiCard(icon, v, l, c) {
+  return '<div class="kpi"><div class="kpi-icon">' + icon + '</div><div class="kpi-val" style="color:' + (c || 'var(--t0)') + '">' + v + '</div><div class="kpi-label">' + l + '</div></div>';
 }
 
 function renderSlipKpi() {
@@ -608,23 +1424,23 @@ function renderSlipKpi() {
   var fail = today.filter(function(s) { return s.status === 'fail'; });
   var amt = pass.reduce(function(s, x) { return s + (x.amount || 0); }, 0);
   document.getElementById('slipKpi').innerHTML =
-    kpiCard('🧾', today.length, 'สลิปวันนี้', 'var(--gold)', 'var(--gold)') +
-    kpiCard('✅', pass.length, 'ผ่าน', 'var(--green)', 'var(--green)') +
-    kpiCard('❌', fail.length, 'ไม่ผ่าน', 'var(--red)', 'var(--red)') +
-    kpiCard('💰', '฿' + fmtMoney(amt), 'ยอดเงินรวม', 'var(--gold)', 'var(--gold)');
+    kpiCard('🧾', today.length, 'สลิปวันนี้', 'var(--gold)') +
+    kpiCard('✅', pass.length, 'ผ่าน', 'var(--green)') +
+    kpiCard('❌', fail.length, 'ไม่ผ่าน', 'var(--red)') +
+    kpiCard('💰', '฿' + fmtMoney(amt), 'ยอดเงินรวม', 'var(--gold)');
 }
 
 function renderLiveFeed() {
   var el = document.getElementById('liveFeed');
   var items = allEvents.slice(0, 20);
-  if (!items.length) { el.innerHTML = '<div style="text-align:center;color:var(--t4);font-size:12px;padding:24px">รอรับ event จาก LINE...</div>'; return; }
+  if (!items.length) { el.innerHTML = '<div style="text-align:center;color:var(--t4);font-size:13px;padding:28px">รอรับ event จาก LINE...</div>'; return; }
   el.innerHTML = items.map(function(ev, i) {
     var dc = ev.slipStatus === 'pass' ? 'var(--green)' : ev.slipStatus === 'fail' ? 'var(--red)' : 'var(--blue)';
     var tag = ev.type === 'slip'
       ? (ev.slipStatus === 'pass' ? '<span class="tag" style="background:var(--green-bg);color:var(--green)">สลิปผ่าน</span>' : '<span class="tag" style="background:var(--red-bg);color:var(--red)">' + esc(ev.slipError || 'ผิดพลาด') + '</span>')
-      : '<span class="tag" style="background:rgba(255,255,255,.04);color:var(--t3)">ข้อความ</span>';
+      : '<span class="tag" style="background:var(--surface-hi);color:var(--t3)">ข้อความ</span>';
     var det = ev.slipAmount ? '฿' + fmtMoney(ev.slipAmount) : (ev.text || '').substring(0, 40);
-    return '<div class="live-item" style="opacity:' + Math.max(.4, 1 - i * .04) + '"><span class="time">' + fmtTime(ev.timestamp) + '</span><div class="dot" style="background:' + dc + '"></div><span class="name">' + esc(ev.name || '?') + '</span><span class="detail">' + esc(det) + '</span>' + tag + '</div>';
+    return '<div class="live-item" style="opacity:' + Math.max(.5, 1 - i * .03) + '"><span class="time">' + fmtTime(ev.timestamp) + '</span><div class="dot" style="background:' + dc + '"></div><span class="name">' + esc(ev.name || '?') + '</span><span class="detail">' + esc(det) + '</span>' + tag + '</div>';
   }).join('');
 }
 
@@ -632,13 +1448,17 @@ function renderSlipTable() {
   var f = document.getElementById('slipFilterStatus').value;
   var items = f === 'all' ? allSlips : allSlips.filter(function(s) { return s.status === f; });
   items = items.slice(0, 100);
+  if (!items.length) {
+    document.getElementById('slipTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--t4);padding:40px">ยังไม่มีข้อมูลสลิป</td></tr>';
+    return;
+  }
   document.getElementById('slipTableBody').innerHTML = items.map(function(s) {
     var sb = s.status === 'pass' ? '<span class="bdg bdg-ok">✅ ผ่าน</span>' : '<span class="bdg bdg-fail">❌ ไม่ผ่าน</span>';
     var reason = s.errorReason ? '<span class="bdg ' + (s.errorReason === 'สลิปซ้ำ' ? 'bdg-warn' : 'bdg-fail') + '">' + esc(s.errorReason) + '</span>' : '—';
     var sender = s.slipInfo && s.slipInfo.senderName ? esc(s.slipInfo.senderName) : '—';
     var uid = s.userId && s.userId.startsWith('U') ? s.userId : null;
     var btn = uid ? '<button class="btn btn-ghost btn-sm" onclick="promptSendMsg(\'' + esc(uid) + '\',\'' + esc(s.customerName || '') + '\')">💬</button>' : '—';
-    return '<tr><td class="mono">' + fmtDateTime(s.timestamp) + '</td><td><div class="td-name"><div class="td-av" style="background:var(--gold-glow);color:var(--gold)">' + esc((s.customerName || '?').substring(0, 2)) + '</div>' + esc(s.customerName || '?') + '</div></td><td class="mono" style="color:var(--gold)">' + (s.amount ? '฿' + fmtMoney(s.amount) : '—') + '</td><td>' + sender + '</td><td>' + sb + '</td><td>' + reason + '</td><td>' + btn + '</td></tr>';
+    return '<tr><td class="mono">' + fmtDateTime(s.timestamp) + '</td><td><div class="td-name"><div class="td-av">' + esc((s.customerName || '?').substring(0, 2)) + '</div>' + esc(s.customerName || '?') + '</div></td><td class="mono" style="color:var(--gold);font-weight:700">' + (s.amount ? '฿' + fmtMoney(s.amount) : '—') + '</td><td>' + sender + '</td><td>' + sb + '</td><td>' + reason + '</td><td>' + btn + '</td></tr>';
   }).join('');
 }
 
@@ -658,11 +1478,11 @@ function renderSummaryKpi() {
   var amt = pass.reduce(function(s, x) { return s + (x.amount || 0); }, 0);
   var rate = total ? ((pass.length / total) * 100).toFixed(1) : '0';
   document.getElementById('summaryKpi').innerHTML =
-    kpiCard('🧾', total, 'สลิปทั้งหมด', 'var(--gold)', 'var(--gold)') +
-    kpiCard('✅', pass.length, 'ผ่าน', 'var(--green)', 'var(--green)') +
-    kpiCard('❌', fail.length, 'ไม่ผ่าน', 'var(--red)', 'var(--red)') +
-    kpiCard('💰', '฿' + fmtMoney(amt), 'ยอดเงินรวม', 'var(--gold)', 'var(--gold)') +
-    kpiCard('📈', rate + '%', 'อัตราผ่าน', parseFloat(rate) >= 80 ? 'var(--green)' : parseFloat(rate) >= 50 ? 'var(--amber)' : 'var(--red)', 'var(--blue)');
+    kpiCard('🧾', total, 'สลิปทั้งหมด', 'var(--gold)') +
+    kpiCard('✅', pass.length, 'ผ่าน', 'var(--green)') +
+    kpiCard('❌', fail.length, 'ไม่ผ่าน', 'var(--red)') +
+    kpiCard('💰', '฿' + fmtMoney(amt), 'ยอดเงินรวม', 'var(--gold)') +
+    kpiCard('📈', rate + '%', 'อัตราผ่าน', parseFloat(rate) >= 80 ? 'var(--green)' : parseFloat(rate) >= 50 ? 'var(--amber)' : 'var(--red)');
 }
 
 function renderErrChart() {
@@ -696,16 +1516,24 @@ function renderDailySummary() {
   document.getElementById('dailyTableBody').innerHTML = days.length ? days.map(function(d) {
     var r = d.total ? ((d.pass / d.total) * 100).toFixed(1) : '0';
     var rc = parseFloat(r) >= 80 ? 'var(--green)' : parseFloat(r) >= 50 ? 'var(--amber)' : 'var(--red)';
-    return '<tr><td class="mono">' + fmtDate(d.ts) + '</td><td class="mono">' + d.total + '</td><td class="mono" style="color:var(--green)">' + d.pass + '</td><td class="mono" style="color:var(--red)">' + d.fail + '</td><td class="mono" style="color:var(--gold)">฿' + fmtMoney(d.amount) + '</td><td><span class="bdg" style="background:' + (parseFloat(r) >= 80 ? 'var(--green-bg)' : parseFloat(r) >= 50 ? 'var(--amber-bg)' : 'var(--red-bg)') + ';color:' + rc + '">' + r + '%</span></td></tr>';
-  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--t4);padding:24px">ยังไม่มีข้อมูล</td></tr>';
+    return '<tr><td class="mono">' + fmtDate(d.ts) + '</td><td class="mono">' + d.total + '</td><td class="mono" style="color:var(--green);font-weight:700">' + d.pass + '</td><td class="mono" style="color:var(--red);font-weight:700">' + d.fail + '</td><td class="mono" style="color:var(--gold);font-weight:700">฿' + fmtMoney(d.amount) + '</td><td><span class="bdg" style="background:' + (parseFloat(r) >= 80 ? 'var(--green-bg)' : parseFloat(r) >= 50 ? 'var(--amber-bg)' : 'var(--red-bg)') + ';color:' + rc + '">' + r + '%</span></td></tr>';
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--t4);padding:40px">ยังไม่มีข้อมูล</td></tr>';
 }
 
-// ═══ CONTACTS (Redis only — no localStorage) ═══
+// ═══ CONTACTS ═══
+function toggleContacts() {
+  var w = document.getElementById('contactsWrapper');
+  var t = document.getElementById('contactsToggle');
+  if (w.style.display === 'none') { w.style.display = 'block'; if (t) t.textContent = 'แตะเพื่อปิด ▲'; }
+  else { w.style.display = 'none'; if (t) t.textContent = 'แตะเพื่อเปิด ▼'; }
+}
+
 function renderContacts() {
   var el = document.getElementById('contactsList');
+  if (!el) return;
   var search = (document.getElementById('contactSearch').value || '').toLowerCase();
-  if (!contacts.length) { el.innerHTML = '<div style="padding:16px;text-align:center;color:var(--t4);font-size:12px">ยังไม่มีรายชื่อ — ลูกค้าทักมาจะเพิ่มอัตโนมัติ</div>'; return; }
-  var filtered = contacts.filter(function(c, i) {
+  if (!contacts.length) { el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t4);font-size:13px">ยังไม่มีรายชื่อ — ลูกค้าทักมาจะเพิ่มอัตโนมัติ</div>'; return; }
+  var filtered = contacts.filter(function(c) {
     if (!search) return true;
     var txt = (c.name + ' ' + c.uid + ' ' + (c.aliases || []).join(' ')).toLowerCase();
     return txt.indexOf(search) !== -1;
@@ -716,9 +1544,9 @@ function renderContacts() {
     var idx = contacts.indexOf(c);
     var aliasHtml = '';
     if (c.aliases && c.aliases.length) {
-      aliasHtml = '<div style="font-size:10px;color:var(--amber);margin-top:2px">🏷️ ' + c.aliases.map(esc).join(', ') + '</div>';
+      aliasHtml = '<div style="font-size:11px;color:var(--amber);margin-top:3px">🏷️ ' + c.aliases.map(esc).join(', ') + '</div>';
     }
-    return '<div class="contact-row"><div class="contact-av">' + esc(c.name.substring(0, 2)) + '</div><div style="flex:1"><div style="font-size:12px;font-weight:600">' + esc(c.name) + '</div>' + aliasHtml + '<div style="font-size:10px;color:var(--t4);font-family:var(--mono)">' + esc(c.uid) + '</div></div><button class="btn btn-ghost btn-sm" onclick="promptAddAlias(' + idx + ')" title="เพิ่มชื่อเรียก">🏷️</button><button class="btn btn-ghost btn-sm" onclick="promptSendMsg(\'' + esc(c.uid) + '\',\'' + esc(c.name) + '\')">💬</button><button style="font-size:10px;padding:3px 8px;border-radius:100px;background:none;border:1px solid rgba(251,113,133,.2);color:var(--red);cursor:pointer" onclick="deleteContact(' + idx + ')">ลบ</button></div>';
+    return '<div class="contact-row"><div class="contact-av">' + esc(c.name.substring(0, 2)) + '</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--t1)">' + esc(c.name) + '</div>' + aliasHtml + '<div style="font-size:10px;color:var(--t4);font-family:var(--mono);margin-top:3px">' + esc(c.uid) + '</div></div><button class="btn btn-ghost btn-sm" onclick="promptAddAlias(' + idx + ')" title="เพิ่มชื่อเรียก">🏷️</button><button class="btn btn-ghost btn-sm" onclick="promptSendMsg(\'' + esc(c.uid) + '\',\'' + esc(c.name) + '\')">💬</button><button style="font-size:11px;padding:5px 10px;border-radius:8px;background:none;border:1px solid rgba(248,113,133,.2);color:var(--red);cursor:pointer" onclick="deleteContact(' + idx + ')">ลบ</button></div>';
   }).join('');
 }
 
@@ -737,6 +1565,16 @@ function addContact() {
   var n = document.getElementById('addContactName').value.trim();
   var u = document.getElementById('addContactUid').value.trim();
   if (!n || !u) return;
+  // FIX: validate uid format
+  if (!u.startsWith('U') || u.length < 32) {
+    alert('⚠️ User ID ต้องขึ้นต้นด้วย U และยาวอย่างน้อย 32 ตัวอักษร');
+    return;
+  }
+  // FIX: check duplicate
+  if (contacts.find(function(c) { return c.uid === u; })) {
+    alert('⚠️ User ID นี้มีอยู่แล้ว');
+    return;
+  }
   contacts.push({ name: n, uid: u });
   kvSaveContacts();
   document.getElementById('addContactName').value = '';
@@ -745,6 +1583,7 @@ function addContact() {
 }
 
 function deleteContact(i) {
+  if (!confirm('ลบ ' + contacts[i].name + ' ?')) return;
   contacts.splice(i, 1);
   kvSaveContacts();
   renderContacts();
@@ -762,14 +1601,14 @@ function scRenderButtons() {
   var el = document.getElementById('scButtonsList');
   el.innerHTML = scButtons.map(function(b, i) {
     return '<div class="btn-row-item">' +
-      '<input class="inp" style="min-width:80px" value="' + esc(b.label) + '" placeholder="ชื่อปุ่ม" oninput="scButtons[' + i + '].label=this.value;slipCfgPreview()">' +
-      '<input class="inp inp-mono" style="min-width:140px" value="' + esc(b.url) + '" placeholder="URL หรือ line://" oninput="scButtons[' + i + '].url=this.value;slipCfgPreview()">' +
+      '<input class="inp" style="min-width:90px" value="' + esc(b.label) + '" placeholder="ชื่อปุ่ม" oninput="scButtons[' + i + '].label=this.value;slipCfgPreview()">' +
+      '<input class="inp inp-mono" style="min-width:160px" value="' + esc(b.url) + '" placeholder="URL หรือ line://" oninput="scButtons[' + i + '].url=this.value;slipCfgPreview()">' +
       '<input type="color" class="color-sel" value="' + esc(b.color || '#555555') + '" oninput="scButtons[' + i + '].color=this.value;slipCfgPreview()">' +
       '<div class="toggle ' + (b.enabled !== false ? 'on' : '') + '" onclick="this.classList.toggle(\'on\');scButtons[' + i + '].enabled=this.classList.contains(\'on\');slipCfgPreview()" style="flex-shrink:0"></div>' +
-      '<button style="background:none;border:1px solid rgba(251,113,133,.2);color:var(--red);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:10px" onclick="scButtons.splice(' + i + ',1);scRenderButtons();slipCfgPreview()">✕</button>' +
+      '<button style="background:none;border:1px solid rgba(248,113,133,.3);color:var(--red);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:11px" onclick="scButtons.splice(' + i + ',1);scRenderButtons();slipCfgPreview()">✕</button>' +
     '</div>';
   }).join('');
-  if (!scButtons.length) el.innerHTML = '<div style="color:var(--t4);font-size:11px;padding:8px">ยังไม่มีปุ่ม — กด "+ เพิ่มปุ่ม"</div>';
+  if (!scButtons.length) el.innerHTML = '<div style="color:var(--t4);font-size:12px;padding:12px">ยังไม่มีปุ่ม — กด "+ เพิ่มปุ่ม"</div>';
 }
 
 function scAddBtn() {
@@ -808,7 +1647,6 @@ function slipCfgPreview() {
   var promo = document.getElementById('scPromoText').value || '';
   var btns = scButtons.filter(function(b) { return b.enabled !== false; });
 
-  // Footer HTML with Thunder QR logo
   var footerHtml = '<div style="padding:12px;background:#F6FAF6;border-radius:0 0 18px 18px">';
   footerHtml += '<div style="display:flex;align-items:center;gap:10px">';
   footerHtml += '<img src="https://www.thunder.in.th/assets/images/thunder-qr-logo.png" style="width:36px;height:36px;object-fit:contain" onerror="this.style.display=\'none\'">';
@@ -819,33 +1657,22 @@ function slipCfgPreview() {
   btns.forEach(function(b) { footerHtml += '<div style="margin-top:6px;background:' + esc(b.color || '#555') + ';border-radius:10px;padding:9px;text-align:center;font-size:12px;font-weight:700;color:#fff">' + esc(b.label) + '</div>'; });
   footerHtml += '</div>';
 
-  // Bank icon helper
   var kbankLogo = 'https://www.thunder.in.th/assets/images/banks/KBANK.png';
   var scbLogo = 'https://www.thunder.in.th/assets/images/banks/SCB.png';
 
-  // Thunder-style body with bank icons
   var bodyHtml = '<div class="fp-body" style="padding:18px">';
   bodyHtml += '<div style="text-align:center;font-family:var(--mono);font-size:30px;font-weight:800;color:#1a1a2e">฿1,000</div>';
   bodyHtml += '<div style="text-align:center;font-size:11px;color:#888;margin-top:4px">28 มี.ค. 69, 14:30 น.</div>';
   bodyHtml += '<div class="fp-divider"></div>';
-
-  // Sender with bank icon
   bodyHtml += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0">';
   bodyHtml += '<div style="width:36px;height:36px;border-radius:50%;border:1px solid #E8E8E8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><img src="' + kbankLogo + '" style="width:24px;height:24px;object-fit:contain" onerror="this.parentElement.innerHTML=\'💳\'"></div>';
   bodyHtml += '<div><div style="font-size:10px;color:#8891A0;font-weight:600">ผู้โอน</div><div style="font-size:13px;font-weight:700;color:#1E2D5C">MS. TREETIP L</div><div style="font-size:10px;color:#8891A0">กสิกรไทย • xxx-x-x2587-x</div></div>';
-  bodyHtml += '</div>';
-
-  bodyHtml += '<div class="fp-divider"></div>';
-
-  // Receiver with bank icon
+  bodyHtml += '</div><div class="fp-divider"></div>';
   bodyHtml += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0">';
   bodyHtml += '<div style="width:36px;height:36px;border-radius:50%;border:1px solid #E8E8E8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><img src="' + scbLogo + '" style="width:24px;height:24px;object-fit:contain" onerror="this.parentElement.innerHTML=\'🏦\'"></div>';
   bodyHtml += '<div><div style="font-size:10px;color:#8891A0;font-weight:600">ผู้รับ</div><div style="font-size:13px;font-weight:700;color:#1E2D5C">นาย กวี สี่สมบัติ</div><div style="font-size:10px;color:#8891A0">ไทยพาณิชย์ • xxx-x-x8376-x</div></div>';
-  bodyHtml += '</div>';
+  bodyHtml += '</div></div>';
 
-  bodyHtml += '</div>';
-
-  // Header with hero image or text fallback
   var heroUrl = document.getElementById('scHeroPass').value.trim();
   var headerHtml;
   if (heroUrl && heroUrl.startsWith('https://')) {
@@ -861,7 +1688,7 @@ function slipCfgPreview() {
   area.innerHTML = '<div class="flex-preview">' + headerHtml + bodyHtml + footerHtml + '</div>';
 }
 
-// ═══ PRIZE CONFIG ═══
+// ═══ PRIZE CONFIG (themes + preview) ═══
 var THEME_COLORS = [
   { name: 'ทอง', header: '#D4A00A', headerText: '#FFF', btn1: '#D4A00A', btn2: '#22C55E', btn3: '#3B82F6' },
   { name: 'เขียว', header: '#059669', headerText: '#FFF', btn1: '#059669', btn2: '#F59E0B', btn3: '#6366F1' },
@@ -892,7 +1719,7 @@ function prizePreview() {
   var withColor = document.getElementById('cfgWithdrawColor').value.trim() || theme.btn3;
   var depImg = document.getElementById('cfgDepositImg').value.trim();
   var withImg = document.getElementById('cfgWithdrawImg').value.trim();
-  // Show/hide hero image preview
+
   var heroPreviewDiv = document.getElementById('cfgPrizeHeroPreview');
   var heroPreviewImg = document.getElementById('cfgPrizeHeroImg');
   if (heroUrl && heroUrl.startsWith('https://')) {
@@ -902,19 +1729,21 @@ function prizePreview() {
   } else {
     heroPreviewDiv.style.display = 'none';
   }
-  // Show/hide button image previews
+
   var depImgPrev = document.getElementById('cfgDepositImgPreview');
   var depImgThumb = document.getElementById('cfgDepositImgThumb');
   if (depImg && depImg.startsWith('https://')) {
     depImgPrev.style.display = 'block'; depImgThumb.src = depImg;
     depImgThumb.onerror = function() { depImgPrev.style.display = 'none'; };
   } else { depImgPrev.style.display = 'none'; }
+
   var withImgPrev = document.getElementById('cfgWithdrawImgPreview');
   var withImgThumb = document.getElementById('cfgWithdrawImgThumb');
   if (withImg && withImg.startsWith('https://')) {
     withImgPrev.style.display = 'block'; withImgThumb.src = withImg;
     withImgThumb.onerror = function() { withImgPrev.style.display = 'none'; };
   } else { withImgPrev.style.display = 'none'; }
+
   var btns = '<div style="padding:8px 12px;background:#FAFAFA;display:flex;flex-direction:column;gap:6px;border-radius:0 0 16px 16px">';
   btns += '<div style="background:' + theme.btn1 + '15;border-radius:10px;padding:8px;text-align:center;font-size:11px;font-weight:700;color:' + theme.header + '">🎉 แจ้งถูกรางวัลแล้ว</div>';
   if (showDep) {
@@ -932,6 +1761,7 @@ function prizePreview() {
     }
   }
   btns += '</div>';
+
   var headerHtml = '';
   if (heroUrl && heroUrl.startsWith('https://')) {
     headerHtml = '<div style="border-radius:16px 16px 0 0;overflow:hidden"><img src="' + esc(heroUrl) + '" style="width:100%;display:block" onerror="this.parentElement.innerHTML=\'<div class=fp-header style=background:' + theme.header + '><div style=width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:16px>🏆</div><div style=font-size:16px;font-weight:700;color:' + theme.headerText + ';margin-left:8px>' + esc(title) + '</div></div>\'"></div>';
@@ -941,7 +1771,6 @@ function prizePreview() {
   area.innerHTML = '<div class="flex-preview">' + headerHtml + '<div class="fp-body"><div style="text-align:center;font-family:var(--mono);font-size:28px;font-weight:800;color:#1a1a2e">฿5,225.00</div><div style="text-align:center;font-size:11px;color:#888;margin-top:2px">ยอดเงินรางวัล</div><div class="fp-divider"></div><div class="fp-row"><span class="fp-row-label">ชื่อ</span><span class="fp-row-val">ลูกค้าตัวอย่าง</span></div><div class="fp-row"><span class="fp-row-label">ประเภท</span><span class="fp-row-val" style="font-size:11px">[หวยรายวัน] - ลาว VIP</span></div><div class="fp-divider"></div><div style="text-align:center;font-size:12px;color:#666;padding:4px 0">' + esc(footer) + '</div></div>' + btns + '</div>';
 }
 
-// ═══ PRIZE FLEX BUILDER ═══
 async function savePrizeConfig() {
   var cfg = {
     theme: selectedTheme,
@@ -1020,7 +1849,7 @@ function buildTextMsg(w) {
   return title + '\n' + w.lty + '\nคุณ ' + w.name + ' ถูกรางวัล ' + fmtMoney(w.prize) + ' บาท\n' + footer;
 }
 
-// ═══ PRIZE PARSER ═══
+// ═══ PRIZE PARSER (HUAY text parser) ═══
 function prizeProcess() {
   var raw = document.getElementById('prizeDataInput').value.trim();
   if (!raw) return;
@@ -1078,10 +1907,10 @@ function prizeRenderAll() {
   var linked = winW.filter(function(w) { return findUid(w.name); }).length;
   var noUid = winW.length - linked;
   document.getElementById('prizeKpi').innerHTML =
-    kpiCard('🎉', winW.length, 'ผู้โชคดี', 'var(--gold)', 'var(--gold)') +
-    kpiCard('💰', '฿' + fmtMoney(total), 'ยอดรวม', 'var(--green)', 'var(--green)') +
-    kpiCard('🔗', linked, 'ส่ง LINE ได้', 'var(--blue)', 'var(--blue)') +
-    kpiCard('⚠️', noUid, 'ไม่มี userId', noUid > 0 ? 'var(--amber)' : 'var(--green)', 'var(--amber)');
+    kpiCard('🎉', winW.length, 'ผู้โชคดี', 'var(--gold)') +
+    kpiCard('💰', '฿' + fmtMoney(total), 'ยอดรวม', 'var(--green)') +
+    kpiCard('🔗', linked, 'ส่ง LINE ได้', 'var(--blue)') +
+    kpiCard('⚠️', noUid, 'ไม่มี userId', noUid > 0 ? 'var(--amber)' : 'var(--green)');
   prizeUpdateProg();
   prizeRenderCards();
 }
@@ -1092,36 +1921,34 @@ function prizeRenderCards() {
     var msg = buildTextMsg(w);
     if (s.done) return '<div class="win-card sent"><div class="win-card-head"><span class="win-name">' + esc(w.name) + '</span><span class="win-prize">฿' + fmtMoney(w.prize) + '</span></div><div style="display:flex;align-items:center;gap:8px"><span class="bdg bdg-ok">✅ แจ้งแล้ว' + (s.mode ? ' (' + s.mode + ')' : '') + '</span><button class="btn btn-ghost btn-sm" onclick="prizeUndo(' + i + ')">↩</button></div></div>';
     var linkBtn = hasUid ? '' : '<button class="btn btn-ghost btn-sm" style="color:var(--amber);border:1px solid var(--amber)" onclick="prizeLinkUid(' + i + ')">🔗 ผูก userId</button>';
-    return '<div class="win-card"><div class="win-card-head"><div style="display:flex;align-items:center;gap:6px"><span class="win-name">' + esc(w.name) + '</span>' + (hasUid ? '<span class="bdg bdg-ok" style="font-size:10px">🟢 userId✓</span>' : '<span class="bdg bdg-warn" style="font-size:10px">⚠️ ไม่มี userId</span>') + '</div><span class="win-prize">฿' + fmtMoney(w.prize) + '</span></div><div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;font-size:11px;color:var(--t3);white-space:pre-wrap;line-height:1.7;margin:8px 0">' + esc(msg) + '</div><div class="win-actions">' + (hasUid ? '<button class="btn btn-gold btn-sm" onclick="prizeSendOne(' + i + ',\'flex\')">📲 Flex</button><button class="btn btn-blue btn-sm" onclick="prizeSendOne(' + i + ',\'text\')">📝 Text</button>' : linkBtn + '<button class="btn btn-ghost btn-sm" disabled style="opacity:.4;cursor:not-allowed">📲 ไม่มี userId</button>') + '<button class="btn btn-ghost btn-sm" onclick="prizeCopyMsg(' + i + ')">📋 ก๊อบ</button><button class="btn btn-green btn-sm" onclick="prizeMark(' + i + ')">✅ ส่งแล้ว</button></div></div>';
+    return '<div class="win-card"><div class="win-card-head"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="win-name">' + esc(w.name) + '</span>' + (hasUid ? '<span class="bdg bdg-ok" style="font-size:10px">🟢 userId✓</span>' : '<span class="bdg bdg-warn" style="font-size:10px">⚠️ ไม่มี userId</span>') + '</div><span class="win-prize">฿' + fmtMoney(w.prize) + '</span></div><div style="background:var(--bg-1);border-radius:10px;padding:12px;font-size:12px;color:var(--t3);white-space:pre-wrap;line-height:1.7;margin:10px 0">' + esc(msg) + '</div><div class="win-actions">' + (hasUid ? '<button class="btn btn-gold btn-sm" onclick="prizeSendOne(' + i + ',\'flex\')">📲 Flex</button><button class="btn btn-blue btn-sm" onclick="prizeSendOne(' + i + ',\'text\')">📝 Text</button>' : linkBtn + '<button class="btn btn-ghost btn-sm" disabled style="opacity:.4;cursor:not-allowed">📲 ไม่มี userId</button>') + '<button class="btn btn-ghost btn-sm" onclick="prizeCopyMsg(' + i + ')">📋 ก๊อบ</button><button class="btn btn-green btn-sm" onclick="prizeMark(' + i + ')">✅ ส่งแล้ว</button></div></div>';
   }).join('');
 }
 
 function prizeLinkUid(winIdx) {
   var w = winW[winIdx];
-  // สร้าง popup overlay ให้เลือก contact
   var overlay = document.createElement('div');
   overlay.id = 'linkOverlay';
-  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
-  
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)';
+
   var box = document.createElement('div');
-  box.style.cssText = 'background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:20px;width:90%;max-width:420px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)';
-  
-  var title = '<div style="font-size:15px;font-weight:700;color:var(--gold);margin-bottom:4px">🔗 ผูก userId สำหรับ</div>';
-  title += '<div style="font-size:18px;font-weight:800;margin-bottom:12px">' + esc(w.name) + ' <span style="color:var(--green);font-size:13px">฿' + fmtMoney(w.prize) + '</span></div>';
-  title += '<input id="linkSearch" class="inp" placeholder="🔍 ค้นหาชื่อลูกค้า..." oninput="linkFilterList()" style="margin-bottom:10px;font-size:13px">';
-  
+  box.style.cssText = 'background:var(--surface);border:1px solid var(--line-hi);border-radius:18px;padding:24px;width:90%;max-width:440px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.5)';
+
+  var title = '<div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:4px">🔗 ผูก userId สำหรับ</div>';
+  title += '<div style="font-size:19px;font-weight:700;margin-bottom:14px;font-family:var(--font-display)">' + esc(w.name) + ' <span style="color:var(--green);font-size:14px">฿' + fmtMoney(w.prize) + '</span></div>';
+  title += '<input id="linkSearch" class="inp" placeholder="🔍 ค้นหาชื่อลูกค้า..." oninput="linkFilterList()" style="margin-bottom:12px">';
+
   var listHtml = '<div id="linkList" style="overflow-y:auto;max-height:50vh;margin-bottom:12px">';
   listHtml += buildLinkList('');
   listHtml += '</div>';
-  
-  var footer = '<div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="closeLinkOverlay()" style="flex:1">ยกเลิก</button></div>';
-  
+
+  var footer = '<div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="closeLinkOverlay()" style="flex:1;justify-content:center">ยกเลิก</button></div>';
+
   box.innerHTML = title + listHtml + footer;
   overlay.appendChild(box);
   overlay.onclick = function(e) { if (e.target === overlay) closeLinkOverlay(); };
   document.body.appendChild(overlay);
-  
-  // เก็บ index ไว้
+
   window._linkWinIdx = winIdx;
   setTimeout(function() { document.getElementById('linkSearch').focus(); }, 100);
 }
@@ -1134,15 +1961,15 @@ function buildLinkList(search) {
     return (c.name + ' ' + (c.aliases || []).join(' ')).toLowerCase().indexOf(search) !== -1;
   });
   if (!filtered.length) {
-    return '<div style="padding:20px;text-align:center;color:var(--t4);font-size:12px">ไม่พบรายชื่อ</div>';
+    return '<div style="padding:24px;text-align:center;color:var(--t4);font-size:13px">ไม่พบรายชื่อ</div>';
   }
   filtered.forEach(function(c) {
     var idx = contacts.indexOf(c);
-    var aliases = c.aliases && c.aliases.length ? '<div style="font-size:10px;color:var(--amber)">🏷️ ' + c.aliases.map(esc).join(', ') + '</div>' : '';
-    html += '<div onclick="linkSelect(' + idx + ')" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s" onmouseover="this.style.background=\'rgba(232,185,49,.08)\';this.style.borderColor=\'var(--border2)\'" onmouseout="this.style.background=\'none\';this.style.borderColor=\'transparent\'">';
-    html += '<div style="width:36px;height:36px;border-radius:10px;background:var(--gold-glow);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">' + esc(c.name.substring(0, 2)) + '</div>';
-    html += '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(c.name) + '</div>' + aliases + '<div style="font-size:10px;color:var(--t4);font-family:var(--mono)">' + esc(c.uid) + '</div></div>';
-    html += '<div style="font-size:18px">→</div></div>';
+    var aliases = c.aliases && c.aliases.length ? '<div style="font-size:11px;color:var(--amber);margin-top:2px">🏷️ ' + c.aliases.map(esc).join(', ') + '</div>' : '';
+    html += '<div onclick="linkSelect(' + idx + ')" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s;margin-bottom:4px" onmouseover="this.style.background=\'var(--accent-dim)\';this.style.borderColor=\'var(--accent-line)\'" onmouseout="this.style.background=\'none\';this.style.borderColor=\'transparent\'">';
+    html += '<div style="width:38px;height:38px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0">' + esc(c.name.substring(0, 2)) + '</div>';
+    html += '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--t1)">' + esc(c.name) + '</div>' + aliases + '<div style="font-size:10px;color:var(--t4);font-family:var(--mono);margin-top:2px">' + esc(c.uid) + '</div></div>';
+    html += '<div style="font-size:18px;color:var(--t3)">→</div></div>';
   });
   return html;
 }
@@ -1156,8 +1983,6 @@ function linkSelect(contactIdx) {
   var winIdx = window._linkWinIdx;
   var w = winW[winIdx];
   var c = contacts[contactIdx];
-  
-  // เพิ่ม alias อัตโนมัติ
   if (!c.aliases) c.aliases = [];
   if (cleanName(c.name) !== cleanName(w.name) && c.aliases.indexOf(w.name) === -1) {
     c.aliases.push(w.name);
@@ -1248,7 +2073,6 @@ async function loadKvSettings() {
       scRenderButtons();
       slipCfgPreview();
     }
-    // Load prize config from KV
     if (data.prizeConfig) {
       var pc = data.prizeConfig;
       if (pc.theme !== undefined) { selectedTheme = pc.theme; renderColorPicker(); }
@@ -1268,18 +2092,876 @@ async function loadKvSettings() {
     var statusEl = document.getElementById('systemStatus');
     if (statusEl) {
       statusEl.innerHTML =
-        '<div style="display:flex;flex-direction:column;gap:6px">' +
         '<div>🗄️ Redis KV: <b style="color:var(--green)">' + (data.kvReady ? 'เชื่อมต่อแล้ว' : 'ไม่พร้อม') + '</b></div>' +
         '<div>📒 สมุดรายชื่อ: <b style="color:var(--gold)">' + contacts.length + ' รายชื่อ</b></div>' +
         '<div>🧾 สลิปใน Redis: <b>' + allSlips.length + '</b></div>' +
         '<div>⚡ Events ใน Redis: <b>' + allEvents.length + '</b></div>' +
         '<div>🔒 Auth: <b style="color:var(--green)">' + (API_KEY ? 'เปิดใช้งาน' : 'dev mode') + '</b></div>' +
-        '<div>🏆 ค่ารางวัล: <b style="color:var(--gold)">' + (data.prizeConfig ? 'บันทึกแล้ว' : 'ค่าเริ่มต้น') + '</b></div>' +
-        '</div>';
+        '<div>🏆 ค่ารางวัล: <b style="color:var(--gold)">' + (data.prizeConfig ? 'บันทึกแล้ว' : 'ค่าเริ่มต้น') + '</b></div>';
     }
   } catch (e) { console.log('KV load error:', e); }
 }
 
+// ═══ NEW PAGE RENDERERS ═══
+
+// Contacts page
+function renderContactsPage() {
+  var el = document.getElementById('contactsGridPage');
+  if (!el) return;
+  var search = (document.getElementById('contactSearchPage').value || '').toLowerCase();
+  var filtered = contacts.filter(function(c) {
+    if (!search) return true;
+    var txt = (c.name + ' ' + c.uid + ' ' + (c.aliases || []).join(' ')).toLowerCase();
+    return txt.indexOf(search) !== -1;
+  });
+  var countEl = document.getElementById('contactsPageCount');
+  if (countEl) countEl.textContent = (search ? filtered.length + '/' + contacts.length : contacts.length) + ' รายชื่อ';
+  var navCount = document.getElementById('navContactCount');
+  if (navCount) navCount.textContent = contacts.length;
+
+  if (!filtered.length) {
+    el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--t4);font-size:14px;grid-column:1/-1">' + (contacts.length ? 'ไม่พบรายชื่อที่ค้นหา' : 'ยังไม่มีรายชื่อ — ลูกค้าทักมาจะเพิ่มอัตโนมัติ') + '</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(function(c) {
+    var idx = contacts.indexOf(c);
+    var aliasHtml = '';
+    if (c.aliases && c.aliases.length) {
+      aliasHtml = '<div style="font-size:11px;color:var(--amber);margin-top:4px">🏷️ ' + c.aliases.map(esc).join(', ') + '</div>';
+    }
+    return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;transition:all .15s" onmouseover="this.style.borderColor=\'var(--line-hi)\';this.style.background=\'var(--surface-hi)\'" onmouseout="this.style.borderColor=\'var(--line)\';this.style.background=\'var(--surface)\'">' +
+      '<div class="contact-av">' + esc(c.name.substring(0, 2)) + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:14px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(c.name) + '</div>' +
+        aliasHtml +
+        '<div style="font-size:11px;color:var(--t3);font-family:var(--mono);margin-top:4px">' + esc(c.uid) + '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:4px;flex-shrink:0">' +
+        '<button class="btn btn-ghost btn-sm" onclick="promptAddAlias(' + idx + ')" title="เพิ่มชื่อเรียก">🏷️</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="promptSendMsg(\'' + esc(c.uid) + '\',\'' + esc(c.name) + '\')" title="ส่งข้อความ">💬</button>' +
+        '<button style="padding:6px 10px;border-radius:8px;background:var(--red-bg);border:1px solid rgba(248,113,113,.3);color:var(--red);cursor:pointer;font-size:11px" onclick="deleteContactPage(' + idx + ')" title="ลบ">🗑️</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function addContactPage() {
+  var n = document.getElementById('addContactNamePage').value.trim();
+  var u = document.getElementById('addContactUidPage').value.trim();
+  if (!n || !u) { alert('⚠️ กรอกทั้งชื่อและ User ID'); return; }
+  if (!u.startsWith('U') || u.length < 32) {
+    alert('⚠️ User ID ต้องขึ้นต้นด้วย U และยาวอย่างน้อย 32 ตัวอักษร');
+    return;
+  }
+  if (contacts.find(function(c) { return c.uid === u; })) {
+    alert('⚠️ User ID นี้มีอยู่แล้วในระบบ');
+    return;
+  }
+  contacts.push({ name: n, uid: u });
+  kvSaveContacts();
+  document.getElementById('addContactNamePage').value = '';
+  document.getElementById('addContactUidPage').value = '';
+  renderContactsPage();
+  renderContacts();
+}
+
+function deleteContactPage(i) {
+  if (!confirm('ลบ ' + contacts[i].name + ' ?')) return;
+  contacts.splice(i, 1);
+  kvSaveContacts();
+  renderContactsPage();
+  renderContacts();
+}
+
+// Events page
+function renderEventsPage() {
+  var el = document.getElementById('eventsTableBody');
+  if (!el) return;
+  var filter = document.getElementById('eventTypeFilter').value;
+  var items = filter === 'all' ? allEvents : allEvents.filter(function(e) { return e.type === filter; });
+  items = items.slice(0, 200);
+
+  var countEl = document.getElementById('eventsCount');
+  if (countEl) countEl.textContent = items.length + ' / ' + allEvents.length + ' events';
+
+  if (!items.length) {
+    el.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--t4);padding:40px">ยังไม่มี events</td></tr>';
+    return;
+  }
+
+  el.innerHTML = items.map(function(ev) {
+    var typeColor = 'bdg-info';
+    var typeIcon = '💬';
+    if (ev.type === 'slip') { typeColor = ev.slipStatus === 'pass' ? 'bdg-ok' : 'bdg-fail'; typeIcon = '🧾'; }
+    else if (ev.type === 'follow') { typeColor = 'bdg-ok'; typeIcon = '➕'; }
+    else if (ev.type === 'unfollow') { typeColor = 'bdg-fail'; typeIcon = '➖'; }
+
+    var uid = ev.userId && ev.userId.startsWith('U') ? ev.userId : '—';
+    var uidShort = uid !== '—' ? uid.substring(0, 8) + '...' + uid.substring(uid.length - 4) : uid;
+
+    var text = ev.text || '—';
+    if (ev.type === 'slip' && ev.slipAmount) {
+      text = '฿' + fmtMoney(ev.slipAmount) + (ev.slipStatus === 'fail' ? ' · ' + (ev.slipError || '?') : '');
+    }
+
+    return '<tr>' +
+      '<td class="mono">' + fmtDateTime(ev.timestamp) + '</td>' +
+      '<td class="mono" style="font-size:12px;color:var(--t3)" title="' + esc(uid) + '">' + esc(uidShort) + '</td>' +
+      '<td><div class="td-name"><div class="td-av">' + esc((ev.name || '?').substring(0, 2)) + '</div>' + esc(ev.name || '?') + '</div></td>' +
+      '<td style="color:var(--t2);font-size:13px;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(text) + '</td>' +
+      '<td><span class="bdg ' + typeColor + '">' + typeIcon + ' ' + esc(ev.type || '?') + '</span></td>' +
+    '</tr>';
+  }).join('');
+}
+
+// Webhook page
+function renderWebhookPage() {
+  // URL
+  var urlEl = document.getElementById('webhookUrlDisplay');
+  if (urlEl) urlEl.value = location.origin + '/api/webhook';
+
+  // Stats
+  var el = function(id) { return document.getElementById(id); };
+  if (el('whTotalEvents')) el('whTotalEvents').textContent = allEvents.length;
+  if (el('whTotalSlips')) el('whTotalSlips').textContent = allSlips.length;
+  if (el('whTotalProfiles')) el('whTotalProfiles').textContent = Object.keys(allProfiles).length;
+  if (el('whTotalContacts')) el('whTotalContacts').textContent = contacts.length;
+
+  // Security status — ตรวจจากพฤติกรรมปัจจุบัน
+  var secApiKey = el('secApiKey');
+  if (secApiKey) {
+    if (API_KEY) {
+      secApiKey.className = 'bdg bdg-ok';
+      secApiKey.textContent = '✅ เปิดใช้งาน';
+    } else {
+      secApiKey.className = 'bdg bdg-warn';
+      secApiKey.textContent = '⚠️ Dev mode (ไม่มี auth)';
+    }
+  }
+
+  var secRedis = el('secRedis');
+  if (secRedis) {
+    // ถ้า poll() สำเร็จมี contact/slip = Redis ต่อแล้ว
+    if (contacts.length > 0 || allSlips.length > 0 || allEvents.length > 0) {
+      secRedis.className = 'bdg bdg-ok';
+      secRedis.textContent = '✅ เชื่อมต่อแล้ว';
+    } else {
+      secRedis.className = 'bdg bdg-info';
+      secRedis.textContent = '⚠️ ยังไม่มีข้อมูล';
+    }
+  }
+
+  var secSig = el('secSignature');
+  if (secSig) {
+    // Can't tell from client side — show info
+    secSig.className = 'bdg bdg-info';
+    secSig.textContent = '⚙️ ดูที่ LINE_CHANNEL_SECRET';
+  }
+}
+
+function copyWebhookUrl() {
+  var url = document.getElementById('webhookUrlDisplay').value;
+  navigator.clipboard.writeText(url).then(function() {
+    alert('✅ คัดลอก URL แล้ว\n\nนำไปใส่ใน LINE Developers Console → Messaging API → Webhook URL');
+  });
+}
+
+async function rebuildContacts() {
+  var btn = event.target;
+  var status = document.getElementById('rebuildStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังค้นหา...';
+  status.style.display = 'none';
+
+  try {
+    // ดึง events + profiles จาก /api/webhook GET (summary endpoint)
+    var res = await fetch(BASE + '/api/webhook', { headers: getHeaders() });
+    var data = await res.json();
+
+    if (!data.ok) throw new Error('โหลดข้อมูลไม่สำเร็จ');
+
+    var existingUids = {};
+    contacts.forEach(function(c) { existingUids[c.uid] = true; });
+
+    var added = 0;
+    var events = data.events || [];
+    var profiles = data.profiles || {};
+
+    // จาก events
+    events.forEach(function(ev) {
+      if (ev.userId && ev.userId.startsWith('U') && ev.name && !existingUids[ev.userId]) {
+        // ข้าม placeholder names (Uxxxxxx แปดตัวท้าย)
+        if (!/^[a-f0-9]{8}$/i.test(ev.name) && !ev.name.startsWith('ผู้ใช้ ')) {
+          contacts.push({ name: ev.name, uid: ev.userId });
+          existingUids[ev.userId] = true;
+          added++;
+        }
+      }
+    });
+
+    // จาก profiles
+    for (var uid in profiles) {
+      if (!existingUids[uid] && profiles[uid].displayName) {
+        contacts.push({ name: profiles[uid].displayName, uid: uid });
+        existingUids[uid] = true;
+        added++;
+      }
+    }
+
+    if (added > 0) {
+      await fetch(BASE + '/api/kv?action=contacts', {
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({ contacts: contacts })
+      });
+      status.textContent = '✅ เพิ่ม ' + added + ' รายชื่อที่หายไป!';
+      status.style.color = 'var(--green)';
+      renderContacts();
+      renderContactsPage();
+    } else {
+      status.textContent = '✓ รายชื่อครบแล้ว ไม่มีที่หายไป';
+      status.style.color = 'var(--t3)';
+    }
+    status.style.display = 'inline';
+  } catch (e) {
+    status.textContent = '❌ ' + e.message;
+    status.style.color = 'var(--red)';
+    status.style.display = 'inline';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔄 ค้นหารายชื่อที่หายไป';
+  }
+}
+
+// ═══ Enhance renderAll to include new pages ═══
+var _origRenderAll = renderAll;
+renderAll = function() {
+  _origRenderAll();
+  // update new pages (safe — guards inside)
+  try { renderContactsPage(); } catch (e) {}
+  try { renderEventsPage(); } catch (e) {}
+  try { renderWebhookPage(); } catch (e) {}
+  // update nav counter
+  var nav = document.getElementById('navContactCount');
+  if (nav) nav.textContent = contacts.length;
+};
+
+
+
+// ═══════════════════════════════════════════════════
+// ═══ WITHDRAW SLIP SENDER ═══
+// ═══════════════════════════════════════════════════
+var wdItems = [];
+var wdLookup = [];
+var wdLookupLoaded = false;
+
+// ─── Telegram pending slips ───
+var pendingSlips = [];
+var pendingSelected = {};
+var BATCH_GAP_MS = 5 * 60 * 1000;
+
+// ─── Load lookup table (senderName ↔ userId) ───
+async function wdLoadLookup() {
+  try {
+    var r = await fetch(BASE + '/api/withdraw-send?action=lookup', { headers: getHeaders() });
+    var j = await r.json();
+    if (j.ok && j.items) {
+      wdLookup = j.items;
+      wdLookupLoaded = true;
+    }
+  } catch (e) { console.log('Load lookup error:', e); }
+}
+
+function wdNormName(s) {
+  if (!s) return '';
+  s = String(s).replace(/^(นาย|นาง|นางสาว|น\.ส\.|ด\.ช\.|ด\.ญ\.|mr\.?|mrs\.?|ms\.?|miss)\s*/i, '');
+  s = s.replace(/[\s\.\*\-_()]/g, '');
+  return s.toLowerCase();
+}
+
+function wdMatchName(receiverName) {
+  if (!receiverName || !wdLookup.length) return null;
+  var target = wdNormName(receiverName);
+  if (!target) return null;
+  var best = null, bestScore = 0;
+  for (var i = 0; i < wdLookup.length; i++) {
+    var e = wdLookup[i];
+    var cand = wdNormName(e.senderName);
+    if (!cand) continue;
+    var score = 0;
+    if (cand === target) score = 1.0;
+    else if (cand.indexOf(target) !== -1 || target.indexOf(cand) !== -1) score = 0.85;
+    else {
+      var ml = Math.min(cand.length, target.length);
+      if (ml >= 6 && cand.substring(0, 6) === target.substring(0, 6)) score = 0.6;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      best = { userId: e.userId, senderName: e.senderName, displayName: e.displayName, confidence: score };
+    }
+  }
+  return best && bestScore >= 0.6 ? best : null;
+}
+
+// ─── Drop zone setup ───
+function wdSetupDropZone() {
+  var dz = document.getElementById('wdDropZone');
+  if (!dz) return;
+  ['dragenter', 'dragover'].forEach(function(ev) {
+    dz.addEventListener(ev, function(e) {
+      e.preventDefault(); e.stopPropagation();
+      dz.style.borderColor = 'var(--gold)';
+      dz.style.background = 'rgba(232,193,92,.08)';
+    });
+  });
+  ['dragleave', 'drop'].forEach(function(ev) {
+    dz.addEventListener(ev, function(e) {
+      e.preventDefault(); e.stopPropagation();
+      dz.style.borderColor = 'rgba(232,193,92,.3)';
+      dz.style.background = 'rgba(232,193,92,.02)';
+    });
+  });
+  dz.addEventListener('drop', function(e) {
+    if (e.dataTransfer && e.dataTransfer.files) wdHandleFiles(e.dataTransfer.files);
+  });
+}
+
+// ─── Handle file uploads ───
+async function wdHandleFiles(fileList) {
+  var files = Array.from(fileList).filter(function(f) { return f.type.startsWith('image/'); });
+  if (!files.length) { alert('กรุณาเลือกไฟล์รูปภาพ'); return; }
+  if (!wdLookupLoaded) await wdLoadLookup();
+
+  var prog = document.getElementById('wdUploadProgress');
+  prog.style.display = 'block';
+
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    if (f.size > 4 * 1024 * 1024) {
+      alert('ไฟล์ ' + f.name + ' ใหญ่เกิน 4MB — ข้าม');
+      continue;
+    }
+    prog.textContent = '📤 กำลังโหลดไฟล์ ' + (i + 1) + '/' + files.length + ': ' + f.name;
+    var dataUrl = await wdFileToDataUrl(f);
+    wdItems.push({
+      id: 'wd_' + Date.now() + '_' + i,
+      fileName: f.name,
+      previewUrl: dataUrl,
+      receiverName: '',
+      amount: '',
+      matchedUid: '',
+      matchedName: '',
+      confidence: 0,
+      status: 'ready',
+      errorMsg: '',
+      searchQuery: '',
+      showSuggestions: false,
+      telegramId: null,
+    });
+  }
+
+  prog.style.display = 'none';
+  prog.textContent = '';
+  document.getElementById('wdFileInput').value = '';
+  wdRenderItems();
+}
+
+function wdFileToDataUrl(file) {
+  return new Promise(function(resolve) {
+    var r = new FileReader();
+    r.onload = function() { resolve(r.result); };
+    r.readAsDataURL(file);
+  });
+}
+
+// ─── Render items table ───
+function wdRenderItems() {
+  var empty = document.getElementById('wdEmptyState');
+  var section = document.getElementById('wdMatchSection');
+  if (!wdItems.length) {
+    empty.style.display = 'block';
+    section.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  section.style.display = 'block';
+
+  var matched = wdItems.filter(function(it) { return it.matchedUid; }).length;
+  var pending = wdItems.length - matched;
+  document.getElementById('wdMatchSummary').innerHTML =
+    '<span style="color:var(--green)">✓ ' + matched + ' จับคู่แล้ว</span>' +
+    (pending > 0 ? ' · <span style="color:var(--amber)">⚠ ' + pending + ' ต้องเลือกเอง</span>' : '');
+
+  var html = '';
+  wdItems.forEach(function(it, idx) {
+    var statusBadge = '';
+    if (it.status === 'sent') statusBadge = '<span class="bdg bdg-ok">✓ ส่งแล้ว</span>';
+    else if (it.status === 'sending') statusBadge = '<span class="bdg bdg-info">⏳ กำลังส่ง...</span>';
+    else if (it.status === 'fail') statusBadge = '<span class="bdg bdg-fail">✗ ' + esc(it.errorMsg || 'ล้มเหลว') + '</span>';
+    else if (it.matchedUid) statusBadge = '<span class="bdg bdg-ok">🎯 พร้อมส่ง</span>';
+    else statusBadge = '<span class="bdg bdg-warn">⚠️ ต้องเลือกลูกค้า</span>';
+
+    var matchInfo = it.matchedUid
+      ? '<div style="font-size:13px;font-weight:600;color:var(--green)">✓ ' + esc(it.matchedName) + '</div>' +
+        '<div style="font-size:10px;color:var(--t4);font-family:var(--mono)">' + esc(it.matchedUid.substring(0, 12)) + '...</div>' +
+        (it.confidence < 1 ? '<div style="font-size:10px;color:var(--amber);margin-top:2px">confidence: ' + Math.round(it.confidence * 100) + '%</div>' : '') +
+        '<button class="btn btn-ghost btn-sm" onclick="wdClearMatch(' + idx + ')" style="margin-top:4px;font-size:10px;padding:3px 8px">✕ เปลี่ยน</button>'
+      : '<input class="inp" placeholder="🔍 ค้นหาชื่อหรือ userId..." value="' + esc(it.searchQuery || '') + '" oninput="wdSearchInput(' + idx + ', this.value)" style="font-size:12px;padding:6px 10px">' +
+        '<div id="wdSuggest_' + idx + '" style="display:' + (it.showSuggestions ? 'block' : 'none') + ';margin-top:4px;max-height:180px;overflow-y:auto;background:var(--bg-1);border:1px solid var(--line);border-radius:8px"></div>';
+
+    html += '<div style="border-bottom:1px solid var(--line);padding:14px 18px;display:grid;grid-template-columns:80px 1fr 1fr 120px auto;gap:14px;align-items:center">' +
+      '<img src="' + it.previewUrl + '" onclick="wdPreviewImage(' + idx + ')" style="width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--line)">' +
+      '<div>' +
+        '<div style="font-size:11px;color:var(--t4);margin-bottom:4px">สลิป #' + (idx + 1) + '</div>' +
+        '<input class="inp" placeholder="ชื่อผู้รับ (จากสลิป)" value="' + esc(it.receiverName || '') + '" oninput="wdUpdateItem(' + idx + ', \'receiverName\', this.value);wdAutoMatch(' + idx + ')" style="font-size:12px;padding:6px 10px;margin-bottom:4px">' +
+        '<input class="inp" placeholder="จำนวนเงิน" value="' + esc(it.amount || '') + '" oninput="wdUpdateItem(' + idx + ', \'amount\', this.value)" style="font-size:12px;padding:6px 10px">' +
+      '</div>' +
+      '<div>' + matchInfo + '</div>' +
+      '<div style="text-align:center">' + statusBadge + '</div>' +
+      '<button class="btn btn-ghost btn-sm" onclick="wdRemoveItem(' + idx + ')" style="padding:6px 8px;color:var(--red)" title="ลบ">🗑️</button>' +
+    '</div>';
+  });
+
+  document.getElementById('wdItemsList').innerHTML = html;
+
+  // Update suggestion lists after render
+  wdItems.forEach(function(it, idx) {
+    if (it.showSuggestions) wdUpdateSuggestList(idx);
+  });
+}
+
+function wdUpdateItem(idx, field, value) {
+  if (!wdItems[idx]) return;
+  wdItems[idx][field] = value;
+}
+
+function wdAutoMatch(idx) {
+  var it = wdItems[idx];
+  if (!it || !it.receiverName) return;
+  var m = wdMatchName(it.receiverName);
+  if (m) {
+    it.matchedUid = m.userId;
+    it.matchedName = m.displayName || m.senderName;
+    it.confidence = m.confidence;
+    wdRenderItems();
+  }
+}
+
+function wdClearMatch(idx) {
+  if (!wdItems[idx]) return;
+  wdItems[idx].matchedUid = '';
+  wdItems[idx].matchedName = '';
+  wdItems[idx].confidence = 0;
+  wdRenderItems();
+}
+
+function wdSearchInput(idx, val) {
+  wdItems[idx].searchQuery = val;
+  wdItems[idx].showSuggestions = !!val;
+  wdUpdateSuggestList(idx);
+}
+
+function wdUpdateSuggestList(idx) {
+  var it = wdItems[idx];
+  var el = document.getElementById('wdSuggest_' + idx);
+  if (!el) return;
+  var q = (it.searchQuery || '').toLowerCase();
+  if (!q) { el.style.display = 'none'; return; }
+
+  var matches = wdLookup.filter(function(e) {
+    return (e.senderName + ' ' + e.displayName + ' ' + e.userId).toLowerCase().indexOf(q) !== -1;
+  }).slice(0, 8);
+
+  if (!matches.length) {
+    el.innerHTML = '<div style="padding:10px;color:var(--t4);font-size:12px;text-align:center">ไม่พบ</div>';
+    el.style.display = 'block';
+    return;
+  }
+
+  el.innerHTML = matches.map(function(m) {
+    return '<div onclick="wdSelectMatch(' + idx + ', \'' + esc(m.userId) + '\')" style="padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--line);font-size:12px" onmouseover="this.style.background=\'var(--surface-hi)\'" onmouseout="this.style.background=\'transparent\'">' +
+      '<div style="font-weight:600;color:var(--t1)">' + esc(m.displayName || '—') + '</div>' +
+      (m.senderName ? '<div style="font-size:10px;color:var(--gold)">📝 ' + esc(m.senderName) + '</div>' : '') +
+      '<div style="font-size:10px;color:var(--t4);font-family:var(--mono)">' + esc(m.userId.substring(0, 12)) + '...</div>' +
+    '</div>';
+  }).join('');
+  el.style.display = 'block';
+}
+
+function wdSelectMatch(idx, uid) {
+  var m = wdLookup.find(function(e) { return e.userId === uid; });
+  if (!m || !wdItems[idx]) return;
+  wdItems[idx].matchedUid = uid;
+  wdItems[idx].matchedName = m.displayName || m.senderName;
+  wdItems[idx].confidence = 1.0;
+  wdItems[idx].searchQuery = '';
+  wdItems[idx].showSuggestions = false;
+  wdRenderItems();
+}
+
+function wdRemoveItem(idx) {
+  wdItems.splice(idx, 1);
+  wdRenderItems();
+}
+
+function wdReset() {
+  if (wdItems.length && !confirm('ล้างรายการทั้งหมด?')) return;
+  wdItems = [];
+  wdRenderItems();
+}
+
+function wdPreviewImage(idx) {
+  var it = wdItems[idx];
+  if (!it) return;
+  document.getElementById('imgPreviewContent').src = it.previewUrl;
+  document.getElementById('imgPreviewModal').style.display = 'flex';
+}
+
+function closeImgPreview() {
+  document.getElementById('imgPreviewModal').style.display = 'none';
+}
+
+// ─── Upload image → get public URL ───
+async function wdUploadImage(item) {
+  var res = await fetch(BASE + '/api/upload', {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ base64: item.previewUrl, contentType: 'image/jpeg' }),
+  });
+  var j = await res.json();
+  if (!j.ok) throw new Error(j.error || 'upload failed');
+  return j.url;
+}
+
+// ─── Send all ready items ───
+async function wdSendAll() {
+  var ready = wdItems.filter(function(it) { return it.matchedUid && it.status !== 'sent'; });
+  if (!ready.length) { alert('ไม่มีรายการพร้อมส่ง'); return; }
+
+  if (!confirm('ส่งสลิป ' + ready.length + ' ใบไปให้ลูกค้า?')) return;
+
+  var btn = document.getElementById('wdSendBtn');
+  var status = document.getElementById('wdSendStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังส่ง...';
+  status.textContent = '📤 กำลังอัพโหลดรูปและส่ง...';
+  status.style.color = 'var(--gold)';
+
+  ready.forEach(function(it) { it.status = 'sending'; });
+  wdRenderItems();
+
+  var defaultMsg = document.getElementById('wdDefaultMessage').value.trim();
+  var uploaded = [];
+
+  try {
+    for (var i = 0; i < ready.length; i++) {
+      var it = ready[i];
+      status.textContent = '📤 อัพโหลด ' + (i + 1) + '/' + ready.length + '...';
+      try {
+        var url = await wdUploadImage(it);
+        it.uploadedUrl = url;
+        uploaded.push(it);
+      } catch (e) {
+        it.status = 'fail';
+        it.errorMsg = 'upload: ' + e.message;
+      }
+    }
+    wdRenderItems();
+
+    if (!uploaded.length) {
+      status.textContent = '❌ อัพโหลดไม่สำเร็จ';
+      status.style.color = 'var(--red)';
+      btn.disabled = false;
+      btn.textContent = '🚀 ส่งทั้งหมด';
+      return;
+    }
+
+    status.textContent = '📲 กำลังส่งผ่าน LINE...';
+    var payload = {
+      items: uploaded.map(function(it) {
+        return {
+          userId: it.matchedUid,
+          imageUrl: it.uploadedUrl,
+          previewUrl: it.uploadedUrl,
+          amount: it.amount,
+          name: it.matchedName,
+          message: defaultMsg,
+        };
+      }),
+      defaultMessage: defaultMsg,
+    };
+    var res = await fetch(BASE + '/api/withdraw-send', {
+      method: 'POST', headers: getHeaders(), body: JSON.stringify(payload),
+    });
+    var j = await res.json();
+    if (j.ok && j.results) {
+      j.results.forEach(function(r, i) {
+        if (uploaded[i]) {
+          uploaded[i].status = r.ok ? 'sent' : 'fail';
+          if (!r.ok) uploaded[i].errorMsg = r.error || 'ส่งไม่สำเร็จ';
+        }
+      });
+      status.textContent = '✅ สำเร็จ ' + j.success + '/' + j.total + (j.fail ? ' (ล้มเหลว ' + j.fail + ')' : '');
+      status.style.color = j.fail ? 'var(--amber)' : 'var(--green)';
+
+      // Mark telegram pending as used
+      var telegramIds = uploaded.filter(function(it) { return it.status === 'sent' && it.telegramId; }).map(function(it) { return it.telegramId; });
+      if (telegramIds.length) {
+        try {
+          await fetch(BASE + '/api/pending-slips?action=mark_used', {
+            method: 'POST', headers: getHeaders(), body: JSON.stringify({ ids: telegramIds }),
+          });
+        } catch (e) {}
+      }
+    } else {
+      status.textContent = '❌ ' + (j.error || 'ส่งไม่สำเร็จ');
+      status.style.color = 'var(--red)';
+      ready.forEach(function(it) { if (it.status === 'sending') { it.status = 'fail'; it.errorMsg = j.error; } });
+    }
+  } catch (e) {
+    status.textContent = '❌ ' + e.message;
+    status.style.color = 'var(--red)';
+    ready.forEach(function(it) { if (it.status === 'sending') { it.status = 'fail'; it.errorMsg = e.message; } });
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🚀 ส่งทั้งหมด';
+  wdRenderItems();
+}
+
+// ═══════════════════════════════════════════════════
+// ═══ TELEGRAM PENDING SLIPS ═══
+// ═══════════════════════════════════════════════════
+
+async function checkPendingSlips() {
+  try {
+    var r = await fetch(BASE + '/api/pending-slips?group=1', { headers: getHeaders() });
+    var j = await r.json();
+    if (j.ok) {
+      var allSlips = [];
+      (j.batches || []).forEach(function(b) {
+        (b.slips || []).forEach(function(s) { allSlips.push(s); });
+      });
+      pendingSlips = allSlips;
+      updatePendingBanner();
+      updatePendingNavCount();
+    }
+  } catch (e) { console.log('Poll pending error:', e); }
+}
+
+function updatePendingNavCount() {
+  var el = document.getElementById('navPendingCount');
+  if (!el) return;
+  if (pendingSlips.length > 0) {
+    el.style.display = 'inline-flex';
+    el.textContent = pendingSlips.length;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function groupPendingBatches() {
+  if (!pendingSlips.length) return [];
+  var sorted = pendingSlips.slice().sort(function(a, b) { return a.timestamp - b.timestamp; });
+  var batches = [], current = null;
+  sorted.forEach(function(s) {
+    if (!current) current = { startTs: s.timestamp, endTs: s.timestamp, slips: [s] };
+    else {
+      var gap = s.timestamp - current.endTs;
+      if (gap > BATCH_GAP_MS) { batches.push(current); current = { startTs: s.timestamp, endTs: s.timestamp, slips: [s] }; }
+      else { current.slips.push(s); current.endTs = s.timestamp; }
+    }
+  });
+  if (current) batches.push(current);
+  batches.reverse();
+  batches.forEach(function(b, i) { b.letter = String.fromCharCode(65 + i); b.isLatest = (i === 0); });
+  return batches;
+}
+
+function updatePendingBanner() {
+  var banner = document.getElementById('pendingBanner');
+  if (!banner) return;
+  if (!pendingSlips.length) { banner.style.display = 'none'; return; }
+  banner.style.display = 'block';
+  document.getElementById('pendingCount').textContent = pendingSlips.length;
+  var batches = groupPendingBatches();
+  var batchInfo = document.getElementById('pendingBatchInfo');
+  var subText = document.getElementById('pendingSubText');
+  if (batches.length > 1) {
+    batchInfo.textContent = '· แบ่งเป็น ' + batches.length + ' ชุด';
+    subText.textContent = 'ชุดใหม่สุด: ' + batches[0].slips.length + ' ใบ · ' + formatTimeAgo(batches[0].endTs);
+  } else if (batches.length === 1) {
+    batchInfo.textContent = '';
+    subText.textContent = 'จาก ' + formatTimeAgo(batches[0].endTs) + ' · รอคุณเลือกส่งให้ลูกค้า';
+  }
+}
+
+function formatTimeAgo(ts) {
+  var diff = Date.now() - ts;
+  var m = Math.floor(diff / 60000);
+  if (m < 1) return 'เพิ่งเข้ามา';
+  if (m < 60) return m + ' นาทีที่แล้ว';
+  var h = Math.floor(m / 60);
+  if (h < 24) return h + ' ชั่วโมงที่แล้ว';
+  return Math.floor(h / 24) + ' วันที่แล้ว';
+}
+
+function formatPendingTime(ts) {
+  var d = new Date(ts);
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+async function openPendingModal() {
+  // Reload with images
+  try {
+    var r = await fetch(BASE + '/api/pending-slips?group=1&includeImages=1', { headers: getHeaders() });
+    var j = await r.json();
+    if (j.ok) {
+      var all = [];
+      (j.batches || []).forEach(function(b) { (b.slips || []).forEach(function(s) { all.push(s); }); });
+      pendingSlips = all;
+    }
+  } catch (e) {}
+  pendingSelected = {};
+  var batches = groupPendingBatches();
+  if (batches.length > 0) batches[0].slips.forEach(function(s) { pendingSelected[s.id] = true; });
+  renderPendingBatches();
+  document.getElementById('pendingModal').style.display = 'flex';
+}
+
+function closePendingModal() {
+  document.getElementById('pendingModal').style.display = 'none';
+}
+
+function renderPendingBatches() {
+  var container = document.getElementById('pendingBatches');
+  var batches = groupPendingBatches();
+  if (!batches.length) {
+    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--t4);font-size:14px">ไม่มีสลิปรอในขณะนี้</div>';
+    updatePendingSelectedCount();
+    return;
+  }
+  container.innerHTML = batches.map(function(b) {
+    var ago = formatTimeAgo(b.endTs);
+    var timeLabel = formatPendingTime(b.endTs);
+    var allSelected = b.slips.every(function(s) { return pendingSelected[s.id]; });
+    var newBadge = b.isLatest ? ' <span style="background:var(--blue);color:#052545;border-radius:100px;padding:1px 8px;font-size:10px;font-weight:700;margin-left:6px">ใหม่สุด</span>' : '';
+    var cards = b.slips.map(function(s) {
+      var isSel = !!pendingSelected[s.id];
+      var dataUrl = s.dataUrl || ('data:' + (s.contentType || 'image/jpeg') + ';base64,' + (s.base64 || ''));
+      return '<div onclick="togglePendingSlip(\'' + esc(s.id) + '\')" style="cursor:pointer;border:2px solid ' + (isSel ? 'var(--gold)' : 'var(--line)') + ';border-radius:10px;padding:6px;transition:all .15s;position:relative' + (isSel ? ';background:rgba(232,193,92,.08)' : '') + '">' +
+        '<img src="' + dataUrl + '" style="width:100%;height:120px;object-fit:cover;border-radius:6px;display:block">' +
+        '<div style="position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;background:' + (isSel ? 'var(--gold)' : 'var(--bg-1)') + ';border:2px solid ' + (isSel ? 'var(--gold)' : 'var(--line)') + ';display:flex;align-items:center;justify-content:center;font-size:11px;color:#1a1208;font-weight:700">' + (isSel ? '✓' : '') + '</div>' +
+        '<div style="font-size:10px;color:var(--t3);margin-top:4px;text-align:center">' + formatPendingTime(s.timestamp) + '</div>' +
+      '</div>';
+    }).join('');
+
+    return '<div style="background:var(--bg-1);border:1px solid ' + (b.isLatest ? 'var(--blue)' : 'var(--line)') + ';border-radius:12px;padding:14px;margin-bottom:12px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">' +
+        '<div style="font-weight:600;font-size:14px">🕐 ชุด ' + b.letter + newBadge + ' <span style="font-size:11px;color:var(--t3);font-weight:400;margin-left:6px">' + timeLabel + ' น. · ' + ago + '</span></div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+          '<button class="btn btn-ghost btn-sm" onclick="toggleBatchSelect(\'' + b.letter + '\')">' + (allSelected ? '☐ ยกเลิก' : '✓ เลือกทั้งชุด') + '</button>' +
+          '<button class="btn btn-gold btn-sm" onclick="addBatchOnly(\'' + b.letter + '\')">➕ เพิ่มชุดนี้</button>' +
+          '<button class="btn btn-sm" style="background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.3)" onclick="deletePendingBatch(\'' + b.letter + '\')">🗑️</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--t4);margin-bottom:8px">' + b.slips.length + ' ใบ</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">' + cards + '</div>' +
+    '</div>';
+  }).join('');
+  updatePendingSelectedCount();
+}
+
+function togglePendingSlip(id) {
+  if (pendingSelected[id]) delete pendingSelected[id];
+  else pendingSelected[id] = true;
+  renderPendingBatches();
+}
+
+function toggleBatchSelect(letter) {
+  var batches = groupPendingBatches();
+  var b = batches.find(function(x) { return x.letter === letter; });
+  if (!b) return;
+  var allSel = b.slips.every(function(s) { return pendingSelected[s.id]; });
+  b.slips.forEach(function(s) { if (allSel) delete pendingSelected[s.id]; else pendingSelected[s.id] = true; });
+  renderPendingBatches();
+}
+
+function addBatchOnly(letter) {
+  var batches = groupPendingBatches();
+  var b = batches.find(function(x) { return x.letter === letter; });
+  if (!b) return;
+  pendingSelected = {};
+  b.slips.forEach(function(s) { pendingSelected[s.id] = true; });
+  addPendingToItems();
+}
+
+async function deletePendingBatch(letter) {
+  var batches = groupPendingBatches();
+  var b = batches.find(function(x) { return x.letter === letter; });
+  if (!b) return;
+  if (!confirm('ลบสลิปชุด ' + letter + ' (' + b.slips.length + ' ใบ)?')) return;
+  var ids = b.slips.map(function(s) { return s.id; });
+  try {
+    await fetch(BASE + '/api/pending-slips?action=mark_used', {
+      method: 'POST', headers: getHeaders(), body: JSON.stringify({ ids: ids }),
+    });
+    pendingSlips = pendingSlips.filter(function(s) { return ids.indexOf(s.id) === -1; });
+    ids.forEach(function(id) { delete pendingSelected[id]; });
+    renderPendingBatches();
+    updatePendingBanner();
+    updatePendingNavCount();
+  } catch (e) { alert('❌ ' + e.message); }
+}
+
+function updatePendingSelectedCount() {
+  var count = Object.keys(pendingSelected).length;
+  document.getElementById('pendingSelectedCount').textContent = 'เลือก ' + count + ' ใบ';
+  var btn = document.getElementById('pendingAddBtn');
+  btn.textContent = count > 0 ? '➕ เพิ่ม ' + count + ' ใบในรายการ' : '➕ เพิ่มในรายการ';
+  btn.disabled = count === 0;
+  btn.style.opacity = count === 0 ? '.5' : '1';
+}
+
+function addPendingToItems() {
+  var selectedIds = Object.keys(pendingSelected);
+  if (!selectedIds.length) return;
+
+  var added = 0;
+  selectedIds.forEach(function(id) {
+    var ps = pendingSlips.find(function(s) { return s.id === id; });
+    if (!ps) return;
+    var dataUrl = ps.dataUrl || ('data:' + (ps.contentType || 'image/jpeg') + ';base64,' + (ps.base64 || ''));
+    wdItems.push({
+      id: 'tg_' + Date.now() + '_' + added,
+      fileName: 'telegram_' + ps.id.substring(0, 10) + '.jpg',
+      previewUrl: dataUrl,
+      receiverName: '',
+      amount: '',
+      matchedUid: '',
+      matchedName: '',
+      confidence: 0,
+      status: 'ready',
+      errorMsg: '',
+      searchQuery: '',
+      showSuggestions: false,
+      telegramId: ps.id,
+    });
+    added++;
+  });
+
+  pendingSelected = {};
+  closePendingModal();
+
+  // Switch to withdraw tab and render
+  var navWd = document.querySelector('.nav-item[data-page="withdraw"]');
+  if (navWd && !navWd.classList.contains('active')) switchPage('withdraw', navWd);
+  wdRenderItems();
+
+  setTimeout(function() {
+    var section = document.getElementById('wdMatchSection');
+    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
 // ═══ START APP ═══
 function startApp() {
   renderColorPicker();
@@ -1290,10 +2972,46 @@ function startApp() {
   setInterval(poll, 5000);
   loadKvSettings();
   setInterval(loadKvSettings, 60000);
+  // Withdraw tab setup
+  wdSetupDropZone();
+  wdLoadLookup();
+  setInterval(wdLoadLookup, 120000);
+  // Telegram pending polling
+  checkPendingSlips();
+  setInterval(checkPendingSlips, 60000);
 }
 
 // ═══ INIT ═══
 checkAuth();
 </script>
+<!-- ═══ Pending Telegram Slips Modal ═══ -->
+<div class="auth-overlay" id="pendingModal" style="display:none" onclick="if(event.target===this)closePendingModal()">
+  <div style="background:var(--surface);border:1px solid var(--line-hi);border-radius:18px;padding:0;width:92%;max-width:720px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.6)">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--t0);font-family:var(--font-display)">📥 สลิปรอส่ง (จาก Telegram)</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:4px">เลือกสลิปที่ต้องการเพิ่มในรายการส่ง — สามารถเลือกได้หลายใบพร้อมกัน</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closePendingModal()">✕ ปิด</button>
+    </div>
+    <div id="pendingBatches" style="flex:1;overflow-y:auto;padding:20px 24px"></div>
+    <div style="padding:14px 24px;border-top:1px solid var(--line);background:var(--bg-1);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <span id="pendingSelectedCount" style="font-size:13px;color:var(--gold);font-weight:600">เลือก 0 ใบ</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="closePendingModal()">ยกเลิก</button>
+        <button class="btn btn-gold" id="pendingAddBtn" onclick="addPendingToItems()" disabled style="opacity:.5">➕ เพิ่มในรายการ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Image Preview Modal ═══ -->
+<div class="auth-overlay" id="imgPreviewModal" style="display:none" onclick="if(event.target===this)closeImgPreview()">
+  <div style="background:var(--surface);border:1px solid var(--line-hi);border-radius:18px;padding:20px;max-width:90%;max-height:90vh;display:flex;flex-direction:column;gap:12px">
+    <img id="imgPreviewContent" style="max-width:100%;max-height:75vh;border-radius:10px;display:block">
+    <button class="btn btn-ghost btn-sm" onclick="closeImgPreview()" style="align-self:flex-end">✕ ปิด</button>
+  </div>
+</div>
+
 </body>
 </html>
