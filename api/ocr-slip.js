@@ -40,6 +40,11 @@ function isLikelyName(line) {
   var l = line.trim();
   if (l.length < 3 || l.length > 60) return false;
   if (isKeyword(l)) return false;
+  // Exclude lines that are clearly not names
+  if (/^\d/.test(l)) return false;                    // starts with digit
+  if (/^[\d,\.]+\s*(บาท|THB|฿)?$/.test(l)) return false;  // amount
+  if (/^[xX\d\-\.]+$/.test(l)) return false;          // account number
+  if (/ค่าธรรมเนียม|fee|ธนาคาร|bank|บัญชี|สาขา|ref|เลขที่|หมายเหตุ|ดาวน์โหลด|qr/i.test(l)) return false;
   if (TITLE_RE.test(l)) return true;
   var thai = l.replace(/[^ก-๙\s\.]/g, '').trim();
   return thai.split(/\s+/).length >= 2 && thai.length >= 4;
@@ -73,6 +78,28 @@ function parseSlipText(fullText) {
   result.receiverName = findNameAfterKeyword(lines, TO_KEYS);
   result.senderName = findNameAfterKeyword(lines, FROM_KEYS);
   if (result.receiverName && result.senderName && result.receiverName === result.senderName) result.receiverName = '';
+
+  // FALLBACK: if no keywords found (จาก/ไปยัง not in OCR text), find names by position
+  // In Thai slips: first name = sender (จาก), second name = receiver (ไปยัง)
+  if (!result.receiverName && !result.senderName) {
+    var foundNames = lines.filter(function(l) { return isLikelyName(l); });
+    if (foundNames.length >= 2) {
+      result.senderName = cleanName(foundNames[0]);
+      result.receiverName = cleanName(foundNames[1]);
+    } else if (foundNames.length === 1) {
+      // Only 1 name: assume it's sender (ลูกค้า) since that's more useful for matching
+      result.senderName = cleanName(foundNames[0]);
+    }
+  }
+  // If only receiver found but not sender, also scan for extra name
+  if (result.receiverName && !result.senderName) {
+    var names = lines.filter(function(l) { return isLikelyName(l) && cleanName(l) !== result.receiverName; });
+    if (names.length) result.senderName = cleanName(names[0]);
+  }
+  if (!result.receiverName && result.senderName) {
+    var names = lines.filter(function(l) { return isLikelyName(l) && cleanName(l) !== result.senderName; });
+    if (names.length) result.receiverName = cleanName(names[names.length - 1]);
+  }
 
   var amounts = [];
   [/฿\s*([\d,]+\.?\d*)/g, /([\d,]+\.?\d*)\s*(?:฿|THB|บาท)/g, /จำนวน(?:เงิน)?\s*([\d,]+\.?\d*)/g].forEach(function(re) {
