@@ -920,8 +920,189 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
   transform: translateY(-2px);
 }
 
-/* Mobile responsive adjustments */
-@media(max-width: 900px) {
+/* ═══════════════════════════════════════════════
+   v7: CUSTOMER LIST LAYOUT (LINE chat style)
+   ═══════════════════════════════════════════════ */
+.cust-stats-row {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.stat-chip {
+  padding: 12px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 13px;
+  display: flex; align-items: center; gap: 10px;
+  transition: all .15s;
+}
+.stat-chip:hover { border-color: var(--line-hi); }
+.stat-chip .v { font-weight: 700; color: var(--gold); font-family: var(--mono); font-size: 16px; }
+.stat-chip .l { color: var(--t3); }
+
+.cust-filter-bar {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.cust-list-wrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.cust-row {
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background .1s;
+  position: relative;
+}
+.cust-row:hover { background: var(--surface-hi); }
+.cust-row:last-child { border-bottom: none; }
+
+.cust-row-av {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-dim), rgba(125,211,252,.08));
+  display: grid; place-items: center;
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 700;
+  color: var(--gold);
+  position: relative;
+  flex-shrink: 0;
+}
+.cust-row-av::after {
+  content: '';
+  position: absolute;
+  bottom: 1px; right: 1px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--t4);
+  border: 2px solid var(--surface);
+}
+.cust-row-av.active::after { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.cust-row-av.vip::after { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+.cust-row:hover .cust-row-av::after { border-color: var(--surface-hi); }
+
+.cust-row-main { min-width: 0; }
+.cust-row-name-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.cust-row-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--t0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+.cust-badge-sm {
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  white-space: nowrap;
+}
+.cust-badge-sm.vip { background: var(--accent-dim); color: var(--gold); }
+.cust-badge-sm.active { background: var(--green-bg); color: var(--green); }
+.cust-badge-sm.new { background: var(--blue-bg); color: var(--blue); }
+.cust-badge-sm.alias { background: var(--warning-bg); color: var(--amber); }
+
+.cust-row-sub {
+  font-size: 12px;
+  color: var(--t3);
+  display: flex; gap: 14px;
+  flex-wrap: wrap;
+}
+.cust-row-sub b { color: var(--t1); font-weight: 600; font-family: var(--mono); }
+.cust-row-sub .hot { color: var(--amber); font-weight: 600; }
+
+.cust-row-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+.cust-row-amount {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--gold);
+}
+.cust-row-amount.dim { color: var(--t3); }
+.cust-row-time {
+  font-size: 11px;
+  color: var(--t4);
+  margin-top: 2px;
+}
+
+.cust-row-actions {
+  display: none;
+  gap: 4px;
+  margin-left: 4px;
+}
+.cust-row:hover .cust-row-actions { display: flex; }
+.cust-row:hover .cust-row-right { display: none; }
+
+.cust-btn-ico {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  color: var(--t2);
+  cursor: pointer;
+  font-size: 14px;
+  display: grid; place-items: center;
+  transition: all .12s;
+}
+.cust-btn-ico:hover {
+  background: var(--surface);
+  color: var(--t0);
+  transform: scale(1.05);
+}
+.cust-btn-ico.danger:hover {
+  background: var(--red-bg);
+  color: var(--red);
+  border-color: rgba(248,113,113,.3);
+}
+.cust-btn-ico.primary {
+  background: var(--accent-dim);
+  color: var(--gold);
+  border-color: var(--accent-line);
+}
+.cust-btn-ico.primary:hover {
+  background: var(--gold);
+  color: #1a1208;
+}
+
+.cust-empty {
+  padding: 60px 40px;
+  text-align: center;
+  color: var(--t4);
+  font-size: 14px;
+}
+.cust-empty .ico { font-size: 44px; margin-bottom: 16px; opacity: .5; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .cust-row { padding: 14px 16px; grid-template-columns: 44px 1fr auto; gap: 12px; }
+  .cust-row-av { width: 44px; height: 44px; font-size: 13px; }
+  .cust-row-name { max-width: 180px; }
+  .cust-row:hover .cust-row-actions { display: none; }
+  .cust-row:hover .cust-row-right { display: block; }
+  .cust-row-sub { gap: 8px; font-size: 11px; }
+}
+
+
   body { font-size: 15px !important; }
   .topbar { padding: 16px 20px !important; }
   .topbar-title { font-size: 20px !important; }
@@ -1417,28 +1598,55 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
 
       <!-- ═══ CONTACTS PAGE ═══ -->
       <div class="tab-page" id="page-contacts">
-        <div class="dtable-wrap">
-          <div class="dtable-toolbar">
-            <div class="dtable-title">👥 รายชื่อลูกค้าทั้งหมด</div>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-              <span style="font-size:13px;color:var(--t3)" id="contactsPageCount">0 รายชื่อ</span>
-              <input class="inp" id="contactSearchPage" placeholder="🔍 ค้นหาชื่อหรือ userId..." style="min-width:240px;padding:8px 14px" oninput="renderContactsPage()">
-            </div>
+
+        <!-- Stats Row -->
+        <div class="cust-stats-row">
+          <div class="stat-chip">🔥 <span class="v" id="custStatToday">0</span><span class="l">วันนี้ฝาก</span></div>
+          <div class="stat-chip">💎 <span class="v" id="custStatVIP">0</span><span class="l">VIP</span></div>
+          <div class="stat-chip">🆕 <span class="v" id="custStatNew">0</span><span class="l">ใหม่ 7 วัน</span></div>
+          <div class="stat-chip">💰 <span class="v" id="custStatAmount">฿0</span><span class="l">ยอดวันนี้</span></div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="cust-filter-bar">
+          <input class="inp" id="contactSearchPage" placeholder="🔍 ค้นหาชื่อ หรือ userId..." style="flex:1;min-width:240px" oninput="renderContactsPage()">
+          <select class="sel" id="contactFilter" onchange="renderContactsPage()">
+            <option value="all">🔹 ทุกสถานะ</option>
+            <option value="today">🔥 วันนี้ฝาก</option>
+            <option value="vip">💎 VIP (ยอด&gt;10,000)</option>
+            <option value="new">🆕 ใหม่ 7 วัน</option>
+            <option value="inactive">😴 ไม่เคยฝาก</option>
+          </select>
+          <select class="sel" id="contactSort" onchange="renderContactsPage()">
+            <option value="recent">เรียง: ล่าสุด</option>
+            <option value="amount">เรียง: ยอดเงิน</option>
+            <option value="bills">เรียง: จำนวนบิล</option>
+            <option value="name">เรียง: ชื่อ A-Z</option>
+          </select>
+          <button class="btn btn-ghost" onclick="exportContactsCSV()" title="Export CSV">📥 Export</button>
+        </div>
+
+        <!-- List Layout -->
+        <div class="cust-list-wrap">
+          <div id="contactsGridPage">
+            <div style="padding:40px;text-align:center;color:var(--t4);font-size:14px">⏳ กำลังโหลดข้อมูล...</div>
           </div>
-          <div style="padding:20px">
-            <div id="contactsGridPage" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px">
-              <div style="padding:20px;text-align:center;color:var(--t4);font-size:13px;grid-column:1/-1">รอโหลดข้อมูล...</div>
-            </div>
-            <div style="border-top:1px solid var(--line);padding-top:16px;margin-top:20px">
-              <div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:10px">เพิ่มรายชื่อใหม่</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <input class="inp" id="addContactNamePage" placeholder="ชื่อลูกค้า" style="flex:1;min-width:160px">
-                <input class="inp inp-mono" id="addContactUidPage" placeholder="userId (U1234...)" style="flex:1;min-width:160px">
-                <button class="btn btn-green btn-sm" onclick="addContactPage()">+ เพิ่มรายชื่อ</button>
-              </div>
-              <div class="hint" style="margin-top:8px">💡 userId เพิ่มอัตโนมัติเมื่อลูกค้าทักมาทาง LINE OA · ข้อมูลเก็บถาวรใน Redis</div>
-            </div>
+        </div>
+
+        <!-- Add Contact -->
+        <div class="win-box" style="margin-top:20px">
+          <div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:12px">➕ เพิ่มรายชื่อใหม่</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <input class="inp" id="addContactNamePage" placeholder="ชื่อลูกค้า" style="flex:1;min-width:160px">
+            <input class="inp inp-mono" id="addContactUidPage" placeholder="userId (U1234...)" style="flex:1;min-width:160px">
+            <button class="btn btn-gold" onclick="addContactPage()">+ เพิ่มรายชื่อ</button>
           </div>
+          <div class="hint" style="margin-top:10px">💡 userId เพิ่มอัตโนมัติเมื่อลูกค้าทักมาทาง LINE OA · ข้อมูลเก็บถาวรใน Redis</div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:0 4px">
+          <span style="font-size:13px;color:var(--t3)" id="contactsPageCount">0 รายชื่อ</span>
+          <span style="font-size:12px;color:var(--t4)">💡 คลิกที่รายชื่อเพื่อดูสถิติ · Hover เพื่อดูปุ่มจัดการ</span>
         </div>
       </div>
 
@@ -2614,45 +2822,242 @@ async function loadKvSettings() {
 // ═══ NEW PAGE RENDERERS ═══
 
 // Contacts page
+// ═══════════════════════════════════════════════════
+// v7 — Customer List Layout with Stats/Filter/Sort
+// ═══════════════════════════════════════════════════
+
+// Cache customer activity (computed from allSlips)
+function computeCustomerActivity() {
+  var now = Date.now();
+  var today = new Date().setHours(0, 0, 0, 0);
+  var week = now - (7 * 24 * 60 * 60 * 1000);
+  var activity = {};
+
+  (allSlips || []).forEach(function(s) {
+    if (!s.userId) return;
+    if (!activity[s.userId]) {
+      activity[s.userId] = {
+        todayBills: 0, todayPass: 0, todayFail: 0, todayAmount: 0,
+        totalBills: 0, totalAmount: 0,
+        lastTs: 0, isNew: false,
+      };
+    }
+    var a = activity[s.userId];
+    var ts = s.timestamp || 0;
+    a.totalBills++;
+    if (s.status === 'pass') a.totalAmount += (s.amount || 0);
+    if (ts > a.lastTs) a.lastTs = ts;
+
+    if (ts >= today) {
+      a.todayBills++;
+      if (s.status === 'pass') {
+        a.todayPass++;
+        a.todayAmount += (s.amount || 0);
+      } else {
+        a.todayFail++;
+      }
+    }
+  });
+
+  // Mark "new" customers (first seen within 7 days)
+  (contacts || []).forEach(function(c) {
+    var a = activity[c.uid];
+    if (!a) return;
+    // If first slip within 7 days
+    var customerSlips = (allSlips || []).filter(function(s) { return s.userId === c.uid; });
+    if (customerSlips.length) {
+      var firstTs = Math.min.apply(null, customerSlips.map(function(s) { return s.timestamp || now; }));
+      if (firstTs >= week) a.isNew = true;
+    }
+  });
+
+  return activity;
+}
+
+function timeAgo(ts) {
+  if (!ts) return '';
+  var diff = Date.now() - ts;
+  var m = Math.floor(diff / 60000);
+  if (m < 1) return 'เพิ่งเข้ามา';
+  if (m < 60) return m + ' นาทีที่แล้ว';
+  var h = Math.floor(m / 60);
+  if (h < 24) return h + ' ชม.ที่แล้ว';
+  var d = Math.floor(h / 24);
+  if (d < 7) return d + ' วันก่อน';
+  return Math.floor(d / 7) + ' สัปดาห์ก่อน';
+}
+
 function renderContactsPage() {
   var el = document.getElementById('contactsGridPage');
   if (!el) return;
   var search = (document.getElementById('contactSearchPage').value || '').toLowerCase();
-  var filtered = contacts.filter(function(c) {
-    if (!search) return true;
-    var txt = (c.name + ' ' + c.uid + ' ' + (c.aliases || []).join(' ')).toLowerCase();
-    return txt.indexOf(search) !== -1;
+  var filterEl = document.getElementById('contactFilter');
+  var sortEl = document.getElementById('contactSort');
+  var filter = filterEl ? filterEl.value : 'all';
+  var sort = sortEl ? sortEl.value : 'recent';
+
+  var activity = computeCustomerActivity();
+
+  // Attach activity to each contact
+  var enriched = contacts.map(function(c) {
+    var a = activity[c.uid] || { todayBills: 0, todayAmount: 0, totalBills: 0, totalAmount: 0, lastTs: 0, isNew: false };
+    return {
+      c: c,
+      idx: contacts.indexOf(c),
+      act: a,
+      isVIP: a.totalAmount >= 10000,
+      isActiveToday: a.todayBills > 0,
+      isNew: a.isNew,
+      hasActivity: a.totalBills > 0,
+    };
   });
+
+  // Compute header stats
+  var statToday = 0, statVIP = 0, statNew = 0, statAmount = 0;
+  enriched.forEach(function(e) {
+    if (e.isActiveToday) statToday++;
+    if (e.isVIP) statVIP++;
+    if (e.isNew) statNew++;
+    statAmount += e.act.todayAmount;
+  });
+  var sT = document.getElementById('custStatToday'); if (sT) sT.textContent = statToday;
+  var sV = document.getElementById('custStatVIP'); if (sV) sV.textContent = statVIP;
+  var sN = document.getElementById('custStatNew'); if (sN) sN.textContent = statNew;
+  var sA = document.getElementById('custStatAmount'); if (sA) sA.textContent = '฿' + (statAmount || 0).toLocaleString('en-US', {maximumFractionDigits: 0});
+
+  // Filter
+  var filtered = enriched.filter(function(e) {
+    // Search
+    if (search) {
+      var txt = (e.c.name + ' ' + e.c.uid + ' ' + (e.c.aliases || []).join(' ')).toLowerCase();
+      if (txt.indexOf(search) === -1) return false;
+    }
+    // Filter dropdown
+    if (filter === 'today' && !e.isActiveToday) return false;
+    if (filter === 'vip' && !e.isVIP) return false;
+    if (filter === 'new' && !e.isNew) return false;
+    if (filter === 'inactive' && e.hasActivity) return false;
+    return true;
+  });
+
+  // Sort
+  filtered.sort(function(a, b) {
+    if (sort === 'recent') return b.act.lastTs - a.act.lastTs;
+    if (sort === 'amount') return b.act.totalAmount - a.act.totalAmount;
+    if (sort === 'bills') return b.act.totalBills - a.act.totalBills;
+    if (sort === 'name') return a.c.name.localeCompare(b.c.name, 'th');
+    return 0;
+  });
+
+  // Update counts
   var countEl = document.getElementById('contactsPageCount');
-  if (countEl) countEl.textContent = (search ? filtered.length + '/' + contacts.length : contacts.length) + ' รายชื่อ';
+  if (countEl) countEl.textContent = (search || filter !== 'all' ? filtered.length + '/' + contacts.length : contacts.length) + ' รายชื่อ';
   var navCount = document.getElementById('navContactCount');
   if (navCount) navCount.textContent = contacts.length;
 
   if (!filtered.length) {
-    el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--t4);font-size:14px;grid-column:1/-1">' + (contacts.length ? 'ไม่พบรายชื่อที่ค้นหา' : 'ยังไม่มีรายชื่อ — ลูกค้าทักมาจะเพิ่มอัตโนมัติ') + '</div>';
+    el.innerHTML = '<div class="cust-empty">' +
+      '<div class="ico">' + (contacts.length ? '🔍' : '👥') + '</div>' +
+      (contacts.length ? 'ไม่พบรายชื่อตามเงื่อนไขที่เลือก' : 'ยังไม่มีรายชื่อลูกค้า — เมื่อลูกค้าทักมาทาง LINE ระบบจะเพิ่มอัตโนมัติ') +
+    '</div>';
     return;
   }
-  el.innerHTML = filtered.map(function(c) {
-    var idx = contacts.indexOf(c);
-    var aliasHtml = '';
-    if (c.aliases && c.aliases.length) {
-      aliasHtml = '<div style="font-size:11px;color:var(--amber);margin-top:4px">🏷️ ' + c.aliases.map(esc).join(', ') + '</div>';
+
+  el.innerHTML = filtered.map(function(e) {
+    var c = e.c, idx = e.idx, a = e.act;
+    var avClass = e.isVIP ? 'vip' : (e.isActiveToday ? 'active' : '');
+    var initial = esc((c.name || '?').substring(0, 2));
+
+    // Badges
+    var badges = '';
+    if (e.isVIP) badges += '<span class="cust-badge-sm vip">💎 VIP</span>';
+    if (e.isActiveToday) badges += '<span class="cust-badge-sm active">🔥 วันนี้</span>';
+    if (e.isNew) badges += '<span class="cust-badge-sm new">🆕 ใหม่</span>';
+    if (c.aliases && c.aliases.length) badges += '<span class="cust-badge-sm alias" title="ชื่อเรียก: ' + esc(c.aliases.join(', ')) + '">🏷️ ' + c.aliases.length + '</span>';
+
+    // Sub info
+    var subParts = [];
+    if (a.todayBills > 0) {
+      subParts.push('<span><b>' + a.todayBills + '</b> บิลวันนี้</span>');
+      var passFail = '✓ ' + a.todayPass;
+      if (a.todayFail > 0) passFail += ' · ✗ ' + a.todayFail;
+      subParts.push('<span>' + passFail + '</span>');
+    } else {
+      subParts.push('<span>ไม่มีวันนี้</span>');
     }
-    return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;transition:all .15s" onmouseover="this.style.borderColor=\'var(--line-hi)\';this.style.background=\'var(--surface-hi)\'" onmouseout="this.style.borderColor=\'var(--line)\';this.style.background=\'var(--surface)\'">' +
-      '<div class="contact-av" onclick="openCustStats(\'' + esc(c.uid) + '\')" style="cursor:pointer" title="ดูสถิติ">' + esc(c.name.substring(0, 2)) + '</div>' +
-      '<div style="flex:1;min-width:0;cursor:pointer" onclick="openCustStats(\'' + esc(c.uid) + '\')" title="ดูสถิติลูกค้า">' +
-        '<div style="font-size:14px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(c.name) + '</div>' +
-        aliasHtml +
-        '<div style="font-size:11px;color:var(--t3);font-family:var(--mono);margin-top:4px">' + esc(c.uid) + '</div>' +
+    if (a.totalBills > 0) {
+      subParts.push('<span>รวม <b>' + a.totalBills + '</b> บิล · ฿' + (a.totalAmount || 0).toLocaleString('en-US', {maximumFractionDigits: 0}) + '</span>');
+    }
+
+    // Right side (amount + time) or actions (on hover)
+    var amount, timeStr;
+    if (a.todayAmount > 0) {
+      amount = '฿' + a.todayAmount.toLocaleString('en-US', {maximumFractionDigits: 0});
+    } else {
+      amount = '<span class="dim">—</span>';
+    }
+    timeStr = timeAgo(a.lastTs);
+
+    return '<div class="cust-row" onclick="openCustStats(\'' + esc(c.uid) + '\')">' +
+      // Avatar with status dot
+      '<div class="cust-row-av ' + avClass + '" onclick="event.stopPropagation();openCustStats(\'' + esc(c.uid) + '\')">' + initial + '</div>' +
+      // Main
+      '<div class="cust-row-main">' +
+        '<div class="cust-row-name-row">' +
+          '<div class="cust-row-name">' + esc(c.name) + '</div>' +
+          badges +
+        '</div>' +
+        '<div class="cust-row-sub">' + subParts.join('') + '</div>' +
       '</div>' +
-      '<div style="display:flex;gap:4px;flex-shrink:0">' +
-        '<button class="btn btn-ghost btn-sm" onclick="openCustStats(\'' + esc(c.uid) + '\')" title="ดูสถิติ">📊</button>' +
-        '<button class="btn btn-ghost btn-sm" onclick="promptAddAlias(' + idx + ')" title="เพิ่มชื่อเรียก">🏷️</button>' +
-        '<button class="btn btn-ghost btn-sm" onclick="promptSendMsg(\'' + esc(c.uid) + '\',\'' + esc(c.name) + '\')" title="ส่งข้อความ">💬</button>' +
-        '<button style="padding:6px 10px;border-radius:8px;background:var(--red-bg);border:1px solid rgba(248,113,113,.3);color:var(--red);cursor:pointer;font-size:11px" onclick="deleteContactPage(' + idx + ')" title="ลบ">🗑️</button>' +
+      // Right (amount+time OR actions on hover)
+      '<div class="cust-row-right">' +
+        '<div class="cust-row-amount">' + amount + '</div>' +
+        '<div class="cust-row-time">' + esc(timeStr || '—') + '</div>' +
+      '</div>' +
+      '<div class="cust-row-actions" onclick="event.stopPropagation()">' +
+        '<button class="cust-btn-ico primary" onclick="openCustStats(\'' + esc(c.uid) + '\')" title="ดูสถิติ">📊</button>' +
+        '<button class="cust-btn-ico" onclick="promptAddAlias(' + idx + ')" title="เพิ่มชื่อเรียก">🏷️</button>' +
+        '<button class="cust-btn-ico" onclick="promptSendMsg(\'' + esc(c.uid) + '\',\'' + esc(c.name) + '\')" title="ส่งข้อความ">💬</button>' +
+        '<button class="cust-btn-ico danger" onclick="deleteContactPage(' + idx + ')" title="ลบ">🗑️</button>' +
       '</div>' +
     '</div>';
   }).join('');
+}
+
+// Export contacts as CSV
+function exportContactsCSV() {
+  if (!contacts.length) { toastWarn('ไม่มีข้อมูลให้ export'); return; }
+  var activity = computeCustomerActivity();
+  var rows = [['ชื่อ', 'UserID', 'ชื่อเรียก (alias)', 'บิลวันนี้', 'ยอดวันนี้', 'บิลรวม', 'ยอดรวม']];
+  contacts.forEach(function(c) {
+    var a = activity[c.uid] || {};
+    rows.push([
+      c.name,
+      c.uid,
+      (c.aliases || []).join('; '),
+      a.todayBills || 0,
+      a.todayAmount || 0,
+      a.totalBills || 0,
+      a.totalAmount || 0,
+    ]);
+  });
+  var csv = rows.map(function(r) {
+    return r.map(function(v) {
+      var s = String(v == null ? '' : v);
+      if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    }).join(',');
+  }).join('\n');
+  var blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'contacts_' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toastSuccess('Export ' + contacts.length + ' รายชื่อเรียบร้อย');
 }
 
 function addContactPage() {
