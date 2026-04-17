@@ -645,6 +645,25 @@ module.exports = async (req, res) => {
 
     // ── Image (slip) ──
     if (ev.message && ev.message.type === 'image' && replyToken) {
+      // ── Rate limit: 5 สลิป/นาที/user ──
+      var rateLimitKey = 'ratelimit:' + uid;
+      try {
+        var rlRaw = await config.kvGet(rateLimitKey);
+        var rlData = rlRaw ? JSON.parse(rlRaw) : { count: 0, resetAt: 0 };
+        var rlNow = Date.now();
+        if (rlNow > rlData.resetAt) { rlData = { count: 0, resetAt: rlNow + 60000 }; }
+        rlData.count++;
+        await config.kvSetEx(rateLimitKey, JSON.stringify(rlData), 120);
+        if (rlData.count > 5) {
+          console.log('Rate limit hit: ' + uid + ' (' + rlData.count + ' slips/min)');
+          await store.addEvent({
+            id: Date.now().toString(36), timestamp: Date.now(), source: 'line',
+            userId: uid, name: displayName, text: 'rate-limited', type: 'message',
+          });
+          continue;
+        }
+      } catch (rlErr) { /* ถ้า rate limit check พัง ให้ผ่านไปก่อน */ }
+
       var result = null;
       var slipRecord = {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
