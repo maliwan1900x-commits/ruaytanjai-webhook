@@ -14,7 +14,7 @@ var KEYS = {
   contacts: 'contacts',
 };
 
-var MAX_SLIPS = 500;
+var MAX_SLIPS = 1500;
 var MAX_EVENTS = 500;
 
 // ── Slips ──

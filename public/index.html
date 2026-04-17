@@ -3317,7 +3317,7 @@ function wdMatchName(receiverName) {
   if (!receiverName || !wdLookup.length) return null;
   var target = wdNormName(receiverName);
   if (!target || target.length < 2) return null;
-  var best = null, bestScore = 0, bestLen = 0;
+  var best = null, bestScore = 0, bestLen = 0, bestLastSeen = 0;
 
   for (var i = 0; i < wdLookup.length; i++) {
     var e = wdLookup[i];
@@ -3356,11 +3356,13 @@ function wdMatchName(receiverName) {
         }
       }
 
-      // Tiebreaker: prefer candidate with closer length to target
+      // Tiebreaker: prefer candidate with closer length + most recent activity
       var lenDiff = Math.abs(cand.length - target.length);
-      if (score > bestScore || (score === bestScore && lenDiff < bestLen)) {
+      var lastSeen = e.lastSeen || 0;
+      if (score > bestScore || (score === bestScore && lastSeen > bestLastSeen) || (score === bestScore && lastSeen === bestLastSeen && lenDiff < bestLen)) {
         bestScore = score;
         bestLen = lenDiff;
+        bestLastSeen = lastSeen;
         best = { userId: e.userId, senderName: e.senderName, displayName: e.displayName, confidence: score };
       }
     }
