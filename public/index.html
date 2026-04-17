@@ -1600,20 +1600,39 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
         <div class="sec-head mt">Insights</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px" id="summaryInsights"></div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px" class="slip-grid-2col">
-          <div class="win-box" style="padding:18px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-              <div style="font-size:14px;font-weight:700;color:var(--t1)">📈 สลิปตามชั่วโมง</div>
-              <span class="bdg bdg-ok" id="summaryPeakHour" style="font-family:var(--mono)">—</span>
-            </div>
-            <div style="display:flex;align-items:flex-end;gap:3px;height:120px" id="summaryHourChart"></div>
+        <!-- Workload Analysis Chart -->
+        <div class="sec-head mt">วิเคราะห์ปริมาณงานรายชั่วโมง</div>
+        <div class="win-box" style="padding:18px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
+            <div style="font-size:12px;color:var(--t3)">แท่งเขียว = สลิปที่รับ · แท่งจาง = ลูกค้าทัก · hover ดูรายละเอียด</div>
+            <select class="sel" id="hourDaySelect" onchange="renderHourChart()" style="padding:6px 10px;font-size:12px">
+              <option value="today">วันนี้</option>
+            </select>
           </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0" id="hourKpis"></div>
+          <div style="display:flex;align-items:flex-end;gap:4px;height:200px;margin-bottom:4px" id="summaryHourChart"></div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;color:var(--t3)">
+            <span>🟩 สลิปที่รับ</span>
+            <span style="opacity:.4">🟩 ลูกค้าทัก</span>
+            <span>🟨 ชั่วโมงพีค</span>
+          </div>
+          <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px" id="hourCompare"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px" class="slip-grid-2col">
           <div class="win-box" style="padding:18px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
               <div style="font-size:14px;font-weight:700;color:var(--t1)">⚠️ สาเหตุผิดพลาด</div>
               <span class="bdg bdg-warn" id="summaryErrTotal" style="font-family:var(--mono)">0</span>
             </div>
             <div id="summaryErrList"></div>
+          </div>
+          <div class="win-box" style="padding:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div style="font-size:14px;font-weight:700;color:var(--t1)">📈 สรุป</div>
+              <span class="bdg bdg-ok" id="summaryPeakHour" style="font-family:var(--mono)">—</span>
+            </div>
+            <div id="summaryPeakInfo" style="font-size:13px;color:var(--t2);line-height:1.8"></div>
           </div>
         </div>
 
@@ -2491,16 +2510,8 @@ function renderSummaryPro() {
     '<div class="kpi" style="display:flex;align-items:flex-start;gap:12px"><div style="width:40px;height:40px;border-radius:12px;background:var(--amber-bg);display:grid;place-items:center;font-size:18px;flex-shrink:0">⏰</div><div><div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:4px">ช่วงเวลาพีค</div><div style="font-size:18px;font-weight:800;font-family:var(--mono);color:var(--amber)">' + String(peakHour).padStart(2, '0') + ':00</div><div style="font-size:11px;color:var(--t3);margin-top:2px">' + hourBuckets[peakHour] + ' สลิป</div></div></div>' +
     '<div class="kpi" style="display:flex;align-items:flex-start;gap:12px"><div style="width:40px;height:40px;border-radius:12px;background:var(--accent-dim);display:grid;place-items:center;font-size:18px;flex-shrink:0">🏆</div><div><div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:4px">ลูกค้ายอดสูงสุด</div><div style="font-size:18px;font-weight:800;font-family:var(--mono);color:var(--gold)">' + esc(topCust.name) + '</div><div style="font-size:11px;color:var(--t3);margin-top:2px">฿' + topCust.amount.toLocaleString() + ' · ' + topCust.bills + ' บิล</div></div></div>';
 
-  // Hour chart
-  var maxH = Math.max.apply(null, hourBuckets) || 1;
-  var pkEl = document.getElementById('summaryPeakHour');
-  if (pkEl) pkEl.textContent = 'พีค ' + String(peakHour).padStart(2, '0') + ':00';
-  var hcEl = document.getElementById('summaryHourChart');
-  if (hcEl) hcEl.innerHTML = hourBuckets.map(function(v, i) {
-    var h = Math.max(2, Math.round((v / maxH) * 110));
-    var color = i === peakHour ? 'var(--gold)' : v > maxH * 0.7 ? 'var(--green)' : 'var(--surface-hi)';
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;height:' + h + 'px;border-radius:3px 3px 0 0;background:' + color + ';cursor:pointer;position:relative" title="' + String(i).padStart(2, '0') + ':00 — ' + v + ' สลิป"></div><div style="font-size:9px;color:var(--t4);font-family:var(--mono)">' + (i % 3 === 0 ? String(i).padStart(2, '0') : '') + '</div></div>';
-  }).join('');
+  // Hour chart — workload analysis
+  renderHourChart();
 
   // Error breakdown
   var reasons = {};
@@ -2529,6 +2540,125 @@ function renderSummaryPro() {
 }
 
 function renderErrChart() { /* replaced by renderSummaryPro */ }
+
+function renderHourChart() {
+  var todayStart = new Date().setHours(0, 0, 0, 0);
+  // Build day options from allSlips
+  var dayMap = {};
+  allSlips.forEach(function(s) { var dk = dateKey(s.timestamp); if (!dayMap[dk]) dayMap[dk] = s.timestamp; });
+  allEvents.forEach(function(e) { var dk = dateKey(e.timestamp); if (!dayMap[dk]) dayMap[dk] = e.timestamp; });
+  var dayKeys = Object.keys(dayMap).sort().reverse().slice(0, 7);
+  var selEl = document.getElementById('hourDaySelect');
+  if (selEl && selEl.options.length <= 1) {
+    selEl.innerHTML = '';
+    dayKeys.forEach(function(dk, i) {
+      var d = new Date(dayMap[dk]);
+      var label = i === 0 ? 'วันนี้' : i === 1 ? 'เมื่อวาน' : fmtDate(dayMap[dk]);
+      selEl.innerHTML += '<option value="' + dk + '">' + label + '</option>';
+    });
+  }
+  var selectedDay = selEl ? selEl.value : dayKeys[0] || dateKey(Date.now());
+
+  // Count per hour: slips, unique slip customers, unique message customers
+  var slipBuckets = new Array(24).fill(0);
+  var slipCustBuckets = []; for (var i = 0; i < 24; i++) slipCustBuckets.push({});
+  var msgCustBuckets = []; for (var i = 0; i < 24; i++) msgCustBuckets.push({});
+
+  allSlips.forEach(function(s) {
+    if (dateKey(s.timestamp) !== selectedDay) return;
+    var h = new Date(s.timestamp).getHours();
+    slipBuckets[h]++;
+    if (s.userId) slipCustBuckets[h][s.userId] = true;
+  });
+  allEvents.forEach(function(e) {
+    if (dateKey(e.timestamp) !== selectedDay) return;
+    var h = new Date(e.timestamp).getHours();
+    if (e.userId) msgCustBuckets[h][e.userId] = true;
+  });
+
+  var msgCounts = msgCustBuckets.map(function(m) { return Object.keys(m).length; });
+  var custCounts = slipCustBuckets.map(function(m) { return Object.keys(m).length; });
+
+  var maxAll = Math.max(Math.max.apply(null, msgCounts), Math.max.apply(null, slipBuckets)) || 1;
+  var peakSlip = Math.max.apply(null, slipBuckets);
+  var peakIdx = slipBuckets.indexOf(peakSlip);
+  var totalSlips = slipBuckets.reduce(function(a, b) { return a + b; }, 0);
+  var totalMsgs = msgCounts.reduce(function(a, b) { return a + b; }, 0);
+  var convRate = totalMsgs > 0 ? Math.round(totalSlips / totalMsgs * 100) : 0;
+  var worstGap = 0, worstH = 0;
+  for (var i = 0; i < 24; i++) { var g = msgCounts[i] - slipBuckets[i]; if (g > worstGap) { worstGap = g; worstH = i; } }
+
+  // KPIs
+  var hkEl = document.getElementById('hourKpis');
+  if (hkEl) hkEl.innerHTML =
+    '<div class="kpi" style="padding:10px;text-align:center"><div class="kpi-val" style="color:var(--green);font-size:20px">' + totalSlips + '</div><div class="kpi-label">สลิปที่รับ</div></div>' +
+    '<div class="kpi" style="padding:10px;text-align:center"><div class="kpi-val" style="color:var(--t2);font-size:20px">' + totalMsgs + '</div><div class="kpi-label">ลูกค้าทัก</div></div>' +
+    '<div class="kpi" style="padding:10px;text-align:center"><div class="kpi-val" style="color:var(--gold);font-size:20px">' + convRate + '%</div><div class="kpi-label">ทัก→สลิป</div></div>' +
+    '<div class="kpi" style="padding:10px;text-align:center"><div class="kpi-val" style="color:var(--red);font-size:20px">' + String(worstH).padStart(2, '0') + ':00</div><div class="kpi-label">Gap สูงสุด (หาย ' + worstGap + ')</div></div>';
+
+  // Peak info
+  var pkEl = document.getElementById('summaryPeakHour');
+  if (pkEl) pkEl.textContent = 'พีค ' + String(peakIdx).padStart(2, '0') + ':00';
+  var piEl = document.getElementById('summaryPeakInfo');
+  if (piEl) piEl.innerHTML =
+    '🏆 พีคสลิป: <b style="color:var(--gold)">' + String(peakIdx).padStart(2, '0') + ':00</b> (' + peakSlip + ' บิล จาก ' + custCounts[peakIdx] + ' คน)<br>' +
+    '📊 เฉลี่ย: <b>' + Math.round(totalSlips / 24) + '</b> บิล/ชม.<br>' +
+    '⚠️ Gap สูงสุด: <b style="color:var(--red)">' + String(worstH).padStart(2, '0') + ':00</b> (ทัก ' + msgCounts[worstH] + ' รับ ' + slipBuckets[worstH] + ' หาย ' + worstGap + ')';
+
+  // Chart bars
+  var hcEl = document.getElementById('summaryHourChart');
+  if (hcEl) hcEl.innerHTML = slipBuckets.map(function(sv, i) {
+    var mv = msgCounts[i], cv = custCounts[i];
+    var hS = Math.max(2, Math.round((sv / maxAll) * 180));
+    var hM = Math.max(2, Math.round((mv / maxAll) * 180));
+    var isPk = i === peakIdx;
+    var barCol = isPk ? 'var(--gold)' : sv > peakSlip * 0.7 ? 'var(--green)' : 'var(--green)';
+    var barOp = isPk ? '1' : sv > peakSlip * 0.7 ? '1' : sv > peakSlip * 0.3 ? '.7' : '.35';
+    var gap = mv - sv;
+
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;min-width:18px;position:relative;cursor:pointer;justify-content:flex-end;height:100%" onmouseenter="this.querySelector(\'.hc-pop\').style.display=\'block\'" onmouseleave="this.querySelector(\'.hc-pop\').style.display=\'none\'">' +
+      '<div class="hc-pop" style="display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--line-hi);border-radius:12px;padding:12px 16px;z-index:10;white-space:nowrap;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.4)">' +
+        '<div style="font-size:14px;font-weight:700;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--line)">' + String(i).padStart(2, '0') + ':00</div>' +
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span style="color:var(--green)">สลิป</span><span style="font-weight:700;font-family:var(--mono)">' + sv + ' บิล</span></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span style="color:var(--t2)">ลูกค้าทัก</span><span style="font-weight:700;font-family:var(--mono)">' + mv + ' คน</span></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span style="color:var(--blue)">ลูกค้าฝาก</span><span style="font-weight:700;font-family:var(--mono);color:var(--blue)">' + cv + ' คน</span></div>' +
+        (gap > 0 ? '<div style="margin-top:4px;padding-top:4px;border-top:1px solid var(--line);font-size:12px;color:var(--red)">หายไป ' + gap + ' คน</div>' : (sv > 0 ? '<div style="margin-top:4px;padding-top:4px;border-top:1px solid var(--line);font-size:12px;color:var(--green)">รับได้ครบ</div>' : '')) +
+      '</div>' +
+      '<div style="width:100%;position:relative;height:' + hM + 'px">' +
+        '<div style="width:100%;height:' + hM + 'px;border-radius:4px 4px 0 0;position:absolute;bottom:0;background:' + barCol + ';opacity:.15"></div>' +
+        '<div style="width:100%;height:' + hS + 'px;border-radius:4px 4px 0 0;position:absolute;bottom:0;background:' + barCol + ';opacity:' + barOp + '"></div>' +
+      '</div>' +
+      '<div style="font-size:9px;color:' + (isPk ? 'var(--gold)' : 'var(--t4)') + ';font-family:var(--mono);margin-top:5px;font-weight:' + (isPk ? '700' : '400') + '">' + String(i).padStart(2, '0') + '</div>' +
+    '</div>';
+  }).join('');
+
+  // Compare table
+  var cmpEl = document.getElementById('hourCompare');
+  if (!cmpEl) return;
+  var maxT = 0;
+  var cmpRows = dayKeys.map(function(dk, idx) {
+    var ts = 0, tm = 0;
+    allSlips.forEach(function(s) { if (dateKey(s.timestamp) === dk) ts++; });
+    var msgU = {};
+    allEvents.forEach(function(e) { if (dateKey(e.timestamp) === dk && e.userId) msgU[e.userId] = true; });
+    tm = Object.keys(msgU).length;
+    if (tm > maxT) maxT = tm;
+    var label = idx === 0 ? 'วันนี้' : idx === 1 ? 'เมื่อวาน' : fmtDate(allSlips.find(function(s) { return dateKey(s.timestamp) === dk; }) ? allSlips.find(function(s) { return dateKey(s.timestamp) === dk; }).timestamp : Date.now());
+    return { dk: dk, label: label, ts: ts, tm: tm, cv: tm > 0 ? Math.round(ts / tm * 100) : 0 };
+  });
+  cmpEl.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:10px">เปรียบเทียบย้อนหลัง</div>' +
+    cmpRows.map(function(r) {
+      var isCur = r.dk === selectedDay;
+      var pctM = maxT > 0 ? Math.round(r.tm / maxT * 100) : 0;
+      var pctS = maxT > 0 ? Math.round(r.ts / maxT * 100) : 0;
+      return '<div style="display:grid;grid-template-columns:70px 1fr 45px 45px;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:12px;' + (isCur ? 'color:var(--gold)' : '') + '" onclick="document.getElementById(\'hourDaySelect\').value=\'' + r.dk + '\';renderHourChart()">' +
+        '<div style="font-weight:' + (isCur ? '700' : '400') + '">' + r.label + '</div>' +
+        '<div style="height:14px;border-radius:4px;overflow:hidden;background:var(--bg-1);position:relative"><div style="position:absolute;left:0;top:0;height:100%;width:' + pctM + '%;background:var(--green);opacity:.15;border-radius:4px"></div><div style="position:absolute;left:0;top:0;height:100%;width:' + pctS + '%;background:' + (isCur ? 'var(--gold)' : 'var(--green)') + ';opacity:.7;border-radius:4px"></div></div>' +
+        '<div style="text-align:right;font-family:var(--mono);color:var(--green)">' + r.ts + '</div>' +
+        '<div style="text-align:right;font-family:var(--mono);color:' + (r.cv >= 80 ? 'var(--green)' : r.cv >= 60 ? 'var(--gold)' : 'var(--red)') + '">' + r.cv + '%</div>' +
+      '</div>';
+    }).join('');
+}
 
 function renderDailySummary() {
   var fd = document.getElementById('summaryDayFilter').value;
