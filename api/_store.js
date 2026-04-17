@@ -15,7 +15,7 @@ var KEYS = {
 };
 
 var MAX_SLIPS = 1500;
-var MAX_EVENTS = 500;
+var MAX_EVENTS = 1500;
 
 // ── Slips ──
 async function addSlip(slip) {

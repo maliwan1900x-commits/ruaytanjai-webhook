@@ -2061,14 +2061,25 @@ function findUid(name) {
   var clean = cleanName(name);
   if (!clean) return null;
 
-  // Collect ALL matches with scores
-  var matches = [];
+  // Build lastSeen map from actual slips data (ข้อมูลจริง!)
+  var lastSeenMap = {};
+  if (typeof allSlips !== 'undefined' && allSlips.length) {
+    for (var s = 0; s < allSlips.length; s++) {
+      var sl = allSlips[s];
+      if (sl.userId && sl.timestamp) {
+        if (!lastSeenMap[sl.userId] || sl.timestamp > lastSeenMap[sl.userId]) {
+          lastSeenMap[sl.userId] = sl.timestamp;
+        }
+      }
+    }
+  }
 
+  var matches = [];
   for (var i = 0; i < contacts.length; i++) {
     var c = contacts[i];
     var score = 0;
 
-    // Exact match
+    // Exact name match
     if (cleanName(c.name) === clean) score = 100;
     // Alias exact match
     if (!score && c.aliases && Array.isArray(c.aliases)) {
@@ -2076,30 +2087,38 @@ function findUid(name) {
         if (cleanName(c.aliases[j]) === clean) { score = 100; break; }
       }
     }
-    // Substring match
+    // Substring match — use length ratio (ชื่อยาวใกล้เคียง = score สูงกว่า)
     if (!score) {
       var cClean = cleanName(c.name);
-      if (cClean && (cClean.indexOf(clean) !== -1 || clean.indexOf(cClean) !== -1)) score = 50;
+      if (cClean && (cClean.indexOf(clean) !== -1 || clean.indexOf(cClean) !== -1)) {
+        var shorter = Math.min(cClean.length, clean.length);
+        var longer = Math.max(cClean.length, clean.length);
+        score = 30 + Math.round((shorter / longer) * 20); // 30-50
+      }
     }
     if (!score && c.aliases && Array.isArray(c.aliases)) {
       for (var j = 0; j < c.aliases.length; j++) {
         var aClean = cleanName(c.aliases[j]);
-        if (aClean && (aClean.indexOf(clean) !== -1 || clean.indexOf(aClean) !== -1)) { score = 50; break; }
+        if (aClean && (aClean.indexOf(clean) !== -1 || clean.indexOf(aClean) !== -1)) {
+          var shorter = Math.min(aClean.length, clean.length);
+          var longer = Math.max(aClean.length, clean.length);
+          score = 30 + Math.round((shorter / longer) * 20);
+          break;
+        }
       }
     }
 
     if (score > 0) {
-      matches.push({ uid: c.uid, score: score, lastSeen: c.lastSeen || c.lastActive || 0, hasBills: (c.totalBills || 0) > 0 });
+      matches.push({ uid: c.uid, score: score, lastSeen: lastSeenMap[c.uid] || 0 });
     }
   }
 
   if (!matches.length) return null;
 
-  // Sort: highest score first, then most recent activity, then has bills
+  // Sort: highest score → most recent activity
   matches.sort(function(a, b) {
     if (b.score !== a.score) return b.score - a.score;
-    if (b.lastSeen !== a.lastSeen) return b.lastSeen - a.lastSeen;
-    return (b.hasBills ? 1 : 0) - (a.hasBills ? 1 : 0);
+    return b.lastSeen - a.lastSeen;
   });
 
   return matches[0].uid;
@@ -2149,7 +2168,7 @@ async function poll() {
     contacts = data.contacts || [];
 
     document.getElementById('connDot').className = 'status-dot on';
-    document.getElementById('connLabel').textContent = 'เชื่อมต่อแล้ว · ' + allSlips.length + ' สลิป';
+    document.getElementById('connLabel').textContent = 'เชื่อมต่อแล้ว · ' + allSlips.filter(function(s){return isToday(s.timestamp);}).length + ' สลิปวันนี้ (เก็บ ' + allSlips.length + ')';
     document.getElementById('tabSlipCount').textContent = allSlips.filter(function(s) { return isToday(s.timestamp); }).length;
     renderAll();
   } catch (e) {
