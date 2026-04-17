@@ -193,8 +193,8 @@ async function getSummary() {
     totalEvents: events.length,
     totalContacts: contacts.length,
     totalProfiles: Object.keys(profiles).length,
-    slips: slips.slice(0, 200),
-    events: events.slice(0, 100),
+    slips: slips,
+    events: events.slice(0, 500),
     profiles: profiles,
     contacts: contacts,
   };

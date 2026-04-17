@@ -1084,6 +1084,32 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
   color: #1a1208;
 }
 
+.cust-badge-sm.dormant { background: rgba(248,113,113,.08); color: var(--red); }
+.pagi-btn { min-width:36px;height:36px;display:inline-grid;place-items:center;border-radius:8px;background:var(--bg-1);border:1px solid var(--line);color:var(--t2);font-size:13px;font-family:var(--mono);cursor:pointer;transition:all .12s }
+.pagi-btn:hover { border-color:var(--line-hi);color:var(--t0);background:var(--surface-hi) }
+.pagi-btn.active { background:var(--gold);color:#1a1208;border-color:var(--gold);font-weight:700 }
+.pagi-btn.disabled { opacity:.3;pointer-events:none }
+.broadcast-bar { display:none;align-items:center;gap:12px;padding:12px 16px;background:linear-gradient(135deg,rgba(232,193,92,.06),rgba(232,193,92,.02));border:1px solid var(--accent-line);border-radius:var(--r);margin-bottom:12px;flex-wrap:wrap }
+.broadcast-bar.show { display:flex }
+.broadcast-bar .bb-info { flex:1;min-width:200px;font-size:13px;color:var(--t2) }
+.broadcast-bar .bb-info b { color:var(--gold);font-family:var(--mono) }
+.broadcast-modal-backdrop { position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.65);display:none;place-items:center;backdrop-filter:blur(4px) }
+.broadcast-modal-backdrop.show { display:grid }
+.broadcast-modal { background:var(--bg-1);border:1px solid var(--line-hi);border-radius:18px;width:min(520px,92vw);max-height:88vh;overflow-y:auto;padding:28px }
+.broadcast-modal h3 { font-size:17px;font-weight:700;color:var(--gold);margin-bottom:18px }
+.broadcast-modal .bm-label { font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px;margin-top:14px }
+.broadcast-modal textarea { width:100%;min-height:80px;padding:12px 14px;background:var(--surface);border:1px solid var(--line-hi);border-radius:var(--r2);color:var(--t1);font-family:var(--font-body);font-size:14px;line-height:1.6;resize:vertical }
+.broadcast-modal textarea:focus { outline:none;border-color:var(--gold) }
+.broadcast-modal .bm-preview { background:var(--surface);border-radius:var(--r2);padding:14px;font-size:13px;color:var(--t2);line-height:1.7;border:1px solid var(--line);margin-top:6px }
+.broadcast-modal .bm-recipients { max-height:160px;overflow-y:auto;background:var(--surface);border-radius:var(--r2);padding:8px;margin-top:6px;border:1px solid var(--line) }
+.broadcast-modal .bm-recip-row { display:flex;align-items:center;gap:8px;padding:6px 8px;font-size:12px;color:var(--t2);border-bottom:1px solid var(--line) }
+.broadcast-modal .bm-recip-row:last-child { border-bottom:none }
+.broadcast-modal .bm-recip-row .bm-rname { flex:1;font-weight:600;color:var(--t1) }
+.broadcast-modal .bm-recip-row .bm-rinfo { color:var(--t3);font-family:var(--mono);font-size:11px }
+.broadcast-modal .bm-footer { display:flex;gap:10px;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--line) }
+.broadcast-modal .bm-var-hint { font-size:11px;color:var(--t3);margin-top:6px }
+.broadcast-modal .bm-var-hint code { background:var(--surface);padding:1px 5px;border-radius:4px;font-family:var(--mono);color:var(--gold);font-size:11px }
+
 .cust-empty {
   padding: 60px 40px;
   text-align: center;
@@ -1148,11 +1174,15 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
 <div class="auth-overlay" id="authOverlay" style="display:none">
   <div class="auth-box">
     <div style="font-size:36px;margin-bottom:12px">👑</div>
-    <h2>รวยทันใจ Dashboard</h2>
-    <p>ใส่ API Key เพื่อเข้าใช้งาน</p>
-    <input class="inp inp-mono" id="authKeyInput" type="password" placeholder="API Key..." style="margin-bottom:14px;text-align:center" onkeydown="if(event.key==='Enter')authLogin()">
-    <button class="btn btn-gold" onclick="authLogin()" style="width:100%;justify-content:center;padding:13px">🔓 เข้าสู่ระบบ</button>
-    <div id="authError" style="color:var(--red);font-size:12px;margin-top:10px;display:none">❌ API Key ไม่ถูกต้อง</div>
+    <h2>รวยทันใจ</h2>
+    <p>เข้าสู่ระบบ Admin Dashboard</p>
+    <div style="text-align:left;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px">🔑 รหัสผ่าน</div>
+      <input class="inp inp-mono" id="authKeyInput" type="password" placeholder="ใส่รหัสผ่าน..." style="width:100%;text-align:center;padding:13px 16px" onkeydown="if(event.key==='Enter')authLogin()">
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2);margin-bottom:14px;cursor:pointer"><input type="checkbox" id="authRemember" checked style="accent-color:var(--gold)"> จดจำการเข้าสู่ระบบ</label>
+    <button class="btn btn-gold" onclick="authLogin()" style="width:100%;justify-content:center;padding:13px;font-size:14px">🔓 เข้าสู่ระบบ</button>
+    <div id="authError" style="color:var(--red);font-size:12px;margin-top:10px;display:none">❌ รหัสผ่านไม่ถูกต้อง</div>
   </div>
 </div>
 
@@ -1319,11 +1349,19 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
         <div class="dtable-wrap">
           <div class="dtable-toolbar">
             <div class="dtable-title">📋 ประวัติตรวจสลิป</div>
-            <select class="sel" id="slipFilterStatus" onchange="renderSlipTable()">
-              <option value="all">ทุกสถานะ</option>
-              <option value="pass">✅ ผ่าน</option>
-              <option value="fail">❌ ไม่ผ่าน</option>
-            </select>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select class="sel" id="slipFilterStatus" onchange="slipCurrentPage=0;renderSlipTable()">
+                <option value="all">ทุกสถานะ</option>
+                <option value="pass">✅ ผ่าน</option>
+                <option value="fail">❌ ไม่ผ่าน</option>
+              </select>
+              <select class="sel" id="slipPerPage" onchange="slipCurrentPage=0;renderSlipTable()">
+                <option value="20">20 / หน้า</option>
+                <option value="50" selected>50 / หน้า</option>
+                <option value="100">100 / หน้า</option>
+              </select>
+              <span style="font-size:12px;color:var(--t3);font-family:var(--mono)" id="slipPageInfo"></span>
+            </div>
           </div>
           <div style="overflow-x:auto">
             <table>
@@ -1331,6 +1369,7 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
               <tbody id="slipTableBody"></tbody>
             </table>
           </div>
+          <div id="slipPagination" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:14px;flex-wrap:wrap"></div>
         </div>
       </div>
 
@@ -1619,6 +1658,7 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
           <div class="stat-chip">💎 <span class="v" id="custStatVIP">0</span><span class="l">VIP</span></div>
           <div class="stat-chip">🆕 <span class="v" id="custStatNew">0</span><span class="l">ใหม่ 7 วัน</span></div>
           <div class="stat-chip">💰 <span class="v" id="custStatAmount">฿0</span><span class="l">ยอดวันนี้</span></div>
+          <div class="stat-chip">😴 <span class="v" id="custStatDormant">0</span><span class="l">หายไป</span></div>
         </div>
 
         <!-- Filter Bar -->
@@ -1629,7 +1669,10 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
             <option value="today">🔥 วันนี้ฝาก</option>
             <option value="vip">💎 VIP (ยอด&gt;10,000)</option>
             <option value="new">🆕 ใหม่ 7 วัน</option>
-            <option value="inactive">😴 ไม่เคยฝาก</option>
+            <option value="dormant3">😴 หายไป 3+ วัน</option>
+            <option value="dormant7">😴 หายไป 7+ วัน</option>
+            <option value="dormant14">😴 หายไป 14+ วัน</option>
+            <option value="inactive">👻 ไม่เคยฝาก</option>
           </select>
           <select class="sel" id="contactSort" onchange="renderContactsPage()">
             <option value="recent">เรียง: ล่าสุด</option>
@@ -1638,6 +1681,12 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
             <option value="name">เรียง: ชื่อ A-Z</option>
           </select>
           <button class="btn btn-ghost" onclick="exportContactsCSV()" title="Export CSV">📥 Export</button>
+        </div>
+
+        <!-- Broadcast bar -->
+        <div class="broadcast-bar" id="broadcastBar">
+          <div class="bb-info">📢 พบ <b id="bbCount">0</b> คนที่หายไป — ส่งข้อความเรียกกลับได้ทั้งกลุ่ม</div>
+          <div><button class="btn btn-gold" onclick="openBroadcastModal()">📲 ส่งข้อความทั้งกลุ่ม</button></div>
         </div>
 
         <!-- List Layout -->
@@ -1699,6 +1748,19 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
 
       <!-- ═══ WEBHOOK PAGE ═══ -->
       <div class="tab-page" id="page-webhook">
+
+        <div id="webhookLocked" style="text-align:center;padding:80px 20px">
+          <div style="font-size:56px;margin-bottom:20px">🔐</div>
+          <div style="font-size:20px;font-weight:700;margin-bottom:8px;color:var(--t1);font-family:var(--font-display)">เฉพาะเจ้าของเท่านั้น</div>
+          <div style="font-size:14px;color:var(--t3);margin-bottom:24px">กรอกรหัสผ่านเพื่อเข้าหน้า Webhook</div>
+          <div style="max-width:340px;margin:0 auto">
+            <input class="inp" id="webhookPassInput" type="password" placeholder="รหัสผ่าน..." style="text-align:center;font-size:15px;padding:13px 16px;margin-bottom:14px" onkeydown="if(event.key==='Enter')unlockWebhook()">
+            <button class="btn btn-gold" onclick="unlockWebhook()" style="width:100%;justify-content:center;padding:13px;font-size:14px">ปลดล็อค</button>
+            <div id="webhookPassError" style="color:var(--red);font-size:13px;margin-top:12px;display:none">รหัสผ่านไม่ถูกต้อง</div>
+          </div>
+        </div>
+
+        <div id="webhookContent" style="display:none">
         <div class="win-box">
           <div class="win-box-title">🌐 Webhook URL</div>
           <input class="inp inp-mono" id="webhookUrlDisplay" readonly value="" style="margin-bottom:8px">
@@ -1795,6 +1857,7 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
             </div>
           </div>
         </div>
+        </div><!-- /webhookContent -->
       </div>
 
       <!-- ═══ DOCS PAGE ═══ -->
@@ -2012,27 +2075,42 @@ function getHeaders() {
 
 async function authLogin() {
   API_KEY = document.getElementById('authKeyInput').value.trim();
+  if (!API_KEY) {
+    document.getElementById('authError').textContent = '❌ กรุณาใส่รหัสผ่าน';
+    document.getElementById('authError').style.display = 'block';
+    return;
+  }
   try {
     var res = await fetch(BASE + '/api/kv?action=status', { headers: getHeaders() });
     if (res.status === 401) {
+      document.getElementById('authError').textContent = '❌ รหัสผ่านไม่ถูกต้อง';
       document.getElementById('authError').style.display = 'block';
       API_KEY = '';
       return;
     }
     document.getElementById('authOverlay').style.display = 'none';
+    // จดจำ login
+    var remember = document.getElementById('authRemember') && document.getElementById('authRemember').checked;
+    if (remember) {
+      localStorage.setItem('rtj_key', API_KEY);
+    }
     sessionStorage.setItem('rtj_key', API_KEY);
     startApp();
   } catch (e) {
+    document.getElementById('authError').textContent = '❌ เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง';
     document.getElementById('authError').style.display = 'block';
   }
 }
 
 async function checkAuth() {
-  var saved = sessionStorage.getItem('rtj_key') || '';
+  var saved = localStorage.getItem('rtj_key') || sessionStorage.getItem('rtj_key') || '';
   if (saved) API_KEY = saved;
   try {
     var res = await fetch(BASE + '/api/kv?action=status', { headers: getHeaders() });
     if (res.status === 401) {
+      localStorage.removeItem('rtj_key');
+      sessionStorage.removeItem('rtj_key');
+      API_KEY = '';
       document.getElementById('authOverlay').style.display = 'flex';
       return;
     }
@@ -2154,6 +2232,22 @@ async function unlockSettings() {
   }
 }
 
+var webhookUnlocked = false;
+async function unlockWebhook() {
+  var input = document.getElementById('webhookPassInput').value;
+  var hash = await hashPassword(input);
+  if (hash === SETTINGS_PASS_HASH) {
+    webhookUnlocked = true;
+    document.getElementById('webhookLocked').style.display = 'none';
+    document.getElementById('webhookContent').style.display = 'block';
+    document.getElementById('webhookPassError').style.display = 'none';
+  } else {
+    document.getElementById('webhookPassError').style.display = 'block';
+    document.getElementById('webhookPassInput').value = '';
+    document.getElementById('webhookPassInput').focus();
+  }
+}
+
 // ═══ POLLING — single source from Redis ═══
 async function poll() {
   try {
@@ -2210,15 +2304,25 @@ function renderLiveFeed() {
   }).join('');
 }
 
+var slipCurrentPage = 0;
+
 function renderSlipTable() {
   var f = document.getElementById('slipFilterStatus').value;
+  var perPage = parseInt(document.getElementById('slipPerPage').value) || 50;
   var items = f === 'all' ? allSlips : allSlips.filter(function(s) { return s.status === f; });
-  items = items.slice(0, 100);
-  if (!items.length) {
+  var total = items.length;
+  var pages = Math.ceil(total / perPage);
+  if (slipCurrentPage >= pages) slipCurrentPage = Math.max(0, pages - 1);
+  var start = slipCurrentPage * perPage;
+  var pageItems = items.slice(start, start + perPage);
+  var infoEl = document.getElementById('slipPageInfo');
+  if (infoEl) infoEl.textContent = total + ' สลิป';
+  if (!pageItems.length) {
     document.getElementById('slipTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--t4);padding:40px">ยังไม่มีข้อมูลสลิป</td></tr>';
+    var pg = document.getElementById('slipPagination'); if (pg) pg.innerHTML = '';
     return;
   }
-  document.getElementById('slipTableBody').innerHTML = items.map(function(s) {
+  document.getElementById('slipTableBody').innerHTML = pageItems.map(function(s) {
     var sb = s.status === 'pass' ? '<span class="bdg bdg-ok">✅ ผ่าน</span>' : '<span class="bdg bdg-fail">❌ ไม่ผ่าน</span>';
     var reason = s.errorReason ? '<span class="bdg ' + (s.errorReason === 'สลิปซ้ำ' ? 'bdg-warn' : 'bdg-fail') + '">' + esc(s.errorReason) + '</span>' : '—';
     var sender = s.slipInfo && s.slipInfo.senderName ? esc(s.slipInfo.senderName) : '—';
@@ -2226,6 +2330,22 @@ function renderSlipTable() {
     var btn = uid ? '<button class="btn btn-ghost btn-sm" onclick="promptSendMsg(\'' + esc(uid) + '\',\'' + esc(s.customerName || '') + '\')">💬</button>' : '—';
     return '<tr><td class="mono">' + fmtDateTime(s.timestamp) + '</td><td><div class="td-name"><div class="td-av">' + esc((s.customerName || '?').substring(0, 2)) + '</div>' + esc(s.customerName || '?') + '</div></td><td class="mono" style="color:var(--gold);font-weight:700">' + (s.amount ? '฿' + fmtMoney(s.amount) : '—') + '</td><td>' + sender + '</td><td>' + sb + '</td><td>' + reason + '</td><td>' + btn + '</td></tr>';
   }).join('');
+  var pagiEl = document.getElementById('slipPagination');
+  if (!pagiEl || pages <= 1) { if (pagiEl) pagiEl.innerHTML = ''; return; }
+  var html = '';
+  html += '<button class="pagi-btn ' + (slipCurrentPage === 0 ? 'disabled' : '') + '" onclick="slipCurrentPage=0;renderSlipTable()">«</button>';
+  html += '<button class="pagi-btn ' + (slipCurrentPage === 0 ? 'disabled' : '') + '" onclick="slipCurrentPage=Math.max(0,slipCurrentPage-1);renderSlipTable()">‹</button>';
+  var startP = Math.max(0, slipCurrentPage - 2);
+  var endP = Math.min(pages - 1, slipCurrentPage + 2);
+  if (startP > 0) html += '<span style="font-size:12px;color:var(--t3);margin:0 4px">...</span>';
+  for (var p = startP; p <= endP; p++) {
+    html += '<button class="pagi-btn ' + (p === slipCurrentPage ? 'active' : '') + '" onclick="slipCurrentPage=' + p + ';renderSlipTable()">' + (p + 1) + '</button>';
+  }
+  if (endP < pages - 1) html += '<span style="font-size:12px;color:var(--t3);margin:0 4px">...</span>';
+  html += '<button class="pagi-btn ' + (slipCurrentPage >= pages - 1 ? 'disabled' : '') + '" onclick="slipCurrentPage=Math.min(' + (pages - 1) + ',slipCurrentPage+1);renderSlipTable()">›</button>';
+  html += '<button class="pagi-btn ' + (slipCurrentPage >= pages - 1 ? 'disabled' : '') + '" onclick="slipCurrentPage=' + (pages - 1) + ';renderSlipTable()">»</button>';
+  html += '<span style="font-size:11px;color:var(--t3);margin-left:10px;font-family:var(--mono)">หน้า ' + (slipCurrentPage + 1) + '/' + pages + ' · ' + (start + 1) + '-' + Math.min(start + perPage, total) + ' จาก ' + total + '</span>';
+  pagiEl.innerHTML = html;
 }
 
 function promptSendMsg(uid, name) {
@@ -2952,50 +3072,50 @@ function renderContactsPage() {
   var sort = sortEl ? sortEl.value : 'recent';
 
   var activity = computeCustomerActivity();
+  var now = Date.now();
+  var DAY_MS = 24 * 60 * 60 * 1000;
 
-  // Attach activity to each contact
   var enriched = contacts.map(function(c) {
     var a = activity[c.uid] || { todayBills: 0, todayAmount: 0, totalBills: 0, totalAmount: 0, lastTs: 0, isNew: false };
+    var dormantDays = (a.lastTs && a.totalBills > 0) ? Math.floor((now - a.lastTs) / DAY_MS) : -1;
     return {
-      c: c,
-      idx: contacts.indexOf(c),
-      act: a,
-      isVIP: a.totalAmount >= 10000,
-      isActiveToday: a.todayBills > 0,
-      isNew: a.isNew,
-      hasActivity: a.totalBills > 0,
+      c: c, idx: contacts.indexOf(c), act: a,
+      isVIP: a.totalAmount >= 10000, isActiveToday: a.todayBills > 0,
+      isNew: a.isNew, hasActivity: a.totalBills > 0,
+      dormantDays: dormantDays, isDormant3: dormantDays >= 3,
+      isDormant7: dormantDays >= 7, isDormant14: dormantDays >= 14,
     };
   });
 
-  // Compute header stats
-  var statToday = 0, statVIP = 0, statNew = 0, statAmount = 0;
+  var statToday = 0, statVIP = 0, statNew = 0, statAmount = 0, statDormant = 0;
   enriched.forEach(function(e) {
     if (e.isActiveToday) statToday++;
     if (e.isVIP) statVIP++;
     if (e.isNew) statNew++;
     statAmount += e.act.todayAmount;
+    if (e.isDormant3) statDormant++;
   });
   var sT = document.getElementById('custStatToday'); if (sT) sT.textContent = statToday;
   var sV = document.getElementById('custStatVIP'); if (sV) sV.textContent = statVIP;
   var sN = document.getElementById('custStatNew'); if (sN) sN.textContent = statNew;
   var sA = document.getElementById('custStatAmount'); if (sA) sA.textContent = '฿' + (statAmount || 0).toLocaleString('en-US', {maximumFractionDigits: 0});
+  var sD = document.getElementById('custStatDormant'); if (sD) sD.textContent = statDormant;
 
-  // Filter
   var filtered = enriched.filter(function(e) {
-    // Search
     if (search) {
       var txt = (e.c.name + ' ' + e.c.uid + ' ' + (e.c.aliases || []).join(' ')).toLowerCase();
       if (txt.indexOf(search) === -1) return false;
     }
-    // Filter dropdown
     if (filter === 'today' && !e.isActiveToday) return false;
     if (filter === 'vip' && !e.isVIP) return false;
     if (filter === 'new' && !e.isNew) return false;
     if (filter === 'inactive' && e.hasActivity) return false;
+    if (filter === 'dormant3' && !e.isDormant3) return false;
+    if (filter === 'dormant7' && !e.isDormant7) return false;
+    if (filter === 'dormant14' && !e.isDormant14) return false;
     return true;
   });
 
-  // Sort
   filtered.sort(function(a, b) {
     if (sort === 'recent') return b.act.lastTs - a.act.lastTs;
     if (sort === 'amount') return b.act.totalAmount - a.act.totalAmount;
@@ -3004,17 +3124,28 @@ function renderContactsPage() {
     return 0;
   });
 
-  // Update counts
+  // Show/hide broadcast bar
+  var isDormantFilter = filter.indexOf('dormant') === 0;
+  var bbBar = document.getElementById('broadcastBar');
+  if (bbBar) {
+    if (isDormantFilter && filtered.length > 0) {
+      bbBar.classList.add('show');
+      var bbCount = document.getElementById('bbCount');
+      if (bbCount) bbCount.textContent = filtered.length;
+    } else {
+      bbBar.classList.remove('show');
+    }
+  }
+  window._broadcastList = isDormantFilter ? filtered : [];
+
   var countEl = document.getElementById('contactsPageCount');
   if (countEl) countEl.textContent = (search || filter !== 'all' ? filtered.length + '/' + contacts.length : contacts.length) + ' รายชื่อ';
   var navCount = document.getElementById('navContactCount');
   if (navCount) navCount.textContent = contacts.length;
 
   if (!filtered.length) {
-    el.innerHTML = '<div class="cust-empty">' +
-      '<div class="ico">' + (contacts.length ? '🔍' : '👥') + '</div>' +
-      (contacts.length ? 'ไม่พบรายชื่อตามเงื่อนไขที่เลือก' : 'ยังไม่มีรายชื่อลูกค้า — เมื่อลูกค้าทักมาทาง LINE ระบบจะเพิ่มอัตโนมัติ') +
-    '</div>';
+    el.innerHTML = '<div class="cust-empty"><div class="ico">' + (contacts.length ? '🔍' : '👥') + '</div>' +
+      (contacts.length ? 'ไม่พบรายชื่อตามเงื่อนไขที่เลือก' : 'ยังไม่มีรายชื่อลูกค้า — เมื่อลูกค้าทักมาทาง LINE ระบบจะเพิ่มอัตโนมัติ') + '</div>';
     return;
   }
 
@@ -3022,15 +3153,12 @@ function renderContactsPage() {
     var c = e.c, idx = e.idx, a = e.act;
     var avClass = e.isVIP ? 'vip' : (e.isActiveToday ? 'active' : '');
     var initial = esc((c.name || '?').substring(0, 2));
-
-    // Badges
     var badges = '';
     if (e.isVIP) badges += '<span class="cust-badge-sm vip">💎 VIP</span>';
     if (e.isActiveToday) badges += '<span class="cust-badge-sm active">🔥 วันนี้</span>';
     if (e.isNew) badges += '<span class="cust-badge-sm new">🆕 ใหม่</span>';
+    if (e.isDormant3 && !e.isActiveToday) badges += '<span class="cust-badge-sm dormant">😴 หาย ' + e.dormantDays + ' วัน</span>';
     if (c.aliases && c.aliases.length) badges += '<span class="cust-badge-sm alias" title="ชื่อเรียก: ' + esc(c.aliases.join(', ')) + '">🏷️ ' + c.aliases.length + '</span>';
-
-    // Sub info
     var subParts = [];
     if (a.todayBills > 0) {
       subParts.push('<span><b>' + a.todayBills + '</b> บิลวันนี้</span>');
@@ -3043,39 +3171,18 @@ function renderContactsPage() {
     if (a.totalBills > 0) {
       subParts.push('<span>รวม <b>' + a.totalBills + '</b> บิล · ฿' + (a.totalAmount || 0).toLocaleString('en-US', {maximumFractionDigits: 0}) + '</span>');
     }
-
-    // Right side (amount + time) or actions (on hover)
-    var amount, timeStr;
-    if (a.todayAmount > 0) {
-      amount = '฿' + a.todayAmount.toLocaleString('en-US', {maximumFractionDigits: 0});
-    } else {
-      amount = '<span class="dim">—</span>';
-    }
-    timeStr = timeAgo(a.lastTs);
-
+    var amount = a.todayAmount > 0 ? '฿' + a.todayAmount.toLocaleString('en-US', {maximumFractionDigits: 0}) : '<span class="dim">—</span>';
+    var timeStr = timeAgo(a.lastTs);
     return '<div class="cust-row" onclick="openCustStats(\'' + esc(c.uid) + '\')">' +
-      // Avatar with status dot
       '<div class="cust-row-av ' + avClass + '" onclick="event.stopPropagation();openCustStats(\'' + esc(c.uid) + '\')">' + initial + '</div>' +
-      // Main
-      '<div class="cust-row-main">' +
-        '<div class="cust-row-name-row">' +
-          '<div class="cust-row-name">' + esc(c.name) + '</div>' +
-          badges +
-        '</div>' +
-        '<div class="cust-row-sub">' + subParts.join('') + '</div>' +
-      '</div>' +
-      // Right (amount+time OR actions on hover)
-      '<div class="cust-row-right">' +
-        '<div class="cust-row-amount">' + amount + '</div>' +
-        '<div class="cust-row-time">' + esc(timeStr || '—') + '</div>' +
-      '</div>' +
+      '<div class="cust-row-main"><div class="cust-row-name-row"><div class="cust-row-name">' + esc(c.name) + '</div>' + badges + '</div><div class="cust-row-sub">' + subParts.join('') + '</div></div>' +
+      '<div class="cust-row-right"><div class="cust-row-amount">' + amount + '</div><div class="cust-row-time">' + esc(timeStr || '—') + '</div></div>' +
       '<div class="cust-row-actions" onclick="event.stopPropagation()">' +
         '<button class="cust-btn-ico primary" onclick="openCustStats(\'' + esc(c.uid) + '\')" title="ดูสถิติ">📊</button>' +
         '<button class="cust-btn-ico" onclick="promptAddAlias(' + idx + ')" title="เพิ่มชื่อเรียก">🏷️</button>' +
         '<button class="cust-btn-ico" onclick="promptSendMsg(\'' + esc(c.uid) + '\',\'' + esc(c.name) + '\')" title="ส่งข้อความ">💬</button>' +
         '<button class="cust-btn-ico danger" onclick="deleteContactPage(' + idx + ')" title="ลบ">🗑️</button>' +
-      '</div>' +
-    '</div>';
+      '</div></div>';
   }).join('');
 }
 
@@ -3113,6 +3220,77 @@ function exportContactsCSV() {
   a.click();
   URL.revokeObjectURL(url);
   toastSuccess('Export ' + contacts.length + ' รายชื่อเรียบร้อย');
+}
+
+// ═══════════════════════════════════════════════════
+// Broadcast — ส่งข้อความเรียกลูกค้ากลับทั้งกลุ่ม
+// ═══════════════════════════════════════════════════
+window._broadcastList = [];
+
+function openBroadcastModal() {
+  var list = window._broadcastList || [];
+  if (!list.length) { toastWarn('ไม่มีรายชื่อให้ส่ง'); return; }
+  var modal = document.getElementById('broadcastModal');
+  modal.classList.add('show');
+  document.getElementById('bmProgress').style.display = 'none';
+  document.getElementById('bmProgressBar').style.width = '0%';
+  document.getElementById('bmSendBtn').disabled = false;
+  document.getElementById('bmSendBtn').textContent = '📲 ส่งทั้งหมด ' + list.length + ' คน';
+  document.getElementById('bmRecipCount').textContent = list.length;
+  document.getElementById('bmRecipients').innerHTML = list.map(function(e) {
+    var days = e.dormantDays || 0;
+    var amt = (e.act.totalAmount || 0).toLocaleString('en-US', {maximumFractionDigits: 0});
+    return '<div class="bm-recip-row"><div class="bm-rname">' + esc(e.c.name) + '</div><div class="bm-rinfo">หาย ' + days + ' วัน · ฿' + amt + '</div></div>';
+  }).join('');
+  updateBroadcastPreview();
+}
+
+function closeBroadcastModal() {
+  document.getElementById('broadcastModal').classList.remove('show');
+}
+
+function updateBroadcastPreview() {
+  var msg = document.getElementById('bmMessage').value || '';
+  var list = window._broadcastList || [];
+  var sample = list.length ? list[0] : null;
+  var preview = msg;
+  if (sample) {
+    preview = preview.replace(/\{name\}/g, sample.c.name || 'ลูกค้า');
+    preview = preview.replace(/\{days\}/g, String(sample.dormantDays || 0));
+    preview = preview.replace(/\{amount\}/g, (sample.act.totalAmount || 0).toLocaleString('en-US', {maximumFractionDigits: 0}));
+  }
+  var el = document.getElementById('bmPreview');
+  if (el) el.textContent = preview;
+}
+
+async function executeBroadcast() {
+  var list = window._broadcastList || [];
+  var template = (document.getElementById('bmMessage').value || '').trim();
+  if (!template) { toastWarn('กรุณาพิมพ์ข้อความก่อน'); return; }
+  if (!list.length) { toastWarn('ไม่มีรายชื่อให้ส่ง'); return; }
+  var ok = await confirmDialog({ type: 'info', title: 'ยืนยันส่งข้อความ', message: 'ส่งข้อความหาลูกค้า ' + list.length + ' คน ที่หายไป?', okText: '📲 ส่งเลย', icon: '📢' });
+  if (!ok) return;
+  var btn = document.getElementById('bmSendBtn');
+  btn.disabled = true; btn.textContent = '⏳ กำลังส่ง...';
+  document.getElementById('bmProgress').style.display = 'block';
+  var success = 0, fail = 0;
+  for (var i = 0; i < list.length; i++) {
+    var e = list[i];
+    var msg = template.replace(/\{name\}/g, e.c.name || 'ลูกค้า').replace(/\{days\}/g, String(e.dormantDays || 0)).replace(/\{amount\}/g, (e.act.totalAmount || 0).toLocaleString('en-US', {maximumFractionDigits: 0}));
+    document.getElementById('bmProgressText').textContent = 'กำลังส่ง ' + (i + 1) + '/' + list.length + ' — ' + esc(e.c.name);
+    document.getElementById('bmProgressBar').style.width = Math.round(((i + 1) / list.length) * 100) + '%';
+    try {
+      var r = await fetch(BASE + '/api/send', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ userId: e.c.uid, message: msg }) });
+      var d = await r.json();
+      if (d.ok) success++; else fail++;
+    } catch (err) { fail++; }
+    if (i < list.length - 1) await new Promise(function(resolve) { setTimeout(resolve, 80); });
+  }
+  document.getElementById('bmProgressText').textContent = 'เสร็จแล้ว! ส่งสำเร็จ ' + success + ' คน' + (fail > 0 ? ' · ล้มเหลว ' + fail + ' คน' : '');
+  btn.textContent = '✅ เสร็จแล้ว';
+  if (success > 0) toastSuccess('ส่งข้อความสำเร็จ ' + success + '/' + list.length + ' คน');
+  if (fail > 0) toastWarn('ส่งไม่สำเร็จ ' + fail + ' คน');
+  setTimeout(function() { closeBroadcastModal(); btn.disabled = false; btn.textContent = '📲 ส่งทั้งหมด'; }, 2000);
 }
 
 function addContactPage() {
@@ -4473,6 +4651,28 @@ checkAuth();
   <div style="background:var(--surface);border:1px solid var(--line-hi);border-radius:18px;padding:20px;max-width:90%;max-height:90vh;display:flex;flex-direction:column;gap:12px">
     <img id="imgPreviewContent" style="max-width:100%;max-height:75vh;border-radius:10px;display:block">
     <button class="btn btn-ghost btn-sm" onclick="closeImgPreview()" style="align-self:flex-end">✕ ปิด</button>
+  </div>
+</div>
+
+<!-- Broadcast Modal -->
+<div class="broadcast-modal-backdrop" id="broadcastModal" onclick="if(event.target===this)closeBroadcastModal()">
+  <div class="broadcast-modal">
+    <h3>📢 ส่งข้อความเรียกลูกค้ากลับ</h3>
+    <div class="bm-label">📝 ข้อความที่จะส่ง</div>
+    <textarea id="bmMessage" oninput="updateBroadcastPreview()" placeholder="พิมพ์ข้อความ...">สวัสดีค่ะ {name} 🎉 คิดถึงนะคะ หายไป {days} วันแล้ว กลับมาเล่นกันเถอะ! 💰</textarea>
+    <div class="bm-var-hint">ตัวแปร: <code>{name}</code> = ชื่อลูกค้า · <code>{days}</code> = วันที่หายไป · <code>{amount}</code> = ยอดฝากรวม</div>
+    <div class="bm-label">👁️ ตัวอย่างข้อความ</div>
+    <div class="bm-preview" id="bmPreview"></div>
+    <div class="bm-label">👥 รายชื่อที่จะส่ง (<span id="bmRecipCount">0</span> คน)</div>
+    <div class="bm-recipients" id="bmRecipients"></div>
+    <div id="bmProgress" style="display:none;margin-top:12px">
+      <div style="font-size:13px;color:var(--t2);margin-bottom:6px" id="bmProgressText"></div>
+      <div style="height:6px;background:var(--surface);border-radius:3px;overflow:hidden"><div id="bmProgressBar" style="height:100%;background:var(--gold);width:0%;transition:width .3s;border-radius:3px"></div></div>
+    </div>
+    <div class="bm-footer">
+      <button class="btn btn-ghost" onclick="closeBroadcastModal()">ยกเลิก</button>
+      <button class="btn btn-gold" id="bmSendBtn" onclick="executeBroadcast()">📲 ส่งทั้งหมด</button>
+    </div>
   </div>
 </div>
 

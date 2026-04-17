@@ -306,36 +306,8 @@ function buildCustomFooter(cfg) {
   };
 }
 
-// ── Bank logo URLs (Thai banks) ──
-// Bank logo mapping - uses self-hosted icons on Vercel
-// Bank icon base URL - will be set dynamically from request
-var BANK_ICON_BASE = '';
-var BANK_LOGOS = {
-  'กสิกรไทย': BANK_ICON_BASE + 'KBANK.svg',
-  'KBANK': BANK_ICON_BASE + 'KBANK.svg',
-  'ไทยพาณิชย์': BANK_ICON_BASE + 'SCB.svg',
-  'SCB': BANK_ICON_BASE + 'SCB.svg',
-  'กรุงเทพ': BANK_ICON_BASE + 'BBL.svg',
-  'BBL': BANK_ICON_BASE + 'BBL.svg',
-  'กรุงไทย': BANK_ICON_BASE + 'KTB.svg',
-  'KTB': BANK_ICON_BASE + 'KTB.svg',
-  'กรุงศรี': BANK_ICON_BASE + 'BAY.svg',
-  'BAY': BANK_ICON_BASE + 'BAY.svg',
-  'ทหารไทยธนชาต': BANK_ICON_BASE + 'TTB.svg',
-  'TTB': BANK_ICON_BASE + 'TTB.svg',
-  'ออมสิน': BANK_ICON_BASE + 'GSB.svg',
-  'GSB': BANK_ICON_BASE + 'GSB.svg',
-  'ธ.ก.ส.': BANK_ICON_BASE + 'BAAC.svg',
-  'BAAC': BANK_ICON_BASE + 'BAAC.svg',
-  'พร้อมเพย์': BANK_ICON_BASE + 'PPAY.svg',
-  'PromptPay': BANK_ICON_BASE + 'PPAY.svg',
-};
-
 var THUNDER_QR_LOGO = 'https://www.thunder.in.th/assets/images/thunder-qr-logo.png';
 
-// ── Hero banner images for Flex header ──
-// URLs are loaded from slipConfig in Redis (set via dashboard)
-// Fallback to text header if no URL provided
 function getHeroImages(slipConfig) {
   var cfg = slipConfig || {};
   return {
@@ -346,16 +318,7 @@ function getHeroImages(slipConfig) {
   };
 }
 
-function getBankLogo(bankName) {
-  if (!bankName) return null;
-  for (var key in BANK_LOGOS) {
-    if (bankName.includes(key)) return BANK_LOGOS[key];
-  }
-  return null;
-}
-
 // Bank logos - self-hosted PNG on Vercel
-// Bank icon base URL - will be set dynamically from request
 var BANK_ICON_BASE = '';
 var BANK_LOGOS = {
   'กสิกรไทย': 'KBANK', 'Kasikorn': 'KBANK', 'KBANK': 'KBANK',
@@ -656,10 +619,6 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST, GET, or DELETE only' });
 
   // ── POST: LINE webhook events ──
-  // Set bank icon base URL from request host
-  var reqHost = req.headers.host || 'ruaytanjaiwebhook.vercel.app';
-  BANK_ICON_BASE = 'https://' + reqHost + '/banks/';
-
   // Verify LINE signature
   var signature = req.headers['x-line-signature'] || '';
   if (!config.verifySignature(req.body, signature)) {
@@ -714,7 +673,7 @@ module.exports = async (req, res) => {
         }
 
         result = await verifySlip(imgBuf);
-        slipRecord.raw = result;
+        slipRecord.raw = result ? { success: result.success, error: result.error || null } : null;
         
         // ── Debug: Log Thunder API response for troubleshooting ──
         console.log('Thunder API response:', JSON.stringify({
@@ -740,13 +699,28 @@ module.exports = async (req, res) => {
             slipError: slipRecord.errorReason,
           });
         } else {
-          // ── ตรวจไม่สำเร็จ (ไม่ใช่สลิป, ไม่มี QR, pending, etc.) → เงียบ ไม่ตอบ ──
-          await store.addEvent({
-            id: slipRecord.id, timestamp: Date.now(), source: 'line',
-            userId: uid, name: displayName,
-            text: 'image-skip (' + ((result.error && result.error.code) || (result.error && result.error.message) || 'unknown') + ')',
-            type: 'message',
-          });
+          // ── ตรวจไม่สำเร็จ → แยกกรณี ──
+          if (isSlipPending(result)) {
+            await replyMessage(replyToken, [buildPendingFlex(slipConfig)]);
+            await store.addEvent({
+              id: slipRecord.id, timestamp: Date.now(), source: 'line',
+              userId: uid, name: displayName, text: 'slip-pending', type: 'slip',
+            });
+          } else if (isSlipNotFound(result)) {
+            await replyMessage(replyToken, [buildNoQrFlex(slipConfig)]);
+            await store.addEvent({
+              id: slipRecord.id, timestamp: Date.now(), source: 'line',
+              userId: uid, name: displayName, text: 'slip-no-qr', type: 'slip',
+            });
+          } else {
+            // ไม่ใช่สลิป (VALIDATION_ERROR, รูปทั่วไป) → เงียบ ไม่ตอบ
+            await store.addEvent({
+              id: slipRecord.id, timestamp: Date.now(), source: 'line',
+              userId: uid, name: displayName,
+              text: 'image-skip (' + ((result.error && result.error.code) || (result.error && result.error.message) || 'unknown') + ')',
+              type: 'message',
+            });
+          }
         }
       } catch (e) {
         slipRecord.status = 'fail';
