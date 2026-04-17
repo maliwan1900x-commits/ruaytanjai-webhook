@@ -2060,27 +2060,49 @@ function cleanName(name) {
 function findUid(name) {
   var clean = cleanName(name);
   if (!clean) return null;
+
+  // Collect ALL matches with scores
+  var matches = [];
+
   for (var i = 0; i < contacts.length; i++) {
     var c = contacts[i];
-    if (cleanName(c.name) === clean) return c.uid;
-    if (c.aliases && Array.isArray(c.aliases)) {
+    var score = 0;
+
+    // Exact match
+    if (cleanName(c.name) === clean) score = 100;
+    // Alias exact match
+    if (!score && c.aliases && Array.isArray(c.aliases)) {
       for (var j = 0; j < c.aliases.length; j++) {
-        if (cleanName(c.aliases[j]) === clean) return c.uid;
+        if (cleanName(c.aliases[j]) === clean) { score = 100; break; }
       }
     }
-  }
-  for (var i = 0; i < contacts.length; i++) {
-    var c = contacts[i];
-    var cClean = cleanName(c.name);
-    if (cClean && (cClean.indexOf(clean) !== -1 || clean.indexOf(cClean) !== -1)) return c.uid;
-    if (c.aliases && Array.isArray(c.aliases)) {
+    // Substring match
+    if (!score) {
+      var cClean = cleanName(c.name);
+      if (cClean && (cClean.indexOf(clean) !== -1 || clean.indexOf(cClean) !== -1)) score = 50;
+    }
+    if (!score && c.aliases && Array.isArray(c.aliases)) {
       for (var j = 0; j < c.aliases.length; j++) {
         var aClean = cleanName(c.aliases[j]);
-        if (aClean && (aClean.indexOf(clean) !== -1 || clean.indexOf(aClean) !== -1)) return c.uid;
+        if (aClean && (aClean.indexOf(clean) !== -1 || clean.indexOf(aClean) !== -1)) { score = 50; break; }
       }
     }
+
+    if (score > 0) {
+      matches.push({ uid: c.uid, score: score, lastSeen: c.lastSeen || c.lastActive || 0, hasBills: (c.totalBills || 0) > 0 });
+    }
   }
-  return null;
+
+  if (!matches.length) return null;
+
+  // Sort: highest score first, then most recent activity, then has bills
+  matches.sort(function(a, b) {
+    if (b.score !== a.score) return b.score - a.score;
+    if (b.lastSeen !== a.lastSeen) return b.lastSeen - a.lastSeen;
+    return (b.hasBills ? 1 : 0) - (a.hasBills ? 1 : 0);
+  });
+
+  return matches[0].uid;
 }
 
 function toggleVis(id) { var el = document.getElementById(id); el.type = el.type === 'password' ? 'text' : 'password'; }
