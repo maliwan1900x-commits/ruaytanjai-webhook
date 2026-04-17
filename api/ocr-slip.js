@@ -28,11 +28,6 @@ var TITLE_RE = /^[\s\(\)\[\]0]*(นาย|นาง(?!สาว)|นางสา
 
 function cleanName(s) {
   if (!s) return '';
-  return s.replace(/x{2,}[\-]?[\dx]*[\-]?[\d]*/gi, '').replace(/\d{3,}[\-]\d[\-][\w]+/g, '').replace(/[\d]+/g, '').replace(/[\u{1F300}-\u{1FAFF}]/gu, '').replace(/^[\s\-:,\.]+|[\s\-:,\.]+$/g, '').trim();
-}
-
-function cleanName(s) {
-  if (!s) return '';
   return s
     .replace(/^\s*[\(\)\[\]0]+\s*/, '')                    // leading (), (0), [0] etc
     .replace(/x{2,}[\-]?[\dx]*[\-]?[\d]*/gi, '')          // xxx-xxx123
