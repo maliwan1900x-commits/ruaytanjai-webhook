@@ -65,6 +65,8 @@ async function verifySlip(imageBuffer) {
       boundary + '--\r\n'
     ),
   ]);
+  var controller = new AbortController();
+  var timeout = setTimeout(function() { controller.abort(); }, 8000);
   var r = await fetch(THUNDER_API, {
     method: 'POST',
     headers: {
@@ -72,7 +74,9 @@ async function verifySlip(imageBuffer) {
       'Content-Type': 'multipart/form-data; boundary=' + boundary,
     },
     body: body,
+    signal: controller.signal,
   });
+  clearTimeout(timeout);
   return await r.json();
 }
 

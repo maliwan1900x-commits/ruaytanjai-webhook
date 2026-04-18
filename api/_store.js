@@ -16,6 +16,8 @@ var KEYS = {
 
 var MAX_SLIPS = 1500;
 var MAX_EVENTS = 1500;
+var MAX_PROFILES = 2000;
+var MAX_CONTACTS = 2000;
 
 // ── Slips ──
 async function addSlip(slip) {
@@ -73,6 +75,12 @@ async function saveProfile(userId, profile) {
     var raw = await config.kvGet(KEYS.profiles);
     var profiles = raw ? JSON.parse(raw) : {};
     profiles[userId] = profile;
+    // Trim oldest profiles if exceeding limit
+    var keys = Object.keys(profiles);
+    if (keys.length > MAX_PROFILES) {
+      var excess = keys.length - MAX_PROFILES;
+      for (var i = 0; i < excess; i++) { delete profiles[keys[i]]; }
+    }
     await config.kvSet(KEYS.profiles, JSON.stringify(profiles));
     return true;
   } catch (e) {
@@ -110,6 +118,10 @@ async function getContacts() {
 }
 
 async function saveContacts(contacts) {
+  // Trim oldest if exceeding limit
+  if (contacts.length > MAX_CONTACTS) {
+    contacts = contacts.slice(contacts.length - MAX_CONTACTS);
+  }
   return await config.kvSet(KEYS.contacts, JSON.stringify(contacts));
 }
 

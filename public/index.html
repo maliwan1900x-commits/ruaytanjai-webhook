@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>รวยทันใจ — Admin Dashboard</title>
+<title>เฮงทันใจ — Admin Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -491,25 +491,137 @@ textarea.inp { resize: vertical; min-height: 140px; }
 /* ─── Auth overlay ─── */
 .auth-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(10,11,15,.95);
+  background: var(--bg);
   z-index: 9999;
   display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(10px);
+  overflow: hidden;
 }
+.auth-bg-glow1 {
+  position: absolute; width: 600px; height: 600px; top: -15%; right: -10%;
+  background: radial-gradient(circle, rgba(232,193,92,.06) 0%, transparent 70%);
+  border-radius: 50%; animation: authFloat1 20s ease-in-out infinite; pointer-events: none;
+}
+.auth-bg-glow2 {
+  position: absolute; width: 500px; height: 500px; bottom: -20%; left: -10%;
+  background: radial-gradient(circle, rgba(232,193,92,.04) 0%, transparent 70%);
+  border-radius: 50%; animation: authFloat2 25s ease-in-out infinite; pointer-events: none;
+}
+.auth-bg-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(232,193,92,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(232,193,92,.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  pointer-events: none;
+}
+@keyframes authFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-30px,20px) scale(1.1)} }
+@keyframes authFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(20px,-30px) scale(1.05)} }
 .auth-box {
-  background: var(--surface);
+  background: linear-gradient(165deg, rgba(26,29,42,.95) 0%, rgba(18,20,30,.98) 100%);
   border: 1px solid var(--accent-line);
-  border-radius: 20px; padding: 40px;
-  max-width: 380px; width: 90%;
+  border-radius: 24px; padding: 48px 40px 40px;
+  max-width: 420px; width: 90%;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 0 1px rgba(232,193,92,.05), 0 20px 60px rgba(0,0,0,.5), 0 0 120px rgba(232,193,92,.03);
+  animation: authCardIn .8s cubic-bezier(.16,1,.3,1) both;
+  position: relative; overflow: hidden;
+}
+.auth-box::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 200px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: .5;
+}
+@keyframes authCardIn { from{opacity:0;transform:translateY(30px) scale(.96)} to{opacity:1;transform:translateY(0) scale(1)} }
+.auth-brand-icon {
+  width: 72px; height: 72px; margin: 0 auto 16px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%);
+  border-radius: 20px; display: flex; align-items: center; justify-content: center;
+  font-size: 32px; font-weight: 800; color: #0a0b0f; font-family: var(--font-display);
+  box-shadow: 0 8px 24px rgba(232,193,92,.2), 0 0 0 4px rgba(232,193,92,.08);
+  position: relative;
+}
+.auth-brand-icon::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 24px;
+  border: 1px solid rgba(232,193,92,.15);
 }
 .auth-box h2 {
   font-family: var(--font-display);
-  font-size: 22px; font-weight: 700;
-  margin-bottom: 10px; color: var(--gold);
+  font-size: 26px; font-weight: 700; letter-spacing: -.5px;
+  margin-bottom: 6px; color: var(--gold);
 }
-.auth-box p { font-size: 14px; color: var(--t3); margin-bottom: 20px; }
+.auth-box .auth-sub { font-size: 13px; color: var(--t3); margin-bottom: 32px; letter-spacing: .5px; }
+.auth-input-wrap { position: relative; margin-bottom: 20px; text-align: left; }
+.auth-input-label { display: block; font-size: 12px; font-weight: 600; color: var(--t2); margin-bottom: 8px; letter-spacing: .5px; text-transform: uppercase; }
+.auth-input-inner { position: relative; }
+.auth-input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--t3); pointer-events: none; transition: color .3s; }
+.auth-input {
+  width: 100%; background: rgba(255,255,255,.04); border: 1px solid var(--line);
+  border-radius: 14px; padding: 15px 50px 15px 46px; font-size: 15px;
+  font-family: var(--mono); color: var(--t0); outline: none; transition: all .3s; letter-spacing: 2px;
+}
+.auth-input::placeholder { color: var(--t3); font-family: var(--font-body); letter-spacing: 0; font-size: 14px; }
+.auth-input:focus { border-color: var(--gold); background: rgba(232,193,92,.04); box-shadow: 0 0 0 3px rgba(232,193,92,.08); }
+.auth-input:focus ~ .auth-input-icon, .auth-input-inner:focus-within .auth-input-icon { color: var(--gold); }
+.auth-toggle-pass {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--t3); cursor: pointer; padding: 4px;
+  transition: color .2s; display: flex; align-items: center;
+}
+.auth-toggle-pass:hover { color: var(--t2); }
+.auth-remember { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+.auth-check {
+  appearance: none; -webkit-appearance: none; width: 18px; height: 18px;
+  border: 1.5px solid var(--t3); border-radius: 5px; cursor: pointer; position: relative; transition: all .2s; flex-shrink: 0;
+}
+.auth-check:checked { background: var(--gold); border-color: var(--gold); }
+.auth-check:checked::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 12px; font-weight: 700; color: #0a0b0f; }
+.auth-remember label { font-size: 13px; color: var(--t3); cursor: pointer; user-select: none; }
+.auth-btn {
+  width: 100%; padding: 16px; border: none; border-radius: 14px;
+  font-size: 15px; font-weight: 600; font-family: var(--font-body);
+  cursor: pointer; transition: all .3s; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%);
+  color: #0a0b0f; box-shadow: 0 4px 16px rgba(232,193,92,.2);
+}
+.auth-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,193,92,.3); }
+.auth-btn:active { transform: translateY(0); }
+.auth-btn .ab-text { display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .3s; }
+.auth-btn.loading .ab-text { opacity: 0; }
+.auth-btn .ab-spin {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 22px; height: 22px; border: 2.5px solid rgba(10,11,15,.2);
+  border-top-color: #0a0b0f; border-radius: 50%; opacity: 0; transition: opacity .3s;
+}
+.auth-btn.loading .ab-spin { opacity: 1; animation: authSpin .6s linear infinite; }
+@keyframes authSpin { to{transform:translate(-50%,-50%) rotate(360deg)} }
+.auth-error {
+  text-align: center; font-size: 13px; color: var(--red); margin-top: 16px;
+  padding: 10px 14px; background: rgba(248,113,113,.06); border: 1px solid rgba(248,113,113,.12);
+  border-radius: 10px; display: none; align-items: center; justify-content: center; gap: 6px;
+}
+.auth-error.show { display: flex; animation: authShake .4s ease; }
+@keyframes authShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+.auth-footer { text-align: center; margin-top: 24px; font-size: 11px; color: var(--t3); opacity: .5; }
+.auth-success-overlay {
+  position: absolute; inset: 0; background: rgba(12,14,20,.9);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: 24px; opacity: 0; pointer-events: none; transition: opacity .4s; z-index: 2;
+}
+.auth-box.success .auth-success-overlay { opacity: 1; }
+.auth-success-check {
+  width: 56px; height: 56px; background: rgba(74,222,128,.1);
+  border: 2px solid var(--green); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; margin-bottom: 12px; animation: authPopIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.auth-success-text { font-size: 15px; font-weight: 600; color: var(--green); animation: authFadeUp .4s .15s both; }
+@keyframes authPopIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes authFadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+@media (max-width: 480px) {
+  .auth-box { padding: 36px 28px 32px; border-radius: 20px; }
+  .auth-brand-icon { width: 60px; height: 60px; font-size: 26px; border-radius: 16px; }
+  .auth-box h2 { font-size: 22px; }
+}
 
 /* ─── Prize hero ─── */
 .prize-hero {
@@ -1172,21 +1284,47 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
 
 <!-- ═══ Auth overlay ═══ -->
 <div class="auth-overlay" id="authOverlay" style="display:none">
-  <div class="auth-box">
-    <div style="font-size:36px;margin-bottom:12px">👑</div>
-    <h2>รวยทันใจ</h2>
-    <p>เข้าสู่ระบบ Admin Dashboard</p>
-    <div style="text-align:left;margin-bottom:14px">
-      <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px">🔑 รหัสผ่าน</div>
-      <input class="inp inp-mono" id="authKeyInput" type="password" placeholder="ใส่รหัสผ่าน..." style="width:100%;text-align:center;padding:13px 16px" onkeydown="if(event.key==='Enter')authLogin()">
+  <div class="auth-bg-glow1"></div>
+  <div class="auth-bg-glow2"></div>
+  <div class="auth-bg-grid"></div>
+  <div class="auth-box" id="authBox">
+    <div class="auth-success-overlay">
+      <div class="auth-success-check">✓</div>
+      <div class="auth-success-text">เข้าสู่ระบบสำเร็จ</div>
     </div>
-    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2);margin-bottom:14px;cursor:pointer"><input type="checkbox" id="authRemember" checked style="accent-color:var(--gold)"> จดจำการเข้าสู่ระบบ</label>
-    <button class="btn btn-gold" onclick="authLogin()" style="width:100%;justify-content:center;padding:13px;font-size:14px">🔓 เข้าสู่ระบบ</button>
-    <div id="authError" style="color:var(--red);font-size:12px;margin-top:10px;display:none">❌ รหัสผ่านไม่ถูกต้อง</div>
+    <div class="auth-brand-icon">R</div>
+    <h2>เฮงทันใจ</h2>
+    <div class="auth-sub">Admin Dashboard</div>
+    <div class="auth-input-wrap">
+      <div class="auth-input-label">รหัสผ่าน</div>
+      <div class="auth-input-inner">
+        <svg class="auth-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <input class="auth-input" id="authKeyInput" type="password" placeholder="ใส่รหัสผ่าน..." onkeydown="if(event.key==='Enter')authLogin()">
+        <button class="auth-toggle-pass" onclick="authTogglePass()" type="button">
+          <svg id="authEyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="auth-remember">
+      <input type="checkbox" class="auth-check" id="authRemember" checked>
+      <label for="authRemember">จดจำการเข้าสู่ระบบ</label>
+    </div>
+    <button class="auth-btn" id="authBtn" onclick="authLogin()">
+      <span class="ab-text">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        เข้าสู่ระบบ
+      </span>
+      <div class="ab-spin"></div>
+    </button>
+    <div class="auth-error" id="authError">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      <span id="authErrorText">รหัสผ่านไม่ถูกต้อง</span>
+    </div>
+    <div class="auth-footer">© 2026 Ruaytanjai. All rights reserved.</div>
   </div>
 </div>
 
-<div class="app">
+<div class="app" id="mainApp" style="display:none">
   <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
   <!-- ═══ SIDEBAR ═══ -->
@@ -1194,7 +1332,7 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
     <div class="brand">
       <div class="brand-mark">R</div>
       <div>
-        <div class="brand-name">รวยทันใจ</div>
+        <div class="brand-name">เฮงทันใจ</div>
         <div class="brand-tag">v3.0</div>
       </div>
     </div>
@@ -1996,7 +2134,7 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
 
 <script>
 // ═══════════════════════════════════════════════════
-// รวยทันใจ Admin Dashboard — Production v5
+// เฮงทันใจ Admin Dashboard — Production v5
 // ═══════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════
@@ -2137,32 +2275,64 @@ function getHeaders() {
   return h;
 }
 
+function authTogglePass() {
+  var inp = document.getElementById('authKeyInput');
+  var icon = document.getElementById('authEyeIcon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    inp.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
 async function authLogin() {
+  var btn = document.getElementById('authBtn');
+  var errEl = document.getElementById('authError');
+  var box = document.getElementById('authBox');
+  errEl.classList.remove('show');
+  
   API_KEY = document.getElementById('authKeyInput').value.trim();
   if (!API_KEY) {
-    document.getElementById('authError').textContent = '❌ กรุณาใส่รหัสผ่าน';
-    document.getElementById('authError').style.display = 'block';
+    document.getElementById('authErrorText').textContent = 'กรุณาใส่รหัสผ่าน';
+    errEl.classList.add('show');
     return;
   }
+  
+  btn.classList.add('loading');
+  btn.disabled = true;
+  
   try {
     var res = await fetch(BASE + '/api/kv?action=status', { headers: getHeaders() });
     if (res.status === 401) {
-      document.getElementById('authError').textContent = '❌ รหัสผ่านไม่ถูกต้อง';
-      document.getElementById('authError').style.display = 'block';
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      document.getElementById('authErrorText').textContent = 'รหัสผ่านไม่ถูกต้อง';
+      errEl.classList.add('show');
       API_KEY = '';
+      document.getElementById('authKeyInput').focus();
       return;
     }
-    document.getElementById('authOverlay').style.display = 'none';
-    // จดจำ login
-    var remember = document.getElementById('authRemember') && document.getElementById('authRemember').checked;
-    if (remember) {
-      localStorage.setItem('rtj_key', API_KEY);
-    }
-    sessionStorage.setItem('rtj_key', API_KEY);
-    startApp();
+    // Success animation
+    box.classList.add('success');
+    setTimeout(function() {
+      document.getElementById('authOverlay').style.display = 'none';
+      document.getElementById('mainApp').style.display = '';
+      box.classList.remove('success');
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      // จดจำ login
+      var remember = document.getElementById('authRemember') && document.getElementById('authRemember').checked;
+      if (remember) { localStorage.setItem('rtj_key', API_KEY); }
+      sessionStorage.setItem('rtj_key', API_KEY);
+      startApp();
+    }, 800);
   } catch (e) {
-    document.getElementById('authError').textContent = '❌ เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง';
-    document.getElementById('authError').style.display = 'block';
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    document.getElementById('authErrorText').textContent = 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง';
+    errEl.classList.add('show');
   }
 }
 
@@ -2176,11 +2346,14 @@ async function checkAuth() {
       sessionStorage.removeItem('rtj_key');
       API_KEY = '';
       document.getElementById('authOverlay').style.display = 'flex';
+      document.getElementById('mainApp').style.display = 'none';
       return;
     }
     document.getElementById('authOverlay').style.display = 'none';
+    document.getElementById('mainApp').style.display = '';
     startApp();
   } catch (e) {
+    document.getElementById('mainApp').style.display = '';
     startApp();
   }
 }
@@ -2316,7 +2489,7 @@ async function unlockWebhook() {
 async function poll() {
   try {
     var res = await fetch(BASE + '/api/webhook', { headers: getHeaders() });
-    if (res.status === 401) { document.getElementById('authOverlay').style.display = 'flex'; return; }
+    if (res.status === 401) { document.getElementById('mainApp').style.display = 'none'; document.getElementById('authOverlay').style.display = 'flex'; return; }
     var data = await res.json();
     if (!data.ok) return;
 
@@ -2342,9 +2515,10 @@ function doLogout() {
   localStorage.removeItem('rtj_key');
   sessionStorage.removeItem('rtj_key');
   API_KEY = '';
+  document.getElementById('mainApp').style.display = 'none';
   document.getElementById('authOverlay').style.display = 'flex';
   document.getElementById('authKeyInput').value = '';
-  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authError').classList.remove('show');
 }
 
 function kpiCard(icon, v, l, c) {
@@ -4861,7 +5035,7 @@ function startApp() {
   slipCfgPreview();
   prizePreview();
   poll();
-  setInterval(poll, 5000);
+  setInterval(poll, 15000);
   loadKvSettings();
   setInterval(loadKvSettings, 60000);
   // Withdraw tab setup
