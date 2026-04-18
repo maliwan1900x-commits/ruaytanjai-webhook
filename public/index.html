@@ -1357,6 +1357,10 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
         <span class="nav-icon">📊</span>
         <span class="nav-text">สรุปยอด</span>
       </div>
+      <div class="nav-item" data-page="chatmon" onclick="switchPage('chatmon', this)">
+        <span class="nav-icon">📋</span>
+        <span class="nav-text">แอดมินตอบแชท</span>
+      </div>
     </nav>
 
     <nav class="nav-group">
@@ -1801,6 +1805,89 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
         </div>
       </div>
 
+      <!-- ═══ CHATMON PAGE ═══ -->
+      <div class="tab-page" id="page-chatmon">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div class="sec-head" style="margin:0">แอดมินตอบแชท</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:2px">ติดตามการตอบแชทลูกค้าแบบ Realtime</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="status-dot on" style="width:8px;height:8px"></span>
+            <span style="font-size:12px;color:var(--t3)" id="cmLastUpdate">อัพเดตล่าสุด —</span>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-grid" id="cmKpis"></div>
+
+        <!-- Two column: waiting + timeline -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px" class="slip-grid-2col">
+          
+          <!-- Waiting -->
+          <div class="win-box" style="padding:0;overflow:hidden">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:14px;font-weight:700;color:var(--t1)">⏳ ลูกค้ารอตอบ</div>
+              <span class="bdg bdg-warn" id="cmWaitCount">0</span>
+            </div>
+            <div style="padding:14px 18px" id="cmWaitList">
+              <div style="text-align:center;padding:30px;color:var(--t3);font-size:13px">ไม่มีลูกค้ารอตอบ 🎉</div>
+            </div>
+            <div style="padding:0 18px 14px">
+              <div style="font-size:12px;color:var(--t3);margin-bottom:6px">เป้าหมาย: ตอบภายใน 5 นาที</div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="flex:1;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden">
+                  <div id="cmRespBar" style="height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--gold));transition:width 1s;width:0%"></div>
+                </div>
+                <span style="font-size:11px;color:var(--green);white-space:nowrap" id="cmRespPct">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="win-box" style="padding:0;overflow:hidden">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:14px;font-weight:700;color:var(--t1)">🕐 กิจกรรมล่าสุด</div>
+            </div>
+            <div style="padding:14px 18px;max-height:380px;overflow-y:auto" id="cmTimeline">
+              <div style="text-align:center;padding:30px;color:var(--t3);font-size:13px">ยังไม่มีกิจกรรมวันนี้</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Second row: hourly chart + lost customers -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px" class="slip-grid-2col">
+          
+          <!-- Hourly chart -->
+          <div class="win-box" style="padding:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div style="font-size:14px;font-weight:700;color:var(--t1)">📊 ลูกค้าทัก vs ส่งสลิป (รายชั่วโมง)</div>
+            </div>
+            <div style="display:flex;gap:14px;margin-bottom:10px;font-size:11px;color:var(--t3)">
+              <span>🔵 ทักเข้ามา</span><span>🟢 ส่งสลิป</span><span>🟡 พีค</span>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:4px;height:140px" id="cmHourChart"></div>
+          </div>
+
+          <!-- Lost customers -->
+          <div class="win-box" style="padding:0;overflow:hidden">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:14px;font-weight:700;color:var(--t1)">👻 ลูกค้าหายไปวันนี้</div>
+              <span class="bdg bdg-err" id="cmLostCount">0</span>
+            </div>
+            <div style="padding:14px 18px;max-height:340px;overflow-y:auto" id="cmLostList">
+              <div style="text-align:center;padding:30px;color:var(--t3);font-size:13px">ไม่มีลูกค้าหายไป 🎉</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Insights -->
+        <div class="win-box" style="padding:18px;margin-top:16px">
+          <div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:14px">💡 Insights วันนี้</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px" class="slip-grid-2col" id="cmInsights"></div>
+        </div>
+      </div>
+
       <!-- ═══ SETTINGS PAGE ═══ -->
       <div class="tab-page" id="page-settings">
 
@@ -2230,6 +2317,7 @@ var pageTitles = {
   prize:    { title: 'แจ้งรางวัลลูกค้า',   crumb: 'แจ้งรางวัล' },
   withdraw: { title: 'ส่งสลิปถอนให้ลูกค้า', crumb: 'ส่งสลิปถอน' },
   summary:  { title: 'สรุปยอด',           crumb: 'สรุปยอด' },
+  chatmon:  { title: 'แอดมินตอบแชท',     crumb: 'แอดมินตอบแชท' },
   contacts: { title: 'จัดการรายชื่อลูกค้า', crumb: 'ลูกค้า' },
   events:   { title: 'Webhook Events',    crumb: 'Events' },
   webhook:  { title: 'ตั้งค่า Webhook',   crumb: 'Webhook' },
@@ -2509,7 +2597,7 @@ async function poll() {
 }
 
 // ═══ RENDER ═══
-function renderAll() { renderSlipKpi(); renderLiveFeed(); renderSlipTable(); renderSummaryKpi(); renderErrChart(); renderDailySummary(); renderContacts(); try { renderContactsPage(); } catch(e) {} }
+function renderAll() { renderSlipKpi(); renderLiveFeed(); renderSlipTable(); renderSummaryKpi(); renderErrChart(); renderDailySummary(); renderContacts(); try { renderContactsPage(); } catch(e) {} try { renderChatmon(); } catch(e) {} }
 
 function doLogout() {
   localStorage.removeItem('rtj_key');
@@ -5026,6 +5114,200 @@ async function confirmReset(scope) {
       toastError(j.error || 'ล้างไม่สำเร็จ');
     }
   } catch (e) { toastError(e.message); }
+}
+
+// ═══ CHATMON (แอดมินตอบแชท) ═══
+function renderChatmon() {
+  if (!document.getElementById('page-chatmon')) return;
+  
+  var now = new Date();
+  var todayStr = now.toISOString().slice(0,10);
+  
+  // Filter today's events and slips
+  var todayEvents = allEvents.filter(function(e) { return isToday(e.timestamp); });
+  var todaySlips = allSlips.filter(function(s) { return isToday(s.timestamp); });
+  
+  // Unique customers who messaged today (by userId)
+  var msgUsers = {};
+  todayEvents.forEach(function(e) {
+    if (e.userId && e.userId.startsWith('U')) {
+      if (!msgUsers[e.userId]) {
+        msgUsers[e.userId] = { name: e.name || e.userId.slice(-6), firstMsg: e.timestamp, lastMsg: e.timestamp, msgs: [], hasSlip: false };
+      }
+      msgUsers[e.userId].msgs.push(e);
+      if (e.timestamp > msgUsers[e.userId].lastMsg) msgUsers[e.userId].lastMsg = e.timestamp;
+      if (e.timestamp < msgUsers[e.userId].firstMsg) msgUsers[e.userId].firstMsg = e.timestamp;
+    }
+  });
+  
+  // Mark users who sent slips
+  var slipUsers = {};
+  todaySlips.forEach(function(s) {
+    if (s.userId) { slipUsers[s.userId] = true; }
+  });
+  Object.keys(msgUsers).forEach(function(uid) {
+    if (slipUsers[uid]) msgUsers[uid].hasSlip = true;
+  });
+  
+  var userList = Object.keys(msgUsers).map(function(uid) { return Object.assign({ uid: uid }, msgUsers[uid]); });
+  var totalMsg = userList.length;
+  var replied = userList.filter(function(u) { return u.hasSlip; }).length;
+  var lost = userList.filter(function(u) { return !u.hasSlip && (now - new Date(u.lastMsg)) > 30 * 60000; }).length;
+  var waiting = userList.filter(function(u) { return !u.hasSlip && (now - new Date(u.lastMsg)) <= 30 * 60000; });
+  
+  // Avg response time (time between first message and first slip)
+  var respTimes = [];
+  todaySlips.forEach(function(s) {
+    if (s.userId && msgUsers[s.userId]) {
+      var diff = new Date(s.timestamp) - new Date(msgUsers[s.userId].firstMsg);
+      if (diff > 0 && diff < 3600000) respTimes.push(diff);
+    }
+  });
+  var avgResp = respTimes.length > 0 ? respTimes.reduce(function(a,b){return a+b},0) / respTimes.length / 60000 : 0;
+  var within5 = respTimes.filter(function(t) { return t <= 300000; }).length;
+  var respPct = respTimes.length > 0 ? Math.round(within5 / respTimes.length * 100) : 0;
+  
+  // Update time
+  document.getElementById('cmLastUpdate').textContent = 'อัพเดตล่าสุด ' + now.toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
+  
+  // KPIs
+  var replyPct = totalMsg > 0 ? (replied / totalMsg * 100).toFixed(1) : '0';
+  var lostPct = totalMsg > 0 ? (lost / totalMsg * 100).toFixed(1) : '0';
+  var waitMax = 0;
+  waiting.forEach(function(w) { var d = (now - new Date(w.lastMsg)) / 60000; if (d > waitMax) waitMax = d; });
+  
+  document.getElementById('cmKpis').innerHTML =
+    '<div class="kpi"><div class="kpi-icon">💬</div><div class="kpi-val" style="color:var(--blue)">' + totalMsg + '</div><div class="kpi-label">ลูกค้าทักวันนี้</div></div>' +
+    '<div class="kpi"><div class="kpi-icon">✅</div><div class="kpi-val" style="color:var(--green)">' + replied + '</div><div class="kpi-label">ส่งสลิปแล้ว</div><div style="position:absolute;top:14px;right:14px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--green-bg);color:var(--green)">' + replyPct + '%</div></div>' +
+    '<div class="kpi"><div class="kpi-icon">⏳</div><div class="kpi-val" style="color:var(--amber)">' + waiting.length + '</div><div class="kpi-label">รอตอบ</div>' + (waitMax > 0 ? '<div style="position:absolute;top:14px;right:14px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--amber-bg);color:var(--amber)">นานสุด ' + Math.floor(waitMax) + ' น.</div>' : '') + '</div>' +
+    '<div class="kpi"><div class="kpi-icon">⏱️</div><div class="kpi-val" style="color:var(--gold)">' + (avgResp > 0 ? avgResp.toFixed(1) : '—') + '<span style="font-size:14px;color:var(--t3)"> นาที</span></div><div class="kpi-label">เวลาเฉลี่ยก่อนส่งสลิป</div></div>' +
+    '<div class="kpi"><div class="kpi-icon">👻</div><div class="kpi-val" style="color:var(--red)">' + lost + '</div><div class="kpi-label">หายไป (ไม่มีสลิป)</div>' + (lost > 0 ? '<div style="position:absolute;top:14px;right:14px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--red-bg);color:var(--red)">' + lostPct + '%</div>' : '') + '</div>';
+  
+  // Response bar
+  document.getElementById('cmRespBar').style.width = respPct + '%';
+  document.getElementById('cmRespPct').textContent = respPct + '% ภายใน 5 นาที';
+  document.getElementById('cmRespPct').style.color = respPct >= 80 ? 'var(--green)' : respPct >= 50 ? 'var(--amber)' : 'var(--red)';
+  
+  // Waiting list
+  document.getElementById('cmWaitCount').textContent = waiting.length;
+  if (waiting.length > 0) {
+    waiting.sort(function(a,b) { return new Date(a.lastMsg) - new Date(b.lastMsg); });
+    document.getElementById('cmWaitList').innerHTML = waiting.map(function(w) {
+      var mins = (now - new Date(w.lastMsg)) / 60000;
+      var mStr = mins >= 60 ? Math.floor(mins/60) + ':' + String(Math.floor(mins%60)).padStart(2,'0') : Math.floor(mins) + ':' + String(Math.floor((mins%1)*60)).padStart(2,'0');
+      var color = mins > 10 ? 'var(--red)' : mins > 5 ? 'var(--amber)' : 'var(--green)';
+      var initial = w.name.charAt(0).toUpperCase();
+      var lastText = w.msgs[w.msgs.length-1] ? (w.msgs[w.msgs.length-1].text || w.msgs[w.msgs.length-1].type || '—').slice(0,30) : '—';
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)">' +
+        '<div style="width:38px;height:38px;border-radius:10px;background:' + color + ';display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--bg);flex-shrink:0">' + esc(initial) + '</div>' +
+        '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(w.name) + '</div><div style="font-size:11px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(lastText) + '</div></div>' +
+        '<div style="text-align:right;flex-shrink:0"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:' + color + '">' + mStr + '</div><div style="font-size:10px;color:var(--t3)">นาที</div></div></div>';
+    }).join('');
+  } else {
+    document.getElementById('cmWaitList').innerHTML = '<div style="text-align:center;padding:30px;color:var(--t3);font-size:13px">ไม่มีลูกค้ารอตอบ 🎉</div>';
+  }
+  
+  // Timeline (last 20 events + slips merged)
+  var tlItems = [];
+  todayEvents.slice(0,30).forEach(function(e) {
+    tlItems.push({ time: e.timestamp, type: 'msg', name: e.name || '—', text: e.text || e.type || '', userId: e.userId });
+  });
+  todaySlips.slice(0,20).forEach(function(s) {
+    var amt = s.amount ? '฿' + fmtMoney(s.amount) : '';
+    var status = s.success ? '✅ ตรวจผ่าน' : '❌ ไม่ผ่าน';
+    tlItems.push({ time: s.timestamp, type: 'slip', name: s.senderName || s.sender || '—', text: amt + ' · ' + status, userId: s.userId });
+  });
+  tlItems.sort(function(a,b) { return new Date(b.time) - new Date(a.time); });
+  tlItems = tlItems.slice(0,15);
+  
+  if (tlItems.length > 0) {
+    document.getElementById('cmTimeline').innerHTML = '<div style="position:relative;padding-left:20px">' +
+      '<div style="position:absolute;left:6px;top:8px;bottom:8px;width:2px;background:var(--line)"></div>' +
+      tlItems.map(function(t) {
+        var isSlip = t.type === 'slip';
+        var isLost = t.type === 'msg' && !slipUsers[t.userId] && (now - new Date(t.time)) > 1800000;
+        var dotColor = isSlip ? 'var(--green)' : isLost ? 'var(--red)' : 'var(--amber)';
+        var dotBg = isSlip ? 'var(--green-bg)' : isLost ? 'var(--red-bg)' : 'var(--amber-bg)';
+        var timeStr = new Date(t.time).toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
+        var label = isSlip ? 'ส่งสลิป ' + t.text : isLost ? 'ทักแล้วหายไป' : 'ทักเข้ามา';
+        return '<div style="position:relative;padding:8px 0 8px 16px">' +
+          '<div style="position:absolute;left:-17px;top:12px;width:10px;height:10px;border-radius:50%;border:2px solid ' + dotColor + ';background:' + dotBg + '"></div>' +
+          '<div style="font-family:var(--mono);font-size:11px;color:var(--t3)">' + timeStr + '</div>' +
+          '<div style="font-size:13px;color:var(--t1);margin-top:2px"><strong style="color:var(--t0)">' + esc(t.name) + '</strong> ' + label + '</div>' +
+          '</div>';
+      }).join('') +
+      '</div>';
+  }
+  
+  // Hourly chart
+  var hourMsg = new Array(24).fill(0);
+  var hourSlip = new Array(24).fill(0);
+  todayEvents.forEach(function(e) { if (e.userId && e.userId.startsWith('U')) { var h = new Date(e.timestamp).getHours(); hourMsg[h]++; } });
+  todaySlips.forEach(function(s) { var h = new Date(s.timestamp).getHours(); hourSlip[h]++; });
+  var maxH = Math.max.apply(null, hourMsg.concat(hourSlip)) || 1;
+  var startH = 8, endH = Math.min(now.getHours() + 1, 24);
+  if (startH >= endH) endH = startH + 1;
+  
+  var chartHtml = '';
+  for (var h = startH; h < endH; h++) {
+    var hMsg = Math.max((hourMsg[h] / maxH) * 100, 2);
+    var hSlip = Math.max((hourSlip[h] / maxH) * 100, 2);
+    var isPeak = hourMsg[h] === maxH && maxH > 0;
+    var barColor = isPeak ? 'var(--gold)' : 'var(--green)';
+    chartHtml += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end">' +
+      '<div style="display:flex;gap:2px;align-items:flex-end;width:100%;height:100%">' +
+      '<div style="flex:1;height:' + hMsg + '%;background:var(--blue);opacity:.4;border-radius:3px 3px 0 0;min-height:2px" title="ทัก ' + hourMsg[h] + ' คน"></div>' +
+      '<div style="flex:1;height:' + hSlip + '%;background:' + barColor + ';border-radius:3px 3px 0 0;min-height:2px" title="สลิป ' + hourSlip[h] + ' ใบ"></div>' +
+      '</div>' +
+      '<div style="font-family:var(--mono);font-size:9px;color:var(--t3)">' + String(h).padStart(2,'0') + '</div></div>';
+  }
+  document.getElementById('cmHourChart').innerHTML = chartHtml;
+  
+  // Lost customers
+  var lostUsers = userList.filter(function(u) { return !u.hasSlip && (now - new Date(u.lastMsg)) > 30 * 60000; });
+  lostUsers.sort(function(a,b) { return new Date(b.lastMsg) - new Date(a.lastMsg); });
+  document.getElementById('cmLostCount').textContent = lostUsers.length;
+  
+  if (lostUsers.length > 0) {
+    document.getElementById('cmLostList').innerHTML = lostUsers.slice(0,10).map(function(u) {
+      var mins = (now - new Date(u.lastMsg)) / 60000;
+      var timeStr = mins >= 60 ? Math.floor(mins/60) + ' ชม.' : Math.floor(mins) + ' นาที';
+      var lastText = u.msgs[u.msgs.length-1] ? (u.msgs[u.msgs.length-1].text || u.msgs[u.msgs.length-1].type || '').slice(0,25) : '';
+      var msgTime = new Date(u.lastMsg).toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
+      var initial = u.name.charAt(0).toUpperCase();
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)">' +
+        '<div style="width:36px;height:36px;border-radius:10px;background:var(--red-bg);border:1px solid rgba(248,113,113,.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--red);flex-shrink:0">' + esc(initial) + '</div>' +
+        '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--t1)">' + esc(u.name) + '</div><div style="font-size:11px;color:var(--t3);margin-top:1px">ทักเมื่อ ' + msgTime + (lastText ? ' · "' + esc(lastText) + '"' : '') + ' · ไม่มีสลิป</div></div>' +
+        '<div style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--red-bg);color:var(--red);white-space:nowrap">' + timeStr + '</div></div>';
+    }).join('');
+  } else {
+    document.getElementById('cmLostList').innerHTML = '<div style="text-align:center;padding:30px;color:var(--t3);font-size:13px">ไม่มีลูกค้าหายไป 🎉</div>';
+  }
+  
+  // Insights
+  var insHtml = '';
+  // Insight 1: reply rate
+  var rColor = replyPct >= 80 ? 'green' : replyPct >= 50 ? 'amber' : 'red';
+  var rIcon = replyPct >= 80 ? '✅' : replyPct >= 50 ? '⚠️' : '❌';
+  insHtml += '<div style="background:var(--' + rColor + '-bg);border:1px solid rgba(var(--' + rColor + '),.12);border-radius:12px;padding:16px">' +
+    '<div style="font-size:13px;font-weight:600;color:var(--' + rColor + ');margin-bottom:4px">' + rIcon + ' อัตราส่งสลิป ' + replyPct + '%</div>' +
+    '<div style="font-size:12px;color:var(--t2)">ส่งสลิปแล้ว ' + replied + ' จาก ' + totalMsg + ' คน' + (totalMsg > 0 && replyPct < 90 ? ' · เพิ่มอีก ' + Math.ceil(totalMsg * 0.9 - replied) + ' คนถึง 90%' : '') + '</div></div>';
+  
+  // Insight 2: peak hour
+  var peakH = 0, peakV = 0;
+  hourMsg.forEach(function(v,i) { if (v > peakV) { peakV = v; peakH = i; } });
+  insHtml += '<div style="background:var(--amber-bg);border:1px solid rgba(251,191,36,.12);border-radius:12px;padding:16px">' +
+    '<div style="font-size:13px;font-weight:600;color:var(--amber);margin-bottom:4px">⏳ ช่วงพีค ' + String(peakH).padStart(2,'0') + ':00</div>' +
+    '<div style="font-size:12px;color:var(--t2)">ลูกค้าทักเยอะสุด ' + peakV + ' คน · ควรมีแอดมินพร้อมตอบช่วงนี้</div></div>';
+  
+  // Insight 3: lost revenue estimate
+  var avgSlipAmt = todaySlips.length > 0 ? todaySlips.reduce(function(s,sl) { return s + (sl.amount || 0); }, 0) / todaySlips.length : 100;
+  var lostEst = Math.round(lost * avgSlipAmt);
+  insHtml += '<div style="background:var(--red-bg);border:1px solid rgba(248,113,113,.12);border-radius:12px;padding:16px">' +
+    '<div style="font-size:13px;font-weight:600;color:var(--red);margin-bottom:4px">👻 ลูกค้าหาย ' + lost + ' คน</div>' +
+    '<div style="font-size:12px;color:var(--t2)">เฉลี่ยคนละ ฿' + fmtMoney(avgSlipAmt) + ' = เสียประมาณ ฿' + lostEst.toLocaleString() + '</div></div>';
+  
+  document.getElementById('cmInsights').innerHTML = insHtml;
 }
 
 // ═══ START APP ═══
