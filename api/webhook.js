@@ -66,7 +66,7 @@ async function verifySlip(imageBuffer) {
     ),
   ]);
   var controller = new AbortController();
-  var timeout = setTimeout(function() { controller.abort(); }, 8000);
+  var timeout = setTimeout(function() { controller.abort(); }, 12000);
   var r = await fetch(THUNDER_API, {
     method: 'POST',
     headers: {

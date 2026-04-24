@@ -23,13 +23,14 @@ var BANK_PATTERNS = [
 ];
 var FROM_KEYS = ['จาก', 'ผู้โอน', 'ต้นทาง'];
 var TO_KEYS = ['ไปยัง', 'ไปที่', 'ไป ยัง', 'ผู้รับ', 'ปลายทาง', 'โอนให้'];
-var NOT_NAME_RE = /^(จาก|ไปยัง|ไปที่|ไป ยัง|ผู้โอน|ผู้รับ|ต้นทาง|ปลายทาง|โอนให้|from|to|ค่าธรรมเนียม|เลขที่|รหัสอ้างอิง|วันที่|โอนเงิน|สำเร็จ|ธนาคาร|บัญชี|พร้อมเพย์|promptpay|line bk|scb|kbank|fee|ref|หมายเหตุ|ดาวน์โหลด|qr code)$/i;
+var NOT_NAME_RE = /^(จาก|ไปยัง|ไปที่|ไป ยัง|ผู้โอน|ผู้รับ|ต้นทาง|ปลายทาง|โอนให้|from|to|ค่าธรรมเนียม|เลขที่|รหัสอ้างอิง|วันที่|โอนเงิน|สำเร็จ|ธนาคาร|บัญชี|พร้อมเพย์|promptpay|line bk|liner|kliner|bk liner|scb|kbank|fee|ref|หมายเหตุ|ดาวน์โหลด|qr code)$/i;
 var TITLE_RE = /^[\s\(\)\[\]0]*(นาย|นาง(?!สาว)|นางสาว|น\.ส\.|น\. ?ส\.|MR\.?|MRS\.?|MS\.?|MISS)\s+/i;
 
 function cleanName(s) {
   if (!s) return '';
   return s
     .replace(/^\s*[\(\)\[\]0]+\s*/, '')                    // leading (), (0), [0] etc
+    .replace(/\b(?:K?LINER?|BK\s*LINER?|LINE\s*BK|Powered\s*by\s*KBank)\b/gi, '') // LINE BK watermark junk
     .replace(/x{2,}[\-]?[\dx]*[\-]?[\d]*/gi, '')          // xxx-xxx123
     .replace(/\d{3,}[\-]\d[\-][\w]+/g, '')                // 414-4-xxx030
     .replace(/[\d]+/g, '')                                  // remaining digits
@@ -53,7 +54,7 @@ function isLikelyName(line) {
   if (/^\d/.test(l)) return false;
   if (/^[\d,\.]+\s*(บาท|THB|฿)?$/.test(l)) return false;
   if (/^[xX\d\-\.]+$/.test(l)) return false;
-  if (/ค่าธรรมเนียม|fee|ธนาคาร|bank|บัญชี|สาขา|ref|เลขที่|หมายเหตุ|ดาวน์โหลด|qr|line bk|โอนเงิน|สำเร็จ/i.test(l)) return false;
+  if (/ค่าธรรมเนียม|fee|ธนาคาร|bank|บัญชี|สาขา|ref|เลขที่|หมายเหตุ|ดาวน์โหลด|qr|line bk|liner|kliner|bk liner|powered by|โอนเงิน|สำเร็จ/i.test(l)) return false;
   if (TITLE_RE.test(l)) return true;
   var thai = l.replace(/[^ก-๙\s\.]/g, '').trim();
   return thai.split(/\s+/).length >= 2 && thai.length >= 4;
@@ -90,6 +91,8 @@ function findNameAfterKeyword(lines, keyList) {
 function parseSlipText(fullText) {
   var result = { receiverName: '', senderName: '', amount: '', amountNum: 0, bank: '', bankCode: '', date: '', refCode: '', rawText: fullText };
   if (!fullText) return result;
+  // ── Pre-clean: ลบ watermark ของ LINE BK ที่ซ้ำๆ ก่อน parse ──
+  fullText = fullText.replace(/\b(?:LINE\s*BK|BK\s*LINE|KLINER|BK\s*LINER)\b/gi, ' ').replace(/\s{2,}/g, ' ');
   var lines = fullText.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
 
   // ── Owner names (ชื่อเจ้าของบัญชีที่ใช้โอนถอน) ──

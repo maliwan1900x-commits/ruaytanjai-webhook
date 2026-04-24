@@ -32,6 +32,28 @@ function matchReceiverToContact(receiverName, lookupTable) {
 
   for (var key in lookupTable) {
     var entry = lookupTable[key];
+    
+    // เช็ค slipNames ก่อน (ชื่อที่เคยจับคู่แล้ว — ความแม่นสูงสุด)
+    var slipNames = entry.slipNames || [];
+    for (var sn = 0; sn < slipNames.length; sn++) {
+      var snNorm = normalizeName(slipNames[sn]);
+      if (!snNorm) continue;
+      var snScore = 0;
+      if (snNorm === target) snScore = 1.0;
+      else if (snNorm.indexOf(target) !== -1 || target.indexOf(snNorm) !== -1) snScore = 0.9;
+      if (snScore > bestScore) {
+        bestScore = snScore;
+        best = {
+          userId: entry.userId,
+          displayName: entry.displayName,
+          senderName: entry.senderName,
+          confidence: snScore,
+          matchedVia: 'slipName',
+        };
+      }
+    }
+
+    // เช็ค senderName (จากสลิปฝากเดิม)
     var cand = normalizeName(entry.senderName);
     if (!cand) continue;
 
@@ -51,6 +73,7 @@ function matchReceiverToContact(receiverName, lookupTable) {
         displayName: entry.displayName,
         senderName: entry.senderName,
         confidence: score,
+        matchedVia: 'senderName',
       };
     }
   }
@@ -178,10 +201,42 @@ module.exports = async (req, res) => {
     return res.status(400).json({ ok: false, error: 'unknown GET action' });
   }
 
-  // ── POST: ส่งสลิปถอนเป็น batch ──
+  // ── POST: ส่งสลิปถอนเป็น batch หรือ save match ──
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
   var body = req.body || {};
+  var action = (req.query && req.query.action) || body.action || '';
+
+  // ── save_match: จำการจับคู่ชื่อในสลิป ↔ userId ──
+  if (action === 'save_match') {
+    try {
+      var userId = body.userId;
+      var slipName = body.slipName;
+      if (!userId || !slipName) return res.status(400).json({ ok: false, error: 'userId and slipName required' });
+
+      // โหลด slipNames เดิมของ user นี้
+      var existing = [];
+      try {
+        var raw = await config.kvGet('slipnames:' + userId);
+        if (raw) existing = JSON.parse(raw);
+      } catch(e) {}
+
+      // Normalize แล้วเช็คว่ามีอยู่แล้วไหม
+      var normNew = normalizeName(slipName);
+      var alreadyExists = existing.some(function(n) { return normalizeName(n) === normNew; });
+      if (!alreadyExists) {
+        existing.push(slipName);
+        // จำกัดสูงสุด 20 ชื่อต่อ user
+        if (existing.length > 20) existing = existing.slice(existing.length - 20);
+        await config.kvSet('slipnames:' + userId, JSON.stringify(existing));
+      }
+
+      return res.status(200).json({ ok: true, userId: userId, slipNames: existing });
+    } catch(e) {
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+
   var items = Array.isArray(body.items) ? body.items : [];
   if (!items.length) return res.status(400).json({ ok: false, error: 'items required' });
 

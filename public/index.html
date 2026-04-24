@@ -1559,6 +1559,7 @@ td { padding: 20px 22px !important; font-size: 15px !important; }
             </div>
           </div>
           <div class="prog-wrap"><div class="prog-fill" id="prizeProg" style="width:0"></div></div>
+          <div style="margin:12px 0"><input class="inp" id="prizeSearch" placeholder="🔍 ค้นหาชื่อผู้โชคดี..." oninput="prizeFilterCards()" style="max-width:360px"></div>
           <div id="prizeCards"></div>
         </div>
 
@@ -2459,7 +2460,9 @@ function cleanName(name) {
   return stripPrefix(name).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}❤️💛💚💙💜🖤💗💖✨🎀👑]/gu, '').replace(/["""''`*_~#@!]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
-// ═══ USER-ID FIX: Enhanced findUid with better matching ═══
+// ═══ USER-ID FIX: Enhanced findUid with STRICT matching ═══
+// ไม่ใช้ fuzzy/substring อีกแล้ว — ต้อง exact match หรือ alias เท่านั้น
+// ป้องกันส่งผิดคน!
 function findUid(name) {
   var clean = cleanName(name);
   if (!clean) return null;
@@ -2490,13 +2493,14 @@ function findUid(name) {
         if (cleanName(c.aliases[j]) === clean) { score = 100; break; }
       }
     }
-    // Substring match — use length ratio (ชื่อยาวใกล้เคียง = score สูงกว่า)
+    // Substring match — เฉพาะเมื่อ ratio >= 80% เท่านั้น (ชื่อต้องยาวใกล้เคียงกัน)
     if (!score) {
       var cClean = cleanName(c.name);
       if (cClean && (cClean.indexOf(clean) !== -1 || clean.indexOf(cClean) !== -1)) {
         var shorter = Math.min(cClean.length, clean.length);
         var longer = Math.max(cClean.length, clean.length);
-        score = 30 + Math.round((shorter / longer) * 20); // 30-50
+        var ratio = shorter / longer;
+        if (ratio >= 0.8) score = 70;  // ชื่อยาวใกล้เคียงกัน = น่าจะคนเดียวกัน
       }
     }
     if (!score && c.aliases && Array.isArray(c.aliases)) {
@@ -2505,8 +2509,8 @@ function findUid(name) {
         if (aClean && (aClean.indexOf(clean) !== -1 || clean.indexOf(aClean) !== -1)) {
           var shorter = Math.min(aClean.length, clean.length);
           var longer = Math.max(aClean.length, clean.length);
-          score = 30 + Math.round((shorter / longer) * 20);
-          break;
+          var ratio = shorter / longer;
+          if (ratio >= 0.8) { score = 70; break; }
         }
       }
     }
@@ -3347,8 +3351,21 @@ function prizeRenderCards() {
     var msg = buildTextMsg(w);
     if (s.done) return '<div class="win-card sent"><div class="win-card-head"><span class="win-name">' + esc(w.name) + '</span><span class="win-prize">฿' + fmtMoney(w.prize) + '</span></div><div style="display:flex;align-items:center;gap:8px"><span class="bdg bdg-ok">✅ แจ้งแล้ว' + (s.mode ? ' (' + s.mode + ')' : '') + '</span><button class="btn btn-ghost btn-sm" onclick="prizeUndo(' + i + ')">↩</button></div></div>';
     var linkBtn = hasUid ? '' : '<button class="btn btn-ghost btn-sm" style="color:var(--amber);border:1px solid var(--amber)" onclick="prizeLinkUid(' + i + ')">🔗 ผูก userId</button>';
-    return '<div class="win-card"><div class="win-card-head"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="win-name">' + esc(w.name) + '</span>' + (hasUid ? '<span class="bdg bdg-ok" style="font-size:10px">🟢 userId✓</span>' : '<span class="bdg bdg-warn" style="font-size:10px">⚠️ ไม่มี userId</span>') + '</div><span class="win-prize">฿' + fmtMoney(w.prize) + '</span></div><div style="background:var(--bg-1);border-radius:10px;padding:12px;font-size:12px;color:var(--t3);white-space:pre-wrap;line-height:1.7;margin:10px 0">' + esc(msg) + '</div><div class="win-actions">' + (hasUid ? '<button class="btn btn-gold btn-sm" onclick="prizeSendOne(' + i + ',\'flex\')">📲 Flex</button><button class="btn btn-blue btn-sm" onclick="prizeSendOne(' + i + ',\'text\')">📝 Text</button>' : linkBtn + '<button class="btn btn-ghost btn-sm" disabled style="opacity:.4;cursor:not-allowed">📲 ไม่มี userId</button>') + '<button class="btn btn-ghost btn-sm" onclick="prizeCopyMsg(' + i + ')">📋 ก๊อบ</button><button class="btn btn-green btn-sm" onclick="prizeMark(' + i + ')">✅ ส่งแล้ว</button></div></div>';
+    var changeBtn = hasUid ? '<button class="btn btn-ghost btn-sm" style="color:var(--t3);font-size:11px" onclick="prizeLinkUid(' + i + ')">🔄 เปลี่ยน</button>' : '';
+    return '<div class="win-card"><div class="win-card-head"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="win-name">' + esc(w.name) + '</span>' + (hasUid ? '<span class="bdg bdg-ok" style="font-size:10px">🟢 userId✓</span>' + changeBtn : '<span class="bdg bdg-warn" style="font-size:10px">⚠️ ไม่มี userId</span>') + '</div><span class="win-prize">฿' + fmtMoney(w.prize) + '</span></div><div style="background:var(--bg-1);border-radius:10px;padding:12px;font-size:12px;color:var(--t3);white-space:pre-wrap;line-height:1.7;margin:10px 0">' + esc(msg) + '</div><div class="win-actions">' + (hasUid ? '<button class="btn btn-gold btn-sm" onclick="prizeSendOne(' + i + ',\'flex\')">📲 Flex</button><button class="btn btn-blue btn-sm" onclick="prizeSendOne(' + i + ',\'text\')">📝 Text</button>' : linkBtn + '<button class="btn btn-ghost btn-sm" disabled style="opacity:.4;cursor:not-allowed">📲 ไม่มี userId</button>') + '<button class="btn btn-ghost btn-sm" onclick="prizeCopyMsg(' + i + ')">📋 ก๊อบ</button><button class="btn btn-green btn-sm" onclick="prizeMark(' + i + ')">✅ ส่งแล้ว</button></div></div>';
   }).join('');
+}
+
+function prizeFilterCards() {
+  var search = (document.getElementById('prizeSearch').value || '').toLowerCase().trim();
+  var cards = document.getElementById('prizeCards').children;
+  for (var i = 0; i < cards.length; i++) {
+    if (!search || (winW[i] && winW[i].name.toLowerCase().indexOf(search) !== -1)) {
+      cards[i].style.display = '';
+    } else {
+      cards[i].style.display = 'none';
+    }
+  }
 }
 
 function prizeLinkUid(winIdx) {
